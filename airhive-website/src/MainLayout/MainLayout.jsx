@@ -9,10 +9,12 @@ import Services from "../Pages/Services/Services";
 import Contact from "../Pages/Contact/Contact";
 import Footer from "../Components/Footer/Footer";
 import Error from "../Pages/Error/Error";
+import ScrollToTop from "../Components/ScrollToTop/ScrollToTop";
 
 const MainLayout = () => {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Navbar />
       <Routes>
         <Route path="/" element={<Home/>} />
