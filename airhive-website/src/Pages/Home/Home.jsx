@@ -94,8 +94,7 @@ const Home = () => {
       {/* Sección de Video */}
       <VideoSlider />
 
-      {/* Sección de Footer */}
-      <Footer />
+      
     </>
   );
 };

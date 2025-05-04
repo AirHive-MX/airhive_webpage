@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import logo from "/Air Hive Log.png";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -14,23 +15,35 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Detectar si estamos en la página de About
+  const isAboutPage = location.pathname === "/about";
+  const isContactPage = location.pathname === "/contact";
+
   return (
     <nav
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-        scrolled ? "backdrop-blur bg-[#0f0f0f]/70 border-b border-red-700 shadow-md" : "bg-transparent"
+        scrolled
+          ? "backdrop-blur bg-[#0f0f0f]/70 border-b border-red-700 shadow-md"
+          : "bg-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center text-white">
+      <div
+        className={`max-w-7xl mx-auto px-6 py-4 flex justify-between items-center transition-colors duration-300 ${
+          (isAboutPage || isContactPage) && !scrolled ? "text-black" : "text-white"
+        }`}
+      >
         <Link to="/" className="flex items-center gap-3">
           <img src={logo} alt="Air Hive Logo" className="h-12 w-auto" />
         </Link>
 
-        <ul className="hidden md:flex gap-8 text-base font-medium">
-          {["/", "/about", "/products", "/services"].map((route, i) => (
+        <ul className="hidden md:flex gap-8 text-base font-medium transition-colors duration-300">
+          {["/", "/about", "/products", "/services", "/contact"].map((route, i) => (
             <li key={route}>
               <Link
                 to={route}
-                className="relative group transition py-1 px-1 hover:text-red-500"
+                className={`relative group transition py-1 px-1 hover:text-red-500 ${
+                  (isAboutPage || isContactPage) && !scrolled ? "text-black" : "text-white"
+                }`}
               >
                 {["Home", "About Us", "Products", "Services"][i]}
                 <span className="absolute left-0 -bottom-1 h-[2px] w-full bg-red-600 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
@@ -48,7 +61,7 @@ const Navbar = () => {
         </ul>
 
         <button className="md:hidden" onClick={() => setIsOpen(!isOpen)}>
-          <svg className="h-6 w-6 fill-white" viewBox="0 0 24 24">
+          <svg className={`h-6 w-6 ${isAboutPage && !scrolled ? "fill-black" : "fill-white"}`} viewBox="0 0 24 24">
             {isOpen ? (
               <path d="M6 18L18 6M6 6l12 12" />
             ) : (
@@ -65,7 +78,7 @@ const Navbar = () => {
               <Link
                 to={["/", "/about", "/products", "/services", "/contact"][i]}
                 onClick={() => setIsOpen(false)}
-                className="hover:text-red-500"
+                className="hover:text-red-500 text-white"
               >
                 {text}
               </Link>
