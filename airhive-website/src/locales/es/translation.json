@@ -1,0 +1,66 @@
+{
+    "navbar": {
+        "home": "Inicio",
+        "about": "Sobre nosotros",
+        "products": "Productos",
+        "services": "Servicios",
+        "contact": "Contáctanos"
+    },
+
+    "hero": {
+      "title1": "Tecnología aérea para el futuro",
+      "text1": "Desarrollamos drones autónomos e infraestructura inteligente para logística, vigilancia e innovación educativa.",
+      "title2": "Soluciones modulares e inteligentes",
+      "text2": "Desde diseño y fabricación hasta operación autónoma, cubrimos toda la cadena tecnológica.",
+      "title3": "Autonomía real para cada misión",
+      "text3": "Capacidad de decisión y vuelo inteligente en entornos complejos. Nuestra ingeniería vuela sola.",
+      "button_products": "Ver productos",
+      "button_about": "Conocer más"
+    },
+
+    "footer": {
+        "description": "Air Hive es una startup mexicana que desarrolla drones autónomos, estaciones inteligentes y soluciones para logística, seguridad y educación.",
+        "navigation": "Navegación",
+        "home": "Inicio",
+        "products": "Productos",
+        "about": "Nosotros",
+        "services": "Servicios",
+        "contact": "Contacto",
+        "resources": "Recursos",
+        "help_center": "Centro de ayuda",
+        "terms": "Términos y condiciones", 
+        "privacy": "Política de privacidad",
+        "downloads": "Descargas",
+        "follow": "Síguenos",
+        "rights_reserved": "Todos los derechos reservados."
+    },
+
+    "home": {
+        "intro_title": "Más que drones, construimos soluciones aéreas",
+        "intro_text": "En Air Hive desarrollamos drones autónomos, estaciones inteligentes y plataformas de software para industrias y centros educativos que buscan estar un paso adelante.",
+        "modular_title": "Ingeniería modular e intuitiva",
+        "modular_text": "Diseñamos nuestros propios frames y sistemas de control para que cada dron sea personalizable, reparable y eficiente. Pensamos en grande, fabricamos con precisión.",
+        "autonomy_title": "Autonomía lista para misiones reales",
+        "autonomy_text": "Nuestra tecnología permite que cada vuelo se adapte al entorno y cumpla su objetivo sin intervención constante. Seguridad, eficiencia y precisión en cada operación."
+    },
+
+    "products": {
+        "title": "Nuestros Productos",
+        "subtitle": "Drones educativos y personalizados para un futuro autónomo.",
+        "kit_title": "Kit Educativo “Arma tu Dron”",
+        "kit_description": "Diseñado para centros educativos, este kit permite a los estudiantes ensamblar un dron desde cero, comprender su funcionamiento y programarlo para ejecutar misiones autónomas. Incluye capacitación y tutoriales exclusivos por parte de nuestro equipo.",
+        "kit_feature1": "Compatible con software Open Source",
+        "kit_feature2": "Incluye GPS, IMU, ESCs, controladora de vuelo, estructura, hélices y más",
+        "kit_feature3": "Ideal para talleres, cursos de ingeniería y competencias educativas",
+        "kit_feature4": "Precio accesible y soporte directo con Air Hive",
+        "kit_button": "Solicita una cotización",
+        "custom_title": "Drones Personalizados",
+        "custom_description": "Fabricamos drones a la medida según las necesidades de nuestros clientes: desde drones FPV para acrobacias hasta plataformas profesionales para fotografía aérea o misiones completamente autónomas.",
+        "custom_feature1": "Diseños aerodinámicos optimizados",
+        "custom_feature2": "Componentes de alta calidad seleccionados según su uso",
+        "custom_feature3": "Integración de cámaras, GPS, LiDAR y más",
+        "custom_feature4": "Personalización visual y funcional",
+        "custom_button": "Contáctanos para tu diseño"
+    }
+
+} 

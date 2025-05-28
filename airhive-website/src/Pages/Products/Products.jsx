@@ -1,10 +1,25 @@
 import { motion } from "framer-motion";
-
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import hero1 from "/hero1.png";
-
+import kit from "/kitarmatudron.jpeg";
+import kit2 from "/kitarmatudron2.jpeg";
+import personalizado from "/dronpersonalizado.jpeg";
+import personalizado2 from "/personalizado2.jpeg";
 
 const Products = () => {
+  const { t } = useTranslation();
+  const [kitIndex, setKitIndex] = useState(0);
+  const kitImages = [kit, kit2];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setKitIndex((prev) => (prev + 1) % kitImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="bg-white text-black">
       {/* Hero personalizado */}
@@ -15,45 +30,56 @@ const Products = () => {
         <div className="bg-black/60 w-full h-full absolute top-0 left-0" />
         <div className="relative z-10 text-center px-6">
           <h1 className="text-5xl md:text-6xl font-bold text-white drop-shadow-lg animate-fade-in">
-            Nuestros Productos
+            {t("products.title")}
           </h1>
           <p className="mt-4 text-lg md:text-xl text-white drop-shadow-md animate-fade-in delay-200">
-            Drones educativos y personalizados para un futuro autónomo.
+            {t("products.subtitle")}
           </p>
-          
         </div>
       </div>
 
       {/* Sección Kit Educativo */}
       <section className="max-w-7xl mx-auto py-28 px-6 grid md:grid-cols-2 items-center gap-16">
-        <motion.img
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          src={hero1}
-          alt="Kit Arma tu Dron"
-          className="rounded-xl shadow-2xl w-full max-h-[520px] object-cover"
-        />
+          className="relative overflow-hidden rounded-xl shadow-2xl w-full max-h-[520px]"
+        >
+          <img
+            src={kitImages[kitIndex]}
+            alt="Kit Arma tu Dron"
+            className={`object-cover w-full h-full transition-transform duration-700 ${kitIndex === 0 ? "scale-200 -translate-x-6" : "scale-100 translate-x-0"}`}
+          />
+          <div className="absolute bottom-4 right-4 flex gap-2 z-10">
+            {kitImages.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setKitIndex(i)}
+                className={`w-3 h-3 rounded-full ${kitIndex === i ? "bg-red-600" : "bg-white/70"}`}
+              ></button>
+            ))}
+          </div>
+        </motion.div>
+
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <h2 className="text-4xl font-bold mb-6">Kit Educativo “Arma tu Dron”</h2>
-          <p className="text-lg text-gray-700 mb-6">
-            Diseñado para centros educativos, este kit permite a los estudiantes ensamblar un dron desde cero, comprender su funcionamiento y programarlo para ejecutar misiones autónomas. Incluye capacitación y tutoriales exclusivos por parte de nuestro equipo.
-          </p>
+          <h2 className="text-4xl font-bold mb-6">{t("products.kit_title")}</h2>
+          <p className="text-lg text-gray-700 mb-6">{t("products.kit_description")}</p>
           <ul className="list-disc pl-5 text-gray-800 space-y-2 mb-6">
-            <li>Compatible con software Open Source</li>
-            <li>Incluye GPS, IMU, ESCs, controladora de vuelo, estructura, hélices y más</li>
-            <li>Ideal para talleres, cursos de ingeniería y competencias educativas</li>
-            <li>Precio accesible y soporte directo con Air Hive</li>
+            <li>{t("products.kit_feature1")}</li>
+            <li>{t("products.kit_feature2")}</li>
+            <li>{t("products.kit_feature3")}</li>
+            <li>{t("products.kit_feature4")}</li>
           </ul>
           <Link
             to="/contact"
             className="inline-block px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-full font-semibold shadow transition hover:scale-105"
           >
-            Solicita una cotización
+            {t("products.kit_button")}
           </Link>
         </motion.div>
       </section>
@@ -66,21 +92,19 @@ const Products = () => {
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-4xl font-bold mb-6">Drones Personalizados</h2>
-            <p className="text-lg text-gray-700 mb-6">
-              Fabricamos drones a la medida según las necesidades de nuestros clientes: desde drones FPV para acrobacias hasta plataformas profesionales para fotografía aérea o misiones completamente autónomas.
-            </p>
+            <h2 className="text-4xl font-bold mb-6">{t("products.custom_title")}</h2>
+            <p className="text-lg text-gray-700 mb-6">{t("products.custom_description")}</p>
             <ul className="list-disc pl-5 text-gray-800 space-y-2 mb-6">
-              <li>Diseños aerodinámicos optimizados</li>
-              <li>Componentes de alta calidad seleccionados según su uso</li>
-              <li>Integración de cámaras, GPS, LiDAR y más</li>
-              <li>Personalización visual y funcional</li>
+              <li>{t("products.custom_feature1")}</li>
+              <li>{t("products.custom_feature2")}</li>
+              <li>{t("products.custom_feature3")}</li>
+              <li>{t("products.custom_feature4")}</li>
             </ul>
             <Link
               to="/contact"
               className="inline-block px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-full font-semibold shadow transition hover:scale-105"
             >
-              Contáctanos para tu diseño
+              {t("products.custom_button")}
             </Link>
           </motion.div>
 
@@ -91,20 +115,18 @@ const Products = () => {
             className="grid grid-cols-2 gap-4"
           >
             <img
-              src={hero1}
+              src={personalizado}
               className="rounded-xl shadow-lg object-cover w-full h-full"
               alt="Drone personalizado 1"
             />
             <img
-              src={hero1}
+              src={personalizado2}
               className="rounded-xl shadow-lg object-cover w-full h-full"
               alt="Drone personalizado 2"
             />
           </motion.div>
         </div>
       </section>
-
-      
     </div>
   );
 };

@@ -1,24 +1,27 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
+
 
 const slides = [
   {
     image: "/hero1.png",
-    title: "Tecnología aérea para el futuro",
-    text: "Desarrollamos drones autónomos e infraestructura inteligente para logística, vigilancia e innovación educativa.",
+    title: "hero.title1",
+    text: "hero.text1",
   },
-  {
+  { 
     image: "/hero2.png",
-    title: "Soluciones modulares e inteligentes",
-    text: "Desde diseño y fabricación hasta operación autónoma, cubrimos toda la cadena tecnológica.",
+    title: "hero.title2",
+    text: "hero.text2",
   },
   {
     image: "/hero3.png",
-    title: "Autonomía real para cada misión",
-    text: "Capacidad de decisión y vuelo inteligente en entornos complejos. Nuestra ingeniería vuela sola.",
+    title: "hero.title3",
+    text: "hero.text3",
   },
 ];
+
 
 const Hero = () => {
   const [index, setIndex] = useState(0);
@@ -40,6 +43,7 @@ const Hero = () => {
   };
 
   const { image, title, text } = slides[index];
+  const { t } = useTranslation();
 
   return (
     <section className="relative min-h-[100vh] flex items-center justify-start text-white overflow-hidden">
@@ -59,10 +63,10 @@ const Hero = () => {
         className="relative z-20 max-w-5xl px-10 sm:px-14 md:px-25 lg:px-38 text-left"
       >
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 max-w-xl">
-          {title}
+          {t(title)}
         </h1>
         <p className="text-lg sm:text-xl lg:text-2xl  mb-10 max-w-xl">
-          {text}
+          {t(text)}
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
@@ -70,13 +74,13 @@ const Hero = () => {
             to="/products"
             className="bg-red-600 hover:bg-red-700 px-8 py-4 rounded-full font-semibold transition text-lg"
           >
-            Ver productos
+            {t("hero.button_products")}
           </Link>
           <Link
             to="/about"
             className="border border-white hover:border-red-600 hover:text-red-600 px-8 py-4 rounded-full font-semibold transition text-lg"
           >
-            Conocer más
+            {t("hero.button_about")}
           </Link>
         </div>
       </motion.div>

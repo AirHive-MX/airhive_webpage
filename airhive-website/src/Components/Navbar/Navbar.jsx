@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import logo from "/Air Hive Log.png";
+import { useTranslation } from "react-i18next";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const { t } = useTranslation();
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,7 +40,7 @@ const Navbar = () => {
         </Link>
 
         <ul className="hidden md:flex gap-8 text-base font-medium transition-colors duration-300">
-          {["/", "/about", "/products", "/services", "/contact"].map((route, i) => (
+          {["/", "/about", "/products", "/services"].map((route, i) => (
             <li key={route}>
               <Link
                 to={route}
@@ -45,7 +48,7 @@ const Navbar = () => {
                   (isAboutPage || isContactPage) && !scrolled ? "text-black" : "text-white"
                 }`}
               >
-                {["Home", "About Us", "Products", "Services"][i]}
+                {[t("navbar.home"), t("navbar.about"), t("navbar.products"), t("navbar.services")][i]}
                 <span className="absolute left-0 -bottom-1 h-[2px] w-full bg-red-600 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
               </Link>
             </li>
@@ -55,7 +58,7 @@ const Navbar = () => {
               to="/contact"
               className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full font-semibold shadow-md transition hover:scale-105"
             >
-              Contact Us
+              {t("navbar.contact")}
             </Link>
           </li>
         </ul>

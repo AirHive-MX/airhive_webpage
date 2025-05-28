@@ -10,12 +10,15 @@ import Contact from "../Pages/Contact/Contact";
 import Footer from "../Components/Footer/Footer";
 import Error from "../Pages/Error/Error";
 import ScrollToTop from "../Components/ScrollToTop/ScrollToTop";
+import LanguageSwitcher from "../Components/LanguageSwitcher/LanguageSwitcher";
+
 
 const MainLayout = () => {
   return (
     <BrowserRouter>
       <ScrollToTop />
       <Navbar />
+      {/* <LanguageSwitcher /> */}
       <Routes>
         <Route path="/" element={<Home/>} />
         <Route path="/about" element={<About/>} />

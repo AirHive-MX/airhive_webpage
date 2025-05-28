@@ -3,9 +3,10 @@ import { motion } from "framer-motion";
 import image1 from "/hero1.png";
 import VideoSlider from "../../Components/VideoSlider/VideoSlider";
 import Footer from "../../Components/Footer/Footer";
-
+import { useTranslation } from "react-i18next";
 
 const Home = () => {
+  const { t } = useTranslation();
   return (
     <>
       <Hero />
@@ -27,11 +28,10 @@ const Home = () => {
             transition={{ duration: 1 }}
           >
             <h2 className="text-4xl font-bold mb-6 leading-tight">
-              Más que drones,
-              <br /> construimos soluciones aéreas
+              {t("home.intro_title")}
             </h2>
             <p className="text-lg text-gray-600">
-              En Air Hive desarrollamos drones autónomos, estaciones inteligentes y plataformas de software para industrias y centros educativos que buscan estar un paso adelante.
+              {t("home.intro_text")}
             </p>
           </motion.div>
         </div>
@@ -46,10 +46,10 @@ const Home = () => {
             transition={{ duration: 1 }}
           >
             <h2 className="text-4xl font-bold mb-6 leading-tight">
-              Ingeniería modular e intuitiva
+              {t("home.modular_title")}
             </h2>
             <p className="text-lg text-gray-600">
-              Diseñamos nuestros propios frames y sistemas de control para que cada dron sea personalizable, reparable y eficiente. Pensamos en grande, fabricamos con precisión.
+              {t("home.modular_text")}
             </p>
           </motion.div>
 
@@ -82,10 +82,10 @@ const Home = () => {
             transition={{ duration: 1 }}
           >
             <h2 className="text-4xl font-bold mb-6 leading-tight">
-              Autonomía lista para misiones reales
+              {t("home.autonomy_title")}
             </h2>
             <p className="text-lg text-gray-600">
-              Nuestra tecnología permite que cada vuelo se adapte al entorno y cumpla su objetivo sin intervención constante. Seguridad, eficiencia y precisión en cada operación.
+              {t("home.autonomy_text")}
             </p>
           </motion.div>
         </div>
@@ -94,7 +94,6 @@ const Home = () => {
       {/* Sección de Video */}
       <VideoSlider />
 
-      
     </>
   );
 };

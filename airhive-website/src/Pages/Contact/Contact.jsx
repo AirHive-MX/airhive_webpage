@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 const Contact = () => {
   const [submitted, setSubmitted] = useState(false);

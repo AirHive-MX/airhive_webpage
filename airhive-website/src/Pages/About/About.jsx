@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import image1 from "/hero1.png";
 import image2 from "/hero2.png";
 import image3 from "/hero3.png";
+import { useTranslation } from "react-i18next";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
