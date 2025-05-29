@@ -1,25 +1,27 @@
 import { useState } from "react";
-
-const videoSlides = [
-  {
-    video: "/mavic_bosquencinos.mp4",
-    title: "Grabado con Air Hive X1",
-    description: "Potencia y precisión aérea al alcance de tu misión.",
-  },
-  {
-    video: "/video2.mp4",
-    title: "Explora sin límites",
-    description: "Captura cada rincón con autonomía y estabilidad.",
-  },
-  {
-    video: "/video3.mp4",
-    title: "Tecnología para crear historias",
-    description: "Una nueva forma de ver el mundo desde el aire.",
-  },
-];
+import { useTranslation } from "react-i18next";
 
 const VideoSlider = () => {
+  const { t } = useTranslation();
   const [index, setIndex] = useState(0);
+
+  const videoSlides = [
+    {
+      video: "/mavic_bosquencinos.mp4",
+      title: t("videos.0.title"),
+      description: t("videos.0.description"),
+    },
+    {
+      video: "/video2.mp4",
+      title: t("videos.1.title"),
+      description: t("videos.1.description"),
+    },
+    {
+      video: "/video3.mp4",
+      title: t("videos.2.title"),
+      description: t("videos.2.description"),
+    },
+  ];
 
   const handleNext = () => {
     setIndex((prev) => (prev + 1) % videoSlides.length);
@@ -41,12 +43,16 @@ const VideoSlider = () => {
         className="absolute inset-0 w-full h-full object-cover z-0"
       />
 
-      <div className="absolute inset-0  z-10" />
+      <div className="absolute inset-0 z-10" />
 
       {/* Text Overlay */}
       <div className="relative z-20 flex flex-col items-center justify-center h-full text-center text-white px-4">
-        <h2 className="text-4xl md:text-6xl font-bold mb-4">{videoSlides[index].title}</h2>
-        <p className="text-lg md:text-xl text-gray-200">{videoSlides[index].description}</p>
+        <h2 className="text-4xl md:text-6xl font-bold mb-4">
+          {videoSlides[index].title}
+        </h2>
+        <p className="text-lg md:text-xl text-gray-200">
+          {videoSlides[index].description}
+        </p>
       </div>
 
       {/* Arrows */}

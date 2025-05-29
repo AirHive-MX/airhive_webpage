@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 import image1 from "/hero1.png";
 import image2 from "/hero2.png";
 import image3 from "/hero3.png";
 import { useTranslation } from "react-i18next";
+import about1 from "/about1.png";
+import about2 from "/about2.png";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -10,6 +13,9 @@ const fadeInUp = {
 };
 
 const About = () => {
+  const [currentTab, setCurrentTab] = useState("mission");
+  const { t } = useTranslation();
+
   return (
     <div className="bg-white text-black overflow-hidden">
       {/* Hero + Story */}
@@ -22,45 +28,54 @@ const About = () => {
           className="md:w-1/2"
         >
           <h1 className="text-5xl font-bold leading-tight mb-6">
-            Nuestra historia comienza en el aire
+            {t("about.story_title")}
           </h1>
           <p className="text-lg text-gray-600">
-            Air Hive nació en 2025, inspirada por el deseo de transformar el mundo a través de la autonomía aérea. Creemos que los drones pueden ser más que herramientas: pueden ser soluciones inteligentes que impacten industrias, ciudades y la educación misma.
+            {t("about.story_text")}
           </p>
         </motion.div>
         <motion.img
-          src={image1}
+          src={about1}
           alt="Dron volando"
           initial={{ opacity: 0, x: 100 }}
           whileInView={{ opacity: 1, x: 0 }}
           transition={{ duration: 1 }}
-          className="rounded-2xl shadow-xl md:w-1/2 object-cover"
+          className="rounded-2l shadow-xl md:w-1/2 object-cover"
         />
       </section>
 
-      {/* Visión con fondo visual */}
-      <section className="relative w-full h-[70vh] flex items-center justify-center bg-black">
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-50"
-          src="/sample.mp4"
-        />
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 1.2 }}
-          className="relative z-10 text-white text-center max-w-3xl"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Visión que trasciende la tecnología
-          </h2>
-          <p className="text-lg text-gray-300">
-            Queremos convertirnos en la empresa mexicana de tecnología más influyente del mundo, llevando drones inteligentes a cada rincón donde puedan hacer la diferencia.
-          </p>
-        </motion.div>
+      {/* Misión y Visión Scrollable Mejorado */}
+      <section className="relative w-full min-h-[70vh] py-20 px-4 bg-gradient-to-b from-black to-[#000000] text-white text-center flex flex-col items-center justify-center">
+        <div className="max-w-4xl w-full">
+          <div className="flex justify-center gap-6 mb-10">
+            <button
+              onClick={() => setCurrentTab("mission")}
+              className={`px-8 py-3 rounded-full text-base md:text-lg font-medium border transition-all duration-300 ${currentTab === "mission" ? "bg-red-600 text-white border-red-600" : "border-white/30 text-white hover:bg-red-600/20"}`}
+            >
+              {t("about.mission_button")}
+            </button>
+            <button
+              onClick={() => setCurrentTab("vision")}
+              className={`px-8 py-3 rounded-full text-base md:text-lg font-medium border transition-all duration-300 ${currentTab === "vision" ? "bg-red-600 text-white border-red-600" : "border-white/30 text-white hover:bg-red-600/20"}`}
+            >
+              {t("about.vision_button")}
+            </button>
+          </div>
+
+          <motion.div
+            key={currentTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="px-4"
+          >
+            <h2 className="text-3xl md:text-5xl font-medium text-white max-w-3xl mx-auto">
+              {currentTab === "mission"
+                ? t("about.mission_text")
+                : t("about.vision_text")}
+            </h2>
+          </motion.div>
+        </div>
       </section>
 
       {/* Equipo + propósito */}
@@ -71,45 +86,22 @@ const About = () => {
           variants={fadeInUp}
           transition={{ duration: 1 }}
         >
-          <h3 className="text-4xl font-bold mb-6">El equipo detrás del vuelo</h3>
+          <h3 className="text-4xl font-bold mb-6">{t("about.team_title")}</h3>
           <p className="text-gray-700 text-lg mb-4">
-            Fundada por Alberto Castro, Eduardo Castro y Rafael Sedas, Air Hive se construye sobre una visión compartida de libertad tecnológica. El COO, Virgilio Acosta, lidera operaciones con enfoque en eficiencia y escalabilidad.
+            {t("about.team_text_1")}
           </p>
           <p className="text-gray-700 text-lg">
-            Combinamos ingeniería, visión de negocio y pasión por la educación para diseñar soluciones que realmente vuelen.
+            {t("about.team_text_2")}
           </p>
         </motion.div>
         <motion.img
-          src={image2}
+          src={about2}
           alt="Equipo Air Hive"
           initial={{ opacity: 0, x: 100 }}
           whileInView={{ opacity: 1, x: 0 }}
           transition={{ duration: 1 }}
           className="rounded-xl shadow-lg object-cover"
         />
-      </section>
-
-      {/* Showcase */}
-      <section className="bg-[#f8f8f8] py-32 px-6">
-        <div className="max-w-6xl mx-auto text-center mb-16">
-          <motion.h2
-            initial="hidden"
-            whileInView="visible"
-            variants={fadeInUp}
-            transition={{ duration: 0.8 }}
-            className="text-4xl font-bold"
-          >
-            Un vistazo a nuestras misiones
-          </motion.h2>
-          <p className="text-gray-500 mt-4 text-lg">
-            Tecnologías autónomas aplicadas a la seguridad, vigilancia, agricultura y educación.
-          </p>
-        </div>
-        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          <img src={image1} className="rounded-xl object-cover w-full h-64" alt="Demo 1" />
-          <img src={image2} className="rounded-xl object-cover w-full h-64" alt="Demo 2" />
-          <img src={image3} className="rounded-xl object-cover w-full h-64" alt="Demo 3" />
-        </div>
       </section>
 
       {/* Filosofía final */}
@@ -120,9 +112,9 @@ const About = () => {
           variants={fadeInUp}
           transition={{ duration: 1 }}
         >
-          <h2 className="text-4xl font-bold mb-6">Nuestra filosofía</h2>
+          <h2 className="text-4xl font-bold mb-6">{t("about.philosophy_title")}</h2>
           <p className="text-gray-700 text-lg max-w-4xl mx-auto">
-            "Creemos en un futuro donde la autonomía aérea sea accesible, segura y potencie el talento mexicano en cada vuelo."
+            {t("about.philosophy_text")}
           </p>
         </motion.div>
       </section>

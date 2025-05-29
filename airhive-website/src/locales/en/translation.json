@@ -36,12 +36,12 @@
     },
 
     "home": {
-        "intro_title": "More than drones, we build aerial solutions",
-        "intro_text": "At Air Hive, we develop autonomous drones, smart charging stations, and software platforms for industries and educational institutions looking to stay ahead.",
-        "modular_title": "Modular and intuitive engineering",
-        "modular_text": "We design our own frames and control systems so every drone is customizable, repairable, and efficient. We think big and manufacture with precision.",
-        "autonomy_title": "Autonomy ready for real missions",
-        "autonomy_text": "Our technology enables each flight to adapt to the environment and complete its mission without constant intervention. Safety, efficiency, and precision in every operation."
+        "autonomy_title": "Aerial technology without human intervention",
+        "autonomy_text": "We design drones capable of carrying out specific tasks autonomously. We integrate hardware, software, and computer vision so they operate without manual control.",
+        "innovation_title": "Technological innovation developed in Mexico",
+        "innovation_text": "We build aerial solutions from Mexico to solve real problems across industries. High-level engineering, developed locally.",
+        "education_title": "Promoting learning through real-world technology",
+        "education_text": "We foster education in science and technology through hands-on drone experiences. We bring students closer to the world of robotics, programming, and engineering."
     },
 
     "products": {
@@ -61,7 +61,94 @@
         "custom_feature3": "Integration of cameras, GPS, LiDAR, and more",
         "custom_feature4": "Visual and functional customization",
         "custom_button": "Contact us for your design"
+    },
+
+    "contact": {
+        "success": "Message sent successfully!",
+        "title": "Contact Us",
+        "subtitle": "Do you have a question, an idea, or are you interested in collaborating with us? Send us a message and we'll get back to you as soon as possible.",
+        "location_label": "Location",
+        "location": "Monterrey, Nuevo León, Mexico",
+        "email_label": "Email",
+        "phone_label": "Phone",
+        "form": {
+            "name": "Name",
+            "email": "Email",
+            "message": "Message",
+            "submit": "Send message"
+        }
+    },
+
+    "videos": [
+        {
+            "title": "Captured with Hive I",
+            "description": "Aerial power and precision within reach of your mission."
+        },
+        {
+            "title": "Explore without limits",
+            "description": "Capture every corner with autonomy and stability."
+        },
+        {
+            "title": "Technology to tell stories",
+            "description": "A new way to see the world from the sky."
+        }
+    ],
+
+    "services": {
+        "title": "Our Services",
+        "subtitle": "We help you harness the power of drones.",
+        "read_more": "Read more",
+        "read_less": "Read less",
+        "training": {
+            "title": "Learn to fly with safety and confidence",
+            "short": "Hands-on courses to learn how to fly drones.",
+            "full": "We offer hands-on courses to help you learn how to fly drones for recreational or professional use. Gain essential skills and knowledge to fly safely and prevent crashes."
+        },
+        "land": {
+            "title": "See your property like never before",
+            "short": "Aerial images and 3D animations for your project.",
+            "full": "We capture high-resolution aerial images and generate 3D animations showing measurements, boundaries, and visual walkthroughs. Ideal for promotion, architecture, land sales, or real estate projects."
+        },
+        "events": {
+            "title": "Professional aerial footage for unforgettable moments",
+            "short": "Aerial filming for events of all kinds.",
+            "full": "We capture aerial footage using the right type of drone for each event. Whether it's a social celebration, corporate activity, or sports event, we provide unique perspectives to preserve your most meaningful moments."
+        },
+        "batteries": {
+            "title": "Specialized maintenance for smart batteries",
+            "short": "Repair and cell balancing for DJI and custom batteries.",
+            "full": "We inspect and repair damaged DJI batteries, including cell balancing and diagnosis of common issues. We also work with custom Li-Ion and Li-Po batteries."
+        },
+        "registration": {
+            "title": "Stay compliant and fly with peace of mind",
+            "short": "Official drone registration support in Mexico.",
+            "full": "We assist in registering your drones with Mexico’s Federal Civil Aviation Agency (AFAC), ensuring your operations follow current regulations."
+        },
+        "support": {
+            "title": "Practical solutions for real-world challenges",
+            "short": "Tailored technical support for your drone needs.",
+            "full": "We provide technical guidance on equipment selection, system integration, and problem-solving in drone-related projects. Our support is tailored to each project's specific needs."
+        }
+    },
+
+    "about": {
+        "story_title": "Our story begins in the sky",
+        "story_text": "Air Hive was founded in 2025 with a mission to democratize access to aerial autonomy. We believe drones can be transformative tools that empower industries, communities, and technological progress in the world.",
+        
+        "mission_button": "Mission",
+        "vision_button": "Vision",
+
+        "mission_text": "To develop intelligent aerial solutions that enhance safety, efficiency, and education through accessible design and cutting-edge technology.",
+        "vision_text": "To become the leading aerial innovation company in Latin America, bringing autonomy and technology where they’re needed most.",
+
+        "team_title": "The team behind the vision",
+        "team_text_1": "Air Hive is built by people passionate about technology, education, and positive impact. Our team combines expertise in engineering, innovation, and entrepreneurship to create solutions that truly take flight.",
+        "team_text_2": "We’re driven by the belief that Mexican talent can lead the new era of aerial autonomy.",
+
+        "philosophy_title": "Our philosophy",
+        "philosophy_text": "We believe in a future where drones don’t just fly—they solve real problems: from protecting communities to inspiring the next generation of engineers."
     }
+
 
 }
    

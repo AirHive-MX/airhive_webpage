@@ -74,44 +74,32 @@ const Footer = () => {
               <FaFacebook />
             </a>
           </div>
-        </div>
-      </div>
 
-      {/* Language Switcher estilo moderno */}
-      <div className="mt-10 flex justify-center items-center gap-4 text-sm relative z-20" ref={dropdownRef}>
-        <div className="relative inline-block text-left">
-          <button
-            onClick={() => setShowDropdown(!showDropdown)}
-            className="bg-gray-800 hover:bg-gray-700 text-white px-5 py-2 rounded-full border border-gray-600 flex items-center gap-2 shadow-md transition"
-          >
-            🌐 {i18n.language === 'es' ? 'México | Español' : 'USA | English'}
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
+          {/* Language Switcher debajo de redes */}
+          <div className="mt-8" ref={dropdownRef}>
+            <button
+              onClick={() => setShowDropdown(!showDropdown)}
+              className={`px-4 py-2 rounded-md border shadow-sm text-sm font-medium transition-all duration-300 ${i18n.language === 'es' ? 'bg-red-600 text-white border-red-700' : 'bg-white text-black border-gray-300'}`}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-
-          {showDropdown && (
-            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-white text-black shadow-xl rounded-xl overflow-hidden border border-gray-200 w-56 animate-fade-in">
-              <button
-                onClick={() => toggleLanguage("es")}
-                className="w-full px-6 py-3 hover:bg-gray-100 text-left text-sm"
-              >
-                🇲🇽 México | Español
-              </button>
-              <button
-                onClick={() => toggleLanguage("en")}
-                className="w-full px-6 py-3 hover:bg-gray-100 text-left text-sm"
-              >
-                🇺🇸 USA | English
-              </button>
-            </div>
-          )}
+              {i18n.language === 'es' ? 'MX - Español' : 'US - English'}
+            </button>
+            {showDropdown && (
+              <div className="mt-1 bg-white shadow-lg rounded-md border border-gray-200 absolute z-30">
+                <button
+                  onClick={() => toggleLanguage("es")}
+                  className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-sm text-black"
+                >
+                  MX - Español
+                </button>
+                <button
+                  onClick={() => toggleLanguage("en")}
+                  className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-sm text-black"
+                >
+                  US - English
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

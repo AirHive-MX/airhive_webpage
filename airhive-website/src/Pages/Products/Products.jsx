@@ -7,6 +7,7 @@ import kit from "/kitarmatudron.jpeg";
 import kit2 from "/kitarmatudron2.jpeg";
 import personalizado from "/dronpersonalizado.jpeg";
 import personalizado2 from "/personalizado2.jpeg";
+import products from "/products.png";
 
 const Products = () => {
   const { t } = useTranslation();
@@ -25,7 +26,7 @@ const Products = () => {
       {/* Hero personalizado */}
       <div
         className="relative w-full h-[85vh] bg-cover bg-center flex items-center justify-center"
-        style={{ backgroundImage: `url(${hero1})` }}
+        style={{ backgroundImage: `url(${products})` }}
       >
         <div className="bg-black/60 w-full h-full absolute top-0 left-0" />
         <div className="relative z-10 text-center px-6">
@@ -44,7 +45,7 @@ const Products = () => {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="relative overflow-hidden rounded-xl shadow-2xl w-full max-h-[520px]"
+          className="relative overflow-hidden rounded-l shadow-2xl w-full max-h-[520px]"
         >
           <img
             src={kitImages[kitIndex]}
@@ -116,12 +117,12 @@ const Products = () => {
           >
             <img
               src={personalizado}
-              className="rounded-xl shadow-lg object-cover w-full h-full"
+              className="rounded-l shadow-lg object-cover w-full h-full"
               alt="Drone personalizado 1"
             />
             <img
               src={personalizado2}
-              className="rounded-xl shadow-lg object-cover w-full h-full"
+              className="rounded-l shadow-lg object-cover w-full h-full"
               alt="Drone personalizado 2"
             />
           </motion.div>
