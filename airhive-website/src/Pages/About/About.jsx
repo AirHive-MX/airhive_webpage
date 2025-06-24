@@ -4,8 +4,8 @@ import image1 from "/hero1.png";
 import image2 from "/hero2.png";
 import image3 from "/hero3.png";
 import { useTranslation } from "react-i18next";
-import about1 from "/about1.png";
-import about2 from "/about2.png";
+import about1 from "/about1.webp";
+import about2 from "/about2.webp";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },

@@ -6,17 +6,17 @@ import { useTranslation } from "react-i18next";
 
 const slides = [
   {
-    image: "/hero1.png",
+    image: "/hero1.webp",
     title: "hero.title1",
     text: "hero.text1",
   },
   { 
-    image: "/hero2.png",
+    image: "/hero2.webp",
     title: "hero.title2",
     text: "hero.text2",
   },
   {
-    image: "/hero3.png",
+    image: "/hero3.webp",
     title: "hero.title3",
     text: "hero.text3",
   },

@@ -1,12 +1,12 @@
 import Hero from "../../Components/Hero/Hero";
 import { motion } from "framer-motion";
-import image1 from "/hero1.png";
+import image1 from "/hero1.webp";
 import VideoSlider from "../../Components/VideoSlider/VideoSlider";
 import Footer from "../../Components/Footer/Footer";
 import { useTranslation } from "react-i18next";
-import home1 from "/home1.png";
-import home2 from "/home2.png";
-import home3 from "/home3.png";
+import home1 from "/home1.webp";
+import home2 from "/home2.webp";
+import home3 from "/home3.webp";
 
 const Home = () => {
   const { t } = useTranslation();

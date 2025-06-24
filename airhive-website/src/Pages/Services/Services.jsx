@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import hero2 from "/hero2.png";
-import eventos from "/eventos.jpeg";
-import baterias from "/baterias.jpeg";
-import capacitacion from "/capacitacion.jpeg";
-import regulacion from "/regulacion.jpeg";
-import terreno from "/terreno.jpeg";
-import consultoria from "/consultoria.jpeg";
-import services from "/services.png";
+import hero2 from "/hero2.webp";
+import eventos from "/eventos.webp";
+import baterias from "/baterias.webp";
+import capacitacion from "/capacitacion.webp";
+import regulacion from "/regulacion.webp";
+import terreno from "/terreno.webp";
+import consultoria from "/consultoria.webp";
+import services from "/services.webp";
 
 const Services = () => {
   const [expandedIndex, setExpandedIndex] = useState(null);

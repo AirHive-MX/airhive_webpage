@@ -2,12 +2,12 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import hero1 from "/hero1.png";
-import kit from "/kitarmatudron.jpeg";
-import kit2 from "/kitarmatudron2.jpeg";
-import personalizado from "/dronpersonalizado.jpeg";
-import personalizado2 from "/personalizado2.jpeg";
-import products from "/products.png";
+import hero1 from "/hero1.webp";
+import kit from "/kitarmatudron.webp";
+import kit2 from "/kitarmatudron2.webp";
+import personalizado from "/dronpersonalizado.webp";
+import personalizado2 from "/personalizado2.webp";
+import products from "/products.webp";
 
 const Products = () => {
   const { t } = useTranslation();
