@@ -24,19 +24,17 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-        scrolled
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${scrolled
           ? "backdrop-blur bg-[#0f0f0f]/70 border-b border-red-700 shadow-md"
           : "bg-transparent"
-      }`}
+        }`}
     >
       <div
-        className={`max-w-7xl mx-auto px-6 py-4 flex justify-between items-center transition-colors duration-300 ${
-          (isAboutPage || isContactPage) && !scrolled ? "text-black" : "text-white"
-        }`}
+        className={`max-w-7xl mx-auto px-6 py-4 flex justify-between items-center transition-colors duration-300 ${(isAboutPage || isContactPage) && !scrolled ? "text-black" : "text-white"
+          }`}
       >
         <Link to="/" className="flex items-center gap-3">
-          <img src={logo} alt="Air Hive Logo" className="h-12 w-auto" />
+          <img src={logo} alt="Air Hive Logo" className="h-16 w-auto" />
         </Link>
 
         <ul className="hidden md:flex gap-8 text-base font-medium transition-colors duration-300">
@@ -44,9 +42,8 @@ const Navbar = () => {
             <li key={route}>
               <Link
                 to={route}
-                className={`relative group transition py-1 px-1 hover:text-red-500 ${
-                  (isAboutPage || isContactPage) && !scrolled ? "text-black" : "text-white"
-                }`}
+                className={`relative group transition py-1 px-1 hover:text-red-500 ${(isAboutPage || isContactPage) && !scrolled ? "text-black" : "text-white"
+                  }`}
               >
                 {[t("navbar.home"), t("navbar.about"), t("navbar.products"), t("navbar.services")][i]}
                 <span className="absolute left-0 -bottom-1 h-[2px] w-full bg-red-600 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
