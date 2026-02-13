@@ -25,8 +25,8 @@ const Navbar = () => {
   return (
     <nav
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${scrolled
-          ? "backdrop-blur bg-[#0f0f0f]/70 border-b border-red-700 shadow-md"
-          : "bg-transparent"
+        ? "backdrop-blur bg-[#0f0f0f]/70 border-b border-red-700 shadow-md"
+        : "bg-transparent"
         }`}
     >
       <div
@@ -34,7 +34,7 @@ const Navbar = () => {
           }`}
       >
         <Link to="/" className="flex items-center gap-3">
-          <img src={logo} alt="Air Hive Logo" className="h-16 w-auto" />
+          <img src={logo} alt="Air Hive Logo" className="h-12 w-auto" />
         </Link>
 
         <ul className="hidden md:flex gap-8 text-base font-medium transition-colors duration-300">
