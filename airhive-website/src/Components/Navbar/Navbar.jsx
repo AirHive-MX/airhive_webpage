@@ -24,14 +24,13 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${scrolled
-        ? "backdrop-blur bg-[#0f0f0f]/70 border-b border-red-700 shadow-md"
-        : "bg-transparent"
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 bg-white ${scrolled
+        ? "shadow-md"
+        : ""
         }`}
     >
       <div
-        className={`max-w-7xl mx-auto px-6 py-4 flex justify-between items-center transition-colors duration-300 ${(isAboutPage || isContactPage) && !scrolled ? "text-black" : "text-white"
-          }`}
+        className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center transition-colors duration-300 text-black"
       >
         <Link to="/" className="flex items-center gap-3">
           <img src={logo} alt="Air Hive Logo" className="h-12 w-auto" />
@@ -42,8 +41,7 @@ const Navbar = () => {
             <li key={route}>
               <Link
                 to={route}
-                className={`relative group transition py-1 px-1 hover:text-red-500 ${(isAboutPage || isContactPage) && !scrolled ? "text-black" : "text-white"
-                  }`}
+                className="relative group transition py-1 px-1 hover:text-red-500 text-black"
               >
                 {[t("navbar.home"), t("navbar.about"), t("navbar.products"), t("navbar.services")][i]}
                 <span className="absolute left-0 -bottom-1 h-[2px] w-full bg-red-600 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
@@ -61,7 +59,7 @@ const Navbar = () => {
         </ul>
 
         <button className="md:hidden" onClick={() => setIsOpen(!isOpen)}>
-          <svg className={`h-6 w-6 ${isAboutPage && !scrolled ? "fill-black" : "fill-white"}`} viewBox="0 0 24 24">
+          <svg className="h-6 w-6 fill-black" viewBox="0 0 24 24">
             {isOpen ? (
               <path d="M6 18L18 6M6 6l12 12" />
             ) : (
@@ -72,13 +70,13 @@ const Navbar = () => {
       </div>
 
       {isOpen && (
-        <ul className="md:hidden px-6 pb-4 bg-[#1a1a1a] text-base font-medium flex flex-col gap-4">
+        <ul className="md:hidden px-6 pb-4 bg-white text-base font-medium flex flex-col gap-4 border-t border-gray-100">
           {["Inicio", "Sobre nosotros", "Productos", "Servicios", "Contáctanos"].map((text, i) => (
             <li key={text}>
               <Link
                 to={["/", "/about", "/products", "/services", "/contact"][i]}
                 onClick={() => setIsOpen(false)}
-                className="hover:text-red-500 text-white"
+                className="hover:text-red-500 text-black"
               >
                 {text}
               </Link>
