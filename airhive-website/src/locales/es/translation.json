@@ -4,20 +4,32 @@
         "about": "Sobre nosotros",
         "products": "Productos",
         "services": "Servicios",
-        "contact": "Contáctanos"
+        "contact": "Contáctanos",
+        "diagnostic": "Diagnóstico gratuito",
+        "home_short": "Inicio",
+        "solutions": "Soluciones",
+        "how_we_work": "Cómo trabajamos",
+        "cases": "Casos",
+        "free_diagnostic": "Diagnóstico Gratis",
+        "schedule_diagnostic": "Agenda diagnóstico gratuito",
+        "whatsapp": "WhatsApp",
+        "solution_items": {
+            "sales": "Ventas y seguimiento (CRM / Leads)",
+            "operations": "Operación y reportes",
+            "logistics": "Logística e inventarios",
+            "inspection": "Inspección y monitoreo (Drones)"
+        }
     },
-
     "hero": {
-      "title1": "Tecnología aérea para el futuro",
-      "text1": "Desarrollamos drones autónomos e infraestructura inteligente para logística, vigilancia e innovación educativa.",
-      "title2": "Soluciones modulares e inteligentes",
-      "text2": "Desde diseño y fabricación hasta operación autónoma, cubrimos toda la cadena tecnológica.",
-      "title3": "Autonomía real para cada misión",
-      "text3": "Capacidad de decisión y vuelo inteligente en entornos complejos. Nuestra ingeniería vuela sola.",
-      "button_products": "Ver productos",
-      "button_about": "Conocer más"
+        "title1": "Tecnología aérea para el futuro",
+        "text1": "Desarrollamos drones autónomos e infraestructura inteligente para logística, vigilancia e innovación educativa.",
+        "title2": "Soluciones modulares e inteligentes",
+        "text2": "Desde diseño y fabricación hasta operación autónoma, cubrimos toda la cadena tecnológica.",
+        "title3": "Autonomía real para cada misión",
+        "text3": "Capacidad de decisión y vuelo inteligente en entornos complejos. Nuestra ingeniería vuela sola.",
+        "button_products": "Ver productos",
+        "button_about": "Conocer más"
     },
-
     "footer": {
         "description": "Air Hive es una startup mexicana que desarrolla drones autónomos, estaciones inteligentes y soluciones para logística, seguridad y educación.",
         "navigation": "Navegación",
@@ -28,13 +40,18 @@
         "contact": "Contacto",
         "resources": "Recursos",
         "help_center": "Centro de ayuda",
-        "terms": "Términos y condiciones", 
+        "terms": "Términos y condiciones",
         "privacy": "Política de privacidad",
         "downloads": "Descargas",
         "follow": "Síguenos",
-        "rights_reserved": "Todos los derechos reservados."
+        "rights_reserved": "Todos los derechos reservados.",
+        "diagnostic": "Solicitar diagnóstico",
+        "tagline": "Automatización, agentes IA y drones para operaciones reales.",
+        "language": "Idioma",
+        "theme": "Tema",
+        "theme_light": "Claro",
+        "theme_dark": "Noche"
     },
-
     "home": {
         "autonomy_title": "Tecnología aérea sin intervención humana",
         "autonomy_text": "Diseñamos drones que pueden realizar tareas específicas de forma autónoma. Integramos hardware, software y visión por computadora para que funcionen sin control manual.",
@@ -43,7 +60,87 @@
         "education_title": "Fomentamos el aprendizaje con tecnología real",
         "education_text": "Impulsamos la educación en ciencia y tecnología a través de experiencias prácticas con drones. Acercamos a los estudiantes al mundo de la robótica, la programación y la ingeniería."
     },
-
+    "home_redesign": {
+        "kicker": "Automatización Aérea",
+        "hero_title": "Diseñamos operaciones inteligentes con",
+        "hero_title_accent": "IA y drones",
+        "hero_text": "Creamos sistemas de automatización end-to-end para empresas que necesitan velocidad, precisión y control. Integramos agentes IA, análisis operativo y plataformas aéreas autónomas.",
+        "cta_primary": "Agenda diagnóstico gratuito",
+        "cta_secondary": "Explorar servicios",
+        "highlight_1": "Diagnóstico en 30 minutos",
+        "highlight_2": "Implementación modular",
+        "highlight_3": "Escalable por operación",
+        "hero_panel_kicker": "ENFOQUE AIR HIVE",
+        "hero_panel_text": "Convertimos retos operativos en sistemas automatizados medibles.",
+        "stack_kicker": "Stack Air Hive",
+        "stack_title": "Cada capa del sistema se diseña para ejecutar, aprender y mejorar.",
+        "stack_text": "Unimos hardware, software y modelos IA para automatizar procesos en logística, monitoreo y operaciones críticas.",
+        "stack_button": "Ver productos",
+        "card_1_title": "Automatización operativa",
+        "card_1_text": "Mapeamos tu proceso y diseñamos flujos autónomos para reducir tiempos, errores y costos.",
+        "card_2_title": "Agentes IA para decisiones",
+        "card_2_text": "Entrenamos asistentes y agentes que analizan datos en tiempo real y recomiendan acciones.",
+        "card_3_title": "Drones listos para misión",
+        "card_3_text": "Construimos e integramos drones para inspección, seguridad y levantamiento de datos en campo.",
+        "final_kicker": "Próximo Paso",
+        "final_title": "Empieza con un diagnóstico gratuito y una ruta clara de implementación.",
+        "final_text": "Te entregamos un plan accionable de automatización con prioridades técnicas, estimación de impacto y próximos hitos.",
+        "final_secondary": "Conocer Air Hive",
+        "hero_headline": "Automatización, agentes de IA y drones para mejorar tu operación.",
+        "hero_subheadline": "Detectamos cuellos de botella y oportunidades de ahorro. Te entregamos un plan por fases con prioridades claras.",
+        "cta_cases": "Ver casos",
+        "what_we_do_kicker": "Lo que hacemos",
+        "what_we_do_title": "Cuatro frentes para mejorar tu operación sin complejidad innecesaria.",
+        "what_we_do_1_title": "Automatización de procesos",
+        "what_we_do_1_text": "Menos retrabajo, menos errores, más control.",
+        "what_we_do_2_title": "Agentes de IA para operación/ventas",
+        "what_we_do_2_text": "Seguimiento y tareas automáticas sin perder consistencia.",
+        "what_we_do_3_title": "Integración de datos y reportes",
+        "what_we_do_3_text": "Reportes y alertas sin hacerlo manual.",
+        "what_we_do_4_title": "Drones para inspección/monitoreo",
+        "what_we_do_4_text": "Evidencia visual para decisiones más rápidas.",
+        "diagnostic_kicker": "DIAGNÓSTICO GRATUITO",
+        "diagnostic_title": "Analizamos tu operación y te mostramos por dónde empezar.",
+        "review_title": "Qué revisamos",
+        "review_1": "Proceso de punta a punta",
+        "review_2": "Sistemas y datos disponibles",
+        "review_3": "Cuellos de botella, retrabajo y errores",
+        "review_4": "Métricas: tiempo, costo y calidad",
+        "deliver_title": "Qué entregamos",
+        "deliver_1": "Mapa + recomendaciones",
+        "deliver_2": "Priorización impacto vs esfuerzo",
+        "deliver_3": "Propuesta por fases",
+        "cta_whatsapp": "WhatsApp",
+        "diagnostic_subtitle": "Identificamos fricción, datos disponibles y prioridades para automatizar con impacto real.",
+        "diagnostic_chip_1": "15-20 min | Sin compromiso",
+        "diagnostic_chip_2": "Entrega en 48h",
+        "review_1_title": "Proceso de punta a punta",
+        "review_1_text": "Mapeo real de pasos, responsables y handoffs.",
+        "review_2_title": "Sistemas y datos disponibles",
+        "review_2_text": "Qué existe y qué se puede conectar rápido.",
+        "review_3_title": "Cuellos de botella, retrabajo y errores",
+        "review_3_text": "Fricción operativa y causas raíz.",
+        "review_4_title": "Métricas: tiempo, costo y calidad",
+        "review_4_text": "Baseline para medir mejoras.",
+        "deliver_1_title": "Mapa + recomendaciones",
+        "deliver_1_text": "Visual claro + quick wins accionables.",
+        "deliver_2_title": "Priorización impacto vs esfuerzo",
+        "deliver_2_text": "Matriz para decidir sin ruido.",
+        "deliver_3_title": "Propuesta por fases",
+        "deliver_3_text": "Roadmap incremental (0-30, 30-60, 60-90 días).",
+        "deliver_4_title": "Siguientes pasos listos para ejecutar",
+        "deliver_4_text": "Checklist y responsables sugeridos.",
+        "workflow_kicker": "Cómo trabajamos",
+        "workflow_title": "Diagnóstico → Diseño de solución → Implementación → Medición y mejora",
+        "workflow_1_title": "Diagnóstico",
+        "workflow_1_text": "Levantamos contexto, proceso actual y puntos críticos.",
+        "workflow_2_title": "Diseño de solución",
+        "workflow_2_text": "Definimos arquitectura, alcance y quick wins priorizados.",
+        "workflow_3_title": "Implementación",
+        "workflow_3_text": "Ejecutamos por fases con mínima fricción operativa.",
+        "workflow_4_title": "Medición y mejora",
+        "workflow_4_text": "Monitoreamos KPIs y ajustamos para escalar resultados."
+    },
     "products": {
         "title": "Nuestros Productos",
         "subtitle": "Drones educativos y personalizados para un futuro autónomo.",
@@ -62,7 +159,6 @@
         "custom_feature4": "Personalización visual y funcional",
         "custom_button": "Contáctanos para tu diseño"
     },
-
     "contact": {
         "success": "¡Mensaje enviado correctamente!",
         "title": "Contáctanos",
@@ -76,9 +172,8 @@
             "email": "Correo electrónico",
             "message": "Mensaje",
             "submit": "Enviar mensaje"
-            }
+        }
     },
-
     "videos": [
         {
             "title": "Grabado con Air Hive X1",
@@ -93,7 +188,6 @@
             "description": "Una nueva forma de ver el mundo desde el aire."
         }
     ],
-
     "services": {
         "title": "Nuestros Servicios",
         "subtitle": "Te ayudamos a aprovechar el poder de los drones.",
@@ -130,22 +224,91 @@
             "full": "Brindamos orientación técnica en la selección de equipos, integración de sistemas y resolución de problemas relacionados con drones. Adaptamos el soporte a las necesidades de cada proyecto."
         }
     },
-
+    "services_redesign": {
+        "cta_title": "¿Listo para automatizar tu operación?",
+        "cta_text": "Agenda un diagnóstico gratuito para definir qué procesos puedes optimizar con IA, automatización y drones.",
+        "card_1_title": "Automatización de procesos",
+        "card_1_text": "Diseñamos flujos para reducir retrabajo, errores y tiempos muertos en operación.",
+        "card_2_title": "Agentes IA para ventas y operación",
+        "card_2_text": "Implementamos asistentes que dan seguimiento, priorizan tareas y sostienen consistencia.",
+        "card_3_title": "Integración de datos y reportes",
+        "card_3_text": "Conectamos sistemas y creamos reportes automáticos para decisiones más rápidas.",
+        "card_4_title": "Drones para inspección y monitoreo",
+        "card_4_text": "Capturamos evidencia en campo y la convertimos en datos accionables para tu equipo.",
+        "workflow_kicker": "Cómo trabajamos",
+        "workflow_title": "Un método claro para implementar y escalar resultados",
+        "workflow_1_title": "Diagnóstico",
+        "workflow_1_text": "Entendemos contexto, proceso actual y fricciones críticas.",
+        "workflow_2_title": "Diseño de solución",
+        "workflow_2_text": "Definimos arquitectura, alcance y quick wins con impacto.",
+        "workflow_3_title": "Implementación",
+        "workflow_3_text": "Ejecutamos por fases sin frenar la operación.",
+        "workflow_4_title": "Medición y mejora",
+        "workflow_4_text": "Monitoreamos KPIs y optimizamos continuamente."
+    },
+    "contact_redesign": {
+        "title": "Activa tu diagnóstico gratuito",
+        "subtitle": "Cuéntanos tu operación y te proponemos una ruta práctica para implementar automatización, agentes IA y drones.",
+        "focus_label": "Especialidad",
+        "focus_text": "Automatización de procesos, agentes IA y despliegue de drones.",
+        "goal": "Objetivo principal",
+        "goal_placeholder": "Ej. reducir tiempos de inspección o automatizar reportes",
+        "submit": "Enviar y agendar diagnóstico"
+    },
     "about": {
         "story_title": "Nuestra historia comienza en el aire",
         "story_text": "Air Hive nació en 2025 con la misión de democratizar el acceso a la autonomía aérea. Creemos que los drones pueden ser herramientas transformadoras que potencien industrias, comunidades y el desarrollo tecnológico en el mundo.",
-        
         "mission_button": "Misión",
         "vision_button": "Visión",
         "mission_text": "Desarrollar soluciones aéreas inteligentes que mejoren la seguridad, la eficiencia y la educación, combinando diseño accesible con tecnología de vanguardia.",
         "vision_text": "Ser la empresa líder en innovación aérea en Latinoamérica, llevando autonomía y tecnología a donde más se necesita.",
-
         "team_title": "El equipo detrás de la visión",
         "team_text_1": "Air Hive está conformada por personas apasionadas por la tecnología, la educación y el impacto positivo. Nuestro equipo une experiencia en ingeniería, innovación y emprendimiento para desarrollar soluciones que realmente despeguen.",
         "team_text_2": "Nos guía la convicción de que el talento mexicano puede liderar la nueva era de la autonomía aérea.",
-
         "philosophy_title": "Nuestra filosofía",
         "philosophy_text": "Creemos en un futuro donde los drones no solo vuelan, sino que resuelven problemas reales: desde proteger comunidades hasta inspirar a nuevas generaciones de ingenieros."
+    },
+    "diagnostic_page": {
+        "kicker": "Diagnóstico gratuito",
+        "title": "Analizamos tu operación y te mostramos por dónde empezar.",
+        "subtitle": "Identificamos fricción, datos disponibles y prioridades para automatizar con impacto real.",
+        "cta_primary": "Agenda diagnóstico gratuito",
+        "cta_whatsapp": "WhatsApp",
+        "for_whom": "Para quién aplica",
+        "for_1": "Equipos con retrabajo operativo y procesos fragmentados.",
+        "for_2": "Empresas con datos dispersos y poca trazabilidad.",
+        "for_3": "Áreas de ventas u operación con seguimiento manual.",
+        "for_4": "Operaciones que quieren automatizar sin frenar al equipo.",
+        "duration_title": "Duración y pasos",
+        "step_1": "Kickoff y contexto operativo (15-20 min).",
+        "step_2": "Diagnóstico de proceso, sistemas y datos.",
+        "step_3": "Priorización impacto vs esfuerzo + quick wins.",
+        "step_4": "Entrega de ruta por fases y siguientes pasos.",
+        "mock_title": "Ejemplo de entregable",
+        "mock_map": "Mapa de proceso",
+        "mock_map_1": "Captura de solicitud",
+        "mock_map_2": "Validación y asignación",
+        "mock_map_3": "Ejecución + reporte automático",
+        "mock_matrix": "Impacto / Esfuerzo",
+        "mock_matrix_1": "Alto impacto / Bajo esfuerzo",
+        "mock_matrix_2": "Alto impacto / Alto esfuerzo",
+        "mock_matrix_3": "Bajo impacto / Bajo esfuerzo",
+        "mock_matrix_4": "Bajo impacto / Alto esfuerzo",
+        "mock_roadmap": "Roadmap por fases",
+        "mock_roadmap_1": "0-30 días | Estandarizar y conectar",
+        "mock_roadmap_2": "30-60 días | Automatizar flujos críticos",
+        "mock_roadmap_3": "60-90 días | Escalar y medir",
+        "faq_title": "FAQ",
+        "faq_1_q": "¿Tiene costo el diagnóstico?",
+        "faq_1_a": "No. Es completamente gratuito y sin compromiso comercial.",
+        "faq_2_q": "¿Cuánto tarda?",
+        "faq_2_a": "La sesión inicial toma entre 15 y 20 minutos. El entregable llega en 48 horas.",
+        "faq_3_q": "¿Necesitamos tener todo documentado?",
+        "faq_3_a": "No. Trabajamos con la información que ya tienen y estructuramos lo necesario.",
+        "faq_4_q": "¿Pueden implementar después del diagnóstico?",
+        "faq_4_a": "Sí. Si avanzamos, ejecutamos por fases según prioridad y capacidad de tu equipo.",
+        "form_title": "Agenda tu diagnóstico",
+        "form_subtitle": "Déjanos tu contexto y te contactamos con la siguiente acción recomendada.",
+        "form_placeholder": "Cuéntanos brevemente tu operación y reto principal."
     }
- 
 } 

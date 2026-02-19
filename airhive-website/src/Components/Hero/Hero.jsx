@@ -10,7 +10,7 @@ const slides = [
     title: "hero.title1",
     text: "hero.text1",
   },
-  { 
+  {
     image: "/hero2.webp",
     title: "hero.title2",
     text: "hero.text2",
@@ -72,13 +72,13 @@ const Hero = () => {
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
           <Link
             to="/products"
-            className="bg-red-600 hover:bg-red-700 px-8 py-4 rounded-full font-semibold transition text-lg"
+            className="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-full font-semibold transition text-lg"
           >
             {t("hero.button_products")}
           </Link>
           <Link
             to="/about"
-            className="border border-white hover:border-red-600 hover:text-red-600 px-8 py-4 rounded-full font-semibold transition text-lg"
+            className="border border-white hover:border-blue-600 hover:text-blue-600 px-8 py-4 rounded-full font-semibold transition text-lg"
           >
             {t("hero.button_about")}
           </Link>

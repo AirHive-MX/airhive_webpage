@@ -6,71 +6,88 @@ const Contact = () => {
   const [submitted, setSubmitted] = useState(false);
   const { t } = useTranslation();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = () => {
     setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 4000);
+    setTimeout(() => setSubmitted(false), 4500);
   };
 
   return (
-    <div className="bg-white text-black py-32 px-6 relative">
+    <main className="ah-page px-6 pb-14 pt-32">
       {submitted && (
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="fixed top-6 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-full shadow-lg z-50"
+          className="fixed left-1/2 top-6 z-50 -translate-x-1/2 rounded-full bg-[#2A47F6] px-6 py-3 text-sm font-medium text-white shadow-xl"
         >
-          🎉 {t("contact.success")}
+          {t("contact.success")}
         </motion.div>
       )}
 
-      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12">
-        <motion.div
-          initial={{ opacity: 0, x: -40 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          transition={{ duration: 1 }}
-          className="flex flex-col justify-center"
-        >
-          <h1 className="text-4xl font-bold mb-6">{t("contact.title")}</h1>
-          <p className="text-lg text-gray-700 mb-4">{t("contact.subtitle")}</p>
+      <section className="ah-container grid gap-8 lg:grid-cols-[1fr_1.1fr]">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#1501A5]/70">Lead Form</p>
+          <h1 className="mt-4 text-4xl font-semibold leading-tight text-[#162A42] sm:text-5xl">{t("contact_redesign.title")}</h1>
+          <p className="mt-4 max-w-md text-base leading-relaxed text-[#202020]/74">{t("contact_redesign.subtitle")}</p>
 
-          <div className="mt-6 text-gray-600">
-            <p className="mb-2">📍 <strong>{t("contact.location_label")}:</strong> {t("contact.location")}</p>
-            <p className="mb-2">📧 <strong>{t("contact.email_label")}:</strong> airhivemx@gmail.com</p>
-            <p className="mb-2">📞 <strong>{t("contact.phone_label")}:</strong> +52 81 1607 1269</p>
+          <div className="mt-8 space-y-3 text-sm text-[#162A42]/82 sm:text-base">
+            <p><strong>{t("contact.location_label")}:</strong> {t("contact.location")}</p>
+            <p><strong>{t("contact.email_label")}:</strong> airhivemx@gmail.com</p>
+            <p><strong>{t("contact.phone_label")}:</strong> +52 81 1607 1269</p>
+            <p><strong>{t("contact_redesign.focus_label")}:</strong> {t("contact_redesign.focus_text")}</p>
           </div>
-        </motion.div>
+        </div>
 
         <motion.form
           action="https://formspree.io/f/meogayaj"
           method="POST"
           onSubmit={handleSubmit}
-          initial={{ opacity: 0, x: 40 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          transition={{ duration: 1 }}
-          className="bg-gray-100 rounded-xl p-8 shadow-lg space-y-6"
+          initial={{ opacity: 0, y: 25 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="ah-surface space-y-5 p-7 sm:p-8"
         >
           <div>
-            <label className="block mb-2 font-medium">{t("contact.form.name")}</label>
-            <input type="text" name="name" required className="w-full px-4 py-2 border border-gray-300 rounded-md" />
+            <label className="mb-2 block text-sm font-medium text-[#162A42]">{t("contact.form.name")}</label>
+            <input
+              type="text"
+              name="name"
+              required
+              className="w-full rounded-xl border border-[#162A42]/15 bg-white px-4 py-2.5 text-[#202020] outline-none transition duration-300 focus:border-[#2A47F6]"
+            />
           </div>
           <div>
-            <label className="block mb-2 font-medium">{t("contact.form.email")}</label>
-            <input type="email" name="email" required className="w-full px-4 py-2 border border-gray-300 rounded-md" />
+            <label className="mb-2 block text-sm font-medium text-[#162A42]">{t("contact.form.email")}</label>
+            <input
+              type="email"
+              name="email"
+              required
+              className="w-full rounded-xl border border-[#162A42]/15 bg-white px-4 py-2.5 text-[#202020] outline-none transition duration-300 focus:border-[#2A47F6]"
+            />
           </div>
           <div>
-            <label className="block mb-2 font-medium">{t("contact.form.message")}</label>
-            <textarea name="message" rows="5" required className="w-full px-4 py-2 border border-gray-300 rounded-md"></textarea>
+            <label className="mb-2 block text-sm font-medium text-[#162A42]">{t("contact_redesign.goal")}</label>
+            <input
+              type="text"
+              name="goal"
+              placeholder={t("contact_redesign.goal_placeholder")}
+              className="w-full rounded-xl border border-[#162A42]/15 bg-white px-4 py-2.5 text-[#202020] outline-none transition duration-300 focus:border-[#2A47F6]"
+            />
           </div>
-          <button
-            type="submit"
-            className="bg-red-600 text-white px-6 py-3 rounded-full hover:bg-red-700 transition"
-          >
-            {t("contact.form.submit")}
+          <div>
+            <label className="mb-2 block text-sm font-medium text-[#162A42]">{t("contact.form.message")}</label>
+            <textarea
+              name="message"
+              rows="5"
+              required
+              className="w-full rounded-xl border border-[#162A42]/15 bg-white px-4 py-2.5 text-[#202020] outline-none transition duration-300 focus:border-[#2A47F6]"
+            ></textarea>
+          </div>
+          <button type="submit" className="ah-button ah-button-primary w-full rounded-full px-6 py-3 text-sm font-semibold">
+            {t("contact_redesign.submit")}
           </button>
         </motion.form>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 };
 

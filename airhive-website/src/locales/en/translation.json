@@ -4,20 +4,32 @@
         "about": "About Us",
         "products": "Products",
         "services": "Services",
-        "contact": "Contact Us"
+        "contact": "Contact Us",
+        "diagnostic": "Free diagnostic",
+        "home_short": "Home",
+        "solutions": "Solutions",
+        "how_we_work": "How we work",
+        "cases": "Cases",
+        "free_diagnostic": "Free Diagnostic",
+        "schedule_diagnostic": "Schedule free diagnostic",
+        "whatsapp": "WhatsApp",
+        "solution_items": {
+            "sales": "Sales & follow-up (CRM / Leads)",
+            "operations": "Operations & reporting",
+            "logistics": "Logistics & inventory",
+            "inspection": "Inspection & monitoring (Drones)"
+        }
     },
-
     "hero": {
-      "title1": "Aerial technology for the future",
-      "text1": "We develop autonomous drones and smart infrastructure for logistics, surveillance, and education.",
-      "title2": "Modular and intelligent solutions",
-      "text2": "From design and manufacturing to autonomous operation, we cover the entire tech chain.",
-      "title3": "Real autonomy for every mission",
-      "text3": "Decision-making and intelligent flight in complex environments. Our engineering flies on its own.",
-      "button_products": "View products",
-      "button_about": "Learn more"
+        "title1": "Aerial technology for the future",
+        "text1": "We develop autonomous drones and smart infrastructure for logistics, surveillance, and education.",
+        "title2": "Modular and intelligent solutions",
+        "text2": "From design and manufacturing to autonomous operation, we cover the entire tech chain.",
+        "title3": "Real autonomy for every mission",
+        "text3": "Decision-making and intelligent flight in complex environments. Our engineering flies on its own.",
+        "button_products": "View products",
+        "button_about": "Learn more"
     },
-
     "footer": {
         "description": "Air Hive is a Mexican startup developing autonomous drones, smart stations, and solutions for logistics, security, and education.",
         "navigation": "Navigation",
@@ -32,9 +44,14 @@
         "privacy": "Privacy Policy",
         "downloads": "Downloads",
         "follow": "Follow Us",
-        "rights_reserved": "All rights reserved."
+        "rights_reserved": "All rights reserved.",
+        "diagnostic": "Request diagnostic",
+        "tagline": "Automation, AI agents, and drones for real operations.",
+        "language": "Language",
+        "theme": "Theme",
+        "theme_light": "Light",
+        "theme_dark": "Night"
     },
-
     "home": {
         "autonomy_title": "Aerial technology without human intervention",
         "autonomy_text": "We design drones capable of carrying out specific tasks autonomously. We integrate hardware, software, and computer vision so they operate without manual control.",
@@ -43,7 +60,87 @@
         "education_title": "Promoting learning through real-world technology",
         "education_text": "We foster education in science and technology through hands-on drone experiences. We bring students closer to the world of robotics, programming, and engineering."
     },
-
+    "home_redesign": {
+        "kicker": "Aerial Automation",
+        "hero_title": "We design intelligent operations with",
+        "hero_title_accent": "AI and drones",
+        "hero_text": "We build end-to-end automation systems for teams that need speed, precision, and control. We integrate AI agents, operational analytics, and autonomous aerial platforms.",
+        "cta_primary": "Schedule free diagnostic",
+        "cta_secondary": "Explore services",
+        "highlight_1": "30-minute diagnostic",
+        "highlight_2": "Modular implementation",
+        "highlight_3": "Scales per operation",
+        "hero_panel_kicker": "AIR HIVE APPROACH",
+        "hero_panel_text": "We turn operational challenges into measurable automated systems.",
+        "stack_kicker": "Air Hive Stack",
+        "stack_title": "Every layer is designed to execute, learn, and improve.",
+        "stack_text": "We combine hardware, software, and AI models to automate logistics, monitoring, and mission-critical workflows.",
+        "stack_button": "View products",
+        "card_1_title": "Operational automation",
+        "card_1_text": "We map your workflow and design autonomous flows to reduce time, errors, and cost.",
+        "card_2_title": "AI agents for decisions",
+        "card_2_text": "We train assistants and agents that analyze real-time data and recommend actions.",
+        "card_3_title": "Mission-ready drones",
+        "card_3_text": "We build and integrate drones for inspection, security, and field data capture.",
+        "final_kicker": "Next Step",
+        "final_title": "Start with a free diagnostic and a clear implementation roadmap.",
+        "final_text": "You get an actionable automation plan with technical priorities, impact estimate, and practical milestones.",
+        "final_secondary": "Meet Air Hive",
+        "hero_headline": "Automation, AI agents, and drones to improve your operation.",
+        "hero_subheadline": "We detect bottlenecks and savings opportunities. You get a phased plan with clear priorities.",
+        "cta_cases": "View cases",
+        "what_we_do_kicker": "What we do",
+        "what_we_do_title": "Four focused levers to improve your operation without unnecessary complexity.",
+        "what_we_do_1_title": "Process automation",
+        "what_we_do_1_text": "Less rework, fewer errors, more control.",
+        "what_we_do_2_title": "AI agents for operations/sales",
+        "what_we_do_2_text": "Automated follow-up and tasks without losing consistency.",
+        "what_we_do_3_title": "Data integration and reporting",
+        "what_we_do_3_text": "Reports and alerts without manual work.",
+        "what_we_do_4_title": "Drones for inspection/monitoring",
+        "what_we_do_4_text": "Visual evidence for faster decisions.",
+        "diagnostic_kicker": "FREE DIAGNOSTIC",
+        "diagnostic_title": "We analyze your operation and show where to start.",
+        "review_title": "What we review",
+        "review_1": "End-to-end process",
+        "review_2": "Available systems and data",
+        "review_3": "Bottlenecks, rework, and errors",
+        "review_4": "Metrics: time, cost, and quality",
+        "deliver_title": "What we deliver",
+        "deliver_1": "Map + recommendations",
+        "deliver_2": "Impact vs effort prioritization",
+        "deliver_3": "Phased proposal",
+        "cta_whatsapp": "WhatsApp",
+        "diagnostic_subtitle": "We identify friction, available data, and priorities to automate with real impact.",
+        "diagnostic_chip_1": "15-20 min | No commitment",
+        "diagnostic_chip_2": "Delivery in 48h",
+        "review_1_title": "End-to-end process",
+        "review_1_text": "Real mapping of steps, owners, and handoffs.",
+        "review_2_title": "Available systems and data",
+        "review_2_text": "What exists and what can be connected quickly.",
+        "review_3_title": "Bottlenecks, rework, and errors",
+        "review_3_text": "Operational friction and root causes.",
+        "review_4_title": "Metrics: time, cost, and quality",
+        "review_4_text": "Baseline to measure improvements.",
+        "deliver_1_title": "Map + recommendations",
+        "deliver_1_text": "Clear visual + actionable quick wins.",
+        "deliver_2_title": "Impact vs effort prioritization",
+        "deliver_2_text": "Decision matrix without noise.",
+        "deliver_3_title": "Phased proposal",
+        "deliver_3_text": "Incremental roadmap (0-30, 30-60, 60-90 days).",
+        "deliver_4_title": "Next steps ready to execute",
+        "deliver_4_text": "Checklist and suggested owners.",
+        "workflow_kicker": "How we work",
+        "workflow_title": "Diagnostic → Solution design → Implementation → Measurement and improvement",
+        "workflow_1_title": "Diagnostic",
+        "workflow_1_text": "We capture context, current process, and critical friction points.",
+        "workflow_2_title": "Solution design",
+        "workflow_2_text": "We define architecture, scope, and prioritized quick wins.",
+        "workflow_3_title": "Implementation",
+        "workflow_3_text": "We execute by phases with minimal operational disruption.",
+        "workflow_4_title": "Measurement and improvement",
+        "workflow_4_text": "We track KPIs and refine continuously to scale outcomes."
+    },
     "products": {
         "title": "Our Products",
         "subtitle": "Educational and custom drones for an autonomous future.",
@@ -62,7 +159,6 @@
         "custom_feature4": "Visual and functional customization",
         "custom_button": "Contact us for your design"
     },
-
     "contact": {
         "success": "Message sent successfully!",
         "title": "Contact Us",
@@ -78,7 +174,6 @@
             "submit": "Send message"
         }
     },
-
     "videos": [
         {
             "title": "Captured with Hive I",
@@ -93,7 +188,6 @@
             "description": "A new way to see the world from the sky."
         }
     ],
-
     "services": {
         "title": "Our Services",
         "subtitle": "We help you harness the power of drones.",
@@ -130,25 +224,91 @@
             "full": "We provide technical guidance on equipment selection, system integration, and problem-solving in drone-related projects. Our support is tailored to each project's specific needs."
         }
     },
-
+    "services_redesign": {
+        "cta_title": "Ready to automate your operation?",
+        "cta_text": "Book a free diagnostic to define which workflows can be improved with AI, automation, and drones.",
+        "card_1_title": "Process automation",
+        "card_1_text": "We design workflows to reduce rework, errors, and idle time in operations.",
+        "card_2_title": "AI agents for sales and operations",
+        "card_2_text": "We implement assistants that follow up, prioritize tasks, and maintain consistency.",
+        "card_3_title": "Data integration and reporting",
+        "card_3_text": "We connect systems and build automated reports for faster decisions.",
+        "card_4_title": "Drones for inspection and monitoring",
+        "card_4_text": "We capture field evidence and convert it into actionable data for your team.",
+        "workflow_kicker": "How we work",
+        "workflow_title": "A clear method to implement and scale results",
+        "workflow_1_title": "Diagnostic",
+        "workflow_1_text": "We understand context, current process, and critical friction points.",
+        "workflow_2_title": "Solution design",
+        "workflow_2_text": "We define architecture, scope, and high-impact quick wins.",
+        "workflow_3_title": "Implementation",
+        "workflow_3_text": "We execute in phases without slowing operations.",
+        "workflow_4_title": "Measurement and improvement",
+        "workflow_4_text": "We track KPIs and continuously optimize."
+    },
+    "contact_redesign": {
+        "title": "Activate your free diagnostic",
+        "subtitle": "Tell us about your operation and we will propose a practical roadmap to implement automation, AI agents, and drones.",
+        "focus_label": "Specialty",
+        "focus_text": "Process automation, AI agents, and drone deployment.",
+        "goal": "Main goal",
+        "goal_placeholder": "e.g. reduce inspection time or automate reporting",
+        "submit": "Send and schedule diagnostic"
+    },
     "about": {
         "story_title": "Our story begins in the sky",
         "story_text": "Air Hive was founded in 2025 with a mission to democratize access to aerial autonomy. We believe drones can be transformative tools that empower industries, communities, and technological progress in the world.",
-        
         "mission_button": "Mission",
         "vision_button": "Vision",
-
         "mission_text": "To develop intelligent aerial solutions that enhance safety, efficiency, and education through accessible design and cutting-edge technology.",
         "vision_text": "To become the leading aerial innovation company in Latin America, bringing autonomy and technology where they’re needed most.",
-
         "team_title": "The team behind the vision",
         "team_text_1": "Air Hive is built by people passionate about technology, education, and positive impact. Our team combines expertise in engineering, innovation, and entrepreneurship to create solutions that truly take flight.",
         "team_text_2": "We’re driven by the belief that Mexican talent can lead the new era of aerial autonomy.",
-
         "philosophy_title": "Our philosophy",
         "philosophy_text": "We believe in a future where drones don’t just fly—they solve real problems: from protecting communities to inspiring the next generation of engineers."
+    },
+    "diagnostic_page": {
+        "kicker": "Free diagnostic",
+        "title": "We analyze your operation and show where to start.",
+        "subtitle": "We identify friction, available data, and priorities to automate with real impact.",
+        "cta_primary": "Schedule free diagnostic",
+        "cta_whatsapp": "WhatsApp",
+        "for_whom": "Who it is for",
+        "for_1": "Teams dealing with operational rework and fragmented processes.",
+        "for_2": "Companies with scattered data and low traceability.",
+        "for_3": "Sales or operations areas still running manual follow-up.",
+        "for_4": "Operations that want automation without slowing the team down.",
+        "duration_title": "Duration and steps",
+        "step_1": "Kickoff and operational context (15-20 min).",
+        "step_2": "Process, systems, and data diagnostic.",
+        "step_3": "Impact vs effort prioritization + quick wins.",
+        "step_4": "Phased roadmap and ready next steps.",
+        "mock_title": "Deliverable example",
+        "mock_map": "Process map",
+        "mock_map_1": "Request intake",
+        "mock_map_2": "Validation and assignment",
+        "mock_map_3": "Execution + automated report",
+        "mock_matrix": "Impact / Effort",
+        "mock_matrix_1": "High impact / Low effort",
+        "mock_matrix_2": "High impact / High effort",
+        "mock_matrix_3": "Low impact / Low effort",
+        "mock_matrix_4": "Low impact / High effort",
+        "mock_roadmap": "Phased roadmap",
+        "mock_roadmap_1": "0-30 days | Standardize and connect",
+        "mock_roadmap_2": "30-60 days | Automate critical workflows",
+        "mock_roadmap_3": "60-90 days | Scale and measure",
+        "faq_title": "FAQ",
+        "faq_1_q": "Is the diagnostic paid?",
+        "faq_1_a": "No. It is completely free and with no commercial commitment.",
+        "faq_2_q": "How long does it take?",
+        "faq_2_a": "The initial session takes 15-20 minutes. The deliverable is sent within 48 hours.",
+        "faq_3_q": "Do we need everything documented first?",
+        "faq_3_a": "No. We work with what you already have and structure what is needed.",
+        "faq_4_q": "Can you implement after the diagnostic?",
+        "faq_4_a": "Yes. If we move forward, we execute by phases based on priority and team capacity.",
+        "form_title": "Book your diagnostic",
+        "form_subtitle": "Share your context and we will contact you with the recommended next action.",
+        "form_placeholder": "Briefly describe your operation and main challenge."
     }
-
-
-}
-   
+} 

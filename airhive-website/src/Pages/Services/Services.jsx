@@ -1,110 +1,112 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import hero2 from "/hero2.webp";
-import eventos from "/eventos.webp";
-import baterias from "/baterias.webp";
-import capacitacion from "/capacitacion.webp";
-import regulacion from "/regulacion.webp";
-import terreno from "/terreno.webp";
-import consultoria from "/consultoria.webp";
 import services from "/services.webp";
+import heroWeb from "/hero_web.webp";
+import home2 from "/home2.webp";
+import droneCustom from "/dronpersonalizado.webp";
 
 const Services = () => {
-  const [expandedIndex, setExpandedIndex] = useState(null);
   const { t } = useTranslation();
 
   const servicesData = [
-    {
-      title: t("services.training.title"),
-      shortText: t("services.training.short"),
-      fullText: t("services.training.full"),
-      image: capacitacion,
-    },
-    {
-      title: t("services.land.title"),
-      shortText: t("services.land.short"),
-      fullText: t("services.land.full"),
-      image: terreno,
-    },
-    {
-      title: t("services.events.title"),
-      shortText: t("services.events.short"),
-      fullText: t("services.events.full"),
-      image: eventos,
-    },
-    {
-      title: t("services.batteries.title"),
-      shortText: t("services.batteries.short"),
-      fullText: t("services.batteries.full"),
-      image: baterias,
-    },
-    {
-      title: t("services.registration.title"),
-      shortText: t("services.registration.short"),
-      fullText: t("services.registration.full"),
-      image: regulacion,
-    },
-    {
-      title: t("services.support.title"),
-      shortText: t("services.support.short"),
-      fullText: t("services.support.full"),
-      image: consultoria,
-    },
+    { title: t("services_redesign.card_1_title"), text: t("services_redesign.card_1_text"), image: services },
+    { title: t("services_redesign.card_2_title"), text: t("services_redesign.card_2_text"), image: heroWeb },
+    { title: t("services_redesign.card_3_title"), text: t("services_redesign.card_3_text"), image: home2 },
+    { title: t("services_redesign.card_4_title"), text: t("services_redesign.card_4_text"), image: droneCustom },
   ];
 
-  const toggleExpand = (index) => {
-    setExpandedIndex(expandedIndex === index ? null : index);
-  };
+  const workflowSteps = [
+    { title: t("services_redesign.workflow_1_title"), text: t("services_redesign.workflow_1_text") },
+    { title: t("services_redesign.workflow_2_title"), text: t("services_redesign.workflow_2_text") },
+    { title: t("services_redesign.workflow_3_title"), text: t("services_redesign.workflow_3_text") },
+    { title: t("services_redesign.workflow_4_title"), text: t("services_redesign.workflow_4_text") },
+  ];
 
   return (
-    <div className="bg-white text-black">
-      {/* Hero personalizado */}
-      <div
-        className="relative w-full h-[85vh] bg-cover bg-center flex items-center justify-center"
-        style={{ backgroundImage: `url(${hero2})` }}
-      >
-        <div className="bg-black/60 w-full h-full absolute top-0 left-0" />
-        <div className="relative z-10 text-center px-6">
-          <h1 className="text-5xl md:text-6xl font-bold text-white drop-shadow-lg animate-fade-in">
-            {t("services.title")}
-          </h1>
-          <p className="mt-4 text-lg md:text-xl text-white drop-shadow-md animate-fade-in delay-200">
-            {t("services.subtitle")}
+    <main className="ah-page pt-28">
+      <section className="ah-container py-16 text-center">
+        <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#1501A5]/70">Services</p>
+        <h1 className="mt-4 text-4xl font-semibold text-[#162A42] sm:text-5xl">{t("services.title")}</h1>
+        <p className="mx-auto mt-4 max-w-2xl text-base text-[#202020]/72">{t("services.subtitle")}</p>
+      </section>
+
+      <section id="como-trabajamos" className="ah-container py-12 scroll-mt-28">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.5 }}
+          className="mb-10"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#1501A5]/70">
+            {t("services_redesign.workflow_kicker")}
           </p>
-        </div>
-      </div>
+          <h2 className="mt-3 max-w-3xl text-3xl font-semibold leading-tight text-[#162A42] sm:text-4xl">
+            {t("services_redesign.workflow_title")}
+          </h2>
+        </motion.div>
 
-      {/* Servicios estilo DJI */}
-      <section className="w-full px-[0.5%] h-full py-[0.5%] grid grid-cols-1 md:grid-cols-2 gap-3">
-        {servicesData.map((service, index) => (
-          <div
-            key={index}
-            className="relative h-[80vh] rounded-l overflow-hidden shadow-xl border border-white/20"
-            style={{
-              backgroundImage: `url(${service.image})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-          >
-            <div className="absolute inset-0 bg-black/30 backdrop-blur-xsm" />
+        <div className="relative">
+          <div className="absolute left-1/2 top-6 hidden h-[2px] w-[82%] -translate-x-1/2 bg-[#DDDDDD] lg:block" />
+          <motion.div
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.9, ease: "easeOut" }}
+            className="absolute left-1/2 top-6 hidden h-[2px] w-[82%] origin-left -translate-x-1/2 bg-gradient-to-r from-[#2A47F6] to-[#6443DB] lg:block"
+          />
 
-            <div className="relative z-10 p-10 h-full flex flex-col justify-end text-white">
-              <h3 className="text-4xl font-bold mb-4 drop-shadow-md">{service.title}</h3>
-              <p className="text-lg mb-6 transition-all duration-300 ease-in-out">
-                {expandedIndex === index ? service.fullText : service.shortText}
-              </p>
-              <button
-                onClick={() => toggleExpand(index)}
-                className="text-base font-semibold underline hover:text-red-400 transition w-fit"
+          <div className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-4 lg:gap-8">
+            {workflowSteps.map((step, index) => (
+              <motion.article
+                key={step.title}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.25 }}
+                transition={{ duration: 0.45, delay: index * 0.15, ease: "easeOut" }}
+                className="relative rounded-2xl border border-white bg-white p-5 shadow-[0_12px_30px_rgba(22,42,66,0.1)]"
               >
-                {expandedIndex === index ? t("services.read_less") : t("services.read_more")}
-              </button>
-            </div>
+                <span className="mb-3 inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#2A47F6]/12 text-xs font-semibold text-[#2A47F6]">
+                  {index + 1}
+                </span>
+                <h3 className="text-lg font-semibold text-[#162A42]">{step.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[#202020]/74">{step.text}</p>
+              </motion.article>
+            ))}
           </div>
+        </div>
+      </section>
+
+      <section className="ah-container grid gap-5 pb-10 pt-8 md:grid-cols-2">
+        {servicesData.map((service, index) => (
+          <motion.article
+            key={service.title}
+            initial={{ opacity: 0, y: 26 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.25 }}
+            transition={{ duration: 0.45, delay: index * 0.05 }}
+            className="overflow-hidden rounded-2xl border border-white bg-white shadow-[0_12px_30px_rgba(22,42,66,0.1)]"
+          >
+            <img src={service.image} alt={service.title} className="h-52 w-full object-cover" />
+            <div className="p-6">
+              <h2 className="text-xl font-semibold text-[#1F3CCF]">{service.title}</h2>
+              <p className="mt-3 text-sm leading-relaxed text-[#202020]/75">{service.text}</p>
+            </div>
+          </motion.article>
         ))}
       </section>
-    </div>
+
+      <section className="ah-container py-14">
+        <div className="ah-surface bg-gradient-to-br from-[#162A42] to-[#1501A5] p-8 text-white sm:p-10">
+          <h2 className="text-2xl font-semibold sm:text-3xl">{t("services_redesign.cta_title")}</h2>
+          <p className="mt-3 max-w-2xl text-sm text-white/85 sm:text-base">{t("services_redesign.cta_text")}</p>
+          <Link to="/contact" className="mt-6 inline-block rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#162A42] transition duration-500 hover:bg-[#DDDDDD]">
+            {t("navbar.diagnostic")}
+          </Link>
+        </div>
+      </section>
+    </main>
   );
 };
 

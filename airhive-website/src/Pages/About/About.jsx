@@ -1,124 +1,74 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
-import image1 from "/hero1.png";
-import image2 from "/hero2.png";
-import image3 from "/hero3.png";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import about1 from "/about1.webp";
 import about2 from "/about2.webp";
 
-const fadeInUp = {
-  hidden: { opacity: 0, y: 40 },
-  visible: { opacity: 1, y: 0 },
-};
-
 const About = () => {
-  const [currentTab, setCurrentTab] = useState("mission");
   const { t } = useTranslation();
 
   return (
-    <div className="bg-white text-black overflow-hidden">
-      {/* Hero + Story */}
-      <section className="min-h-[90vh] px-8 py-28 flex flex-col md:flex-row items-center justify-between gap-16">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          variants={fadeInUp}
-          transition={{ duration: 1 }}
-          className="md:w-1/2"
-        >
-          <h1 className="text-5xl font-bold leading-tight mb-6">
-            {t("about.story_title")}
-          </h1>
-          <p className="text-lg text-gray-600">
-            {t("about.story_text")}
-          </p>
+    <main className="ah-page pt-28">
+      <section className="ah-container grid items-center gap-10 py-16 lg:grid-cols-2">
+        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+          <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#1501A5]/70">Air Hive</p>
+          <h1 className="mt-4 max-w-xl text-4xl font-semibold leading-tight text-[#162A42] sm:text-5xl">{t("about.story_title")}</h1>
+          <p className="mt-5 max-w-xl text-base leading-relaxed text-[#202020]/74">{t("about.story_text")}</p>
+          <Link to="/contact" className="ah-button ah-button-primary mt-8 inline-block rounded-full px-6 py-3 text-sm font-semibold">
+            {t("navbar.diagnostic")}
+          </Link>
         </motion.div>
         <motion.img
           src={about1}
-          alt="Dron volando"
-          initial={{ opacity: 0, x: 100 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          transition={{ duration: 1 }}
-          className="rounded-2l shadow-xl md:w-1/2 object-cover"
+          alt="Air Hive story"
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="h-[420px] w-full rounded-2xl border border-white bg-white object-cover p-2 shadow-[0_12px_30px_rgba(22,42,66,0.1)]"
         />
       </section>
 
-      {/* Misión y Visión Scrollable Mejorado */}
-      <section className="relative w-full min-h-[70vh] py-20 px-4 bg-gradient-to-b from-black to-[#000000] text-white text-center flex flex-col items-center justify-center">
-        <div className="max-w-4xl w-full">
-          <div className="flex justify-center gap-6 mb-10">
-            <button
-              onClick={() => setCurrentTab("mission")}
-              className={`px-8 py-3 rounded-full text-base md:text-lg font-medium border transition-all duration-300 ${currentTab === "mission" ? "bg-red-600 text-white border-red-600" : "border-white/30 text-white hover:bg-red-600/20"}`}
-            >
-              {t("about.mission_button")}
-            </button>
-            <button
-              onClick={() => setCurrentTab("vision")}
-              className={`px-8 py-3 rounded-full text-base md:text-lg font-medium border transition-all duration-300 ${currentTab === "vision" ? "bg-red-600 text-white border-red-600" : "border-white/30 text-white hover:bg-red-600/20"}`}
-            >
-              {t("about.vision_button")}
-            </button>
-          </div>
-
-          <motion.div
-            key={currentTab}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="px-4"
+      <section className="ah-container grid gap-6 py-8 md:grid-cols-2">
+        {[{ key: "mission", text: t("about.mission_text") }, { key: "vision", text: t("about.vision_text") }].map((item) => (
+          <motion.article
+            key={item.key}
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.5 }}
+            className="rounded-2xl border border-white bg-gradient-to-br from-[#2A47F6] to-[#1501A5] p-7 text-white shadow-[0_14px_34px_rgba(42,71,246,0.24),inset_0_0_0_1px_rgba(255,255,255,0.35)] sm:p-8"
           >
-            <h2 className="text-3xl md:text-5xl font-medium text-white max-w-3xl mx-auto">
-              {currentTab === "mission"
-                ? t("about.mission_text")
-                : t("about.vision_text")}
-            </h2>
-          </motion.div>
-        </div>
+            <p className="text-base font-bold uppercase tracking-[0.24em] text-white/95 sm:text-lg">{t(`about.${item.key}_button`)}</p>
+            <p className="mt-4 text-lg leading-relaxed text-white/90 sm:text-xl">{item.text}</p>
+          </motion.article>
+        ))}
       </section>
 
-      {/* Equipo + propósito */}
-      <section className="py-28 px-6 max-w-7xl mx-auto grid md:grid-cols-2 items-center gap-16">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          variants={fadeInUp}
-          transition={{ duration: 1 }}
-        >
-          <h3 className="text-4xl font-bold mb-6">{t("about.team_title")}</h3>
-          <p className="text-gray-700 text-lg mb-4">
-            {t("about.team_text_1")}
-          </p>
-          <p className="text-gray-700 text-lg">
-            {t("about.team_text_2")}
-          </p>
-        </motion.div>
+      <section className="ah-container grid items-center gap-10 py-16 lg:grid-cols-2">
         <motion.img
           src={about2}
-          alt="Equipo Air Hive"
-          initial={{ opacity: 0, x: 100 }}
+          alt="Air Hive team"
+          initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
-          transition={{ duration: 1 }}
-          className="rounded-xl shadow-lg object-cover"
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: 0.6 }}
+          className="h-[360px] w-full rounded-2xl border border-white bg-white object-cover p-2 shadow-[0_12px_30px_rgba(22,42,66,0.1)]"
         />
-      </section>
-
-      {/* Filosofía final */}
-      <section className="py-24 px-6 text-center bg-[#eaeaea]">
         <motion.div
-          initial="hidden"
-          whileInView="visible"
-          variants={fadeInUp}
-          transition={{ duration: 1 }}
+          initial={{ opacity: 0, x: 30 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: 0.6 }}
         >
-          <h2 className="text-4xl font-bold mb-6">{t("about.philosophy_title")}</h2>
-          <p className="text-gray-700 text-lg max-w-4xl mx-auto">
+          <h2 className="text-3xl font-semibold text-[#162A42] sm:text-4xl">{t("about.team_title")}</h2>
+          <p className="mt-4 text-base leading-relaxed text-[#202020]/74">{t("about.team_text_1")}</p>
+          <p className="mt-3 text-base leading-relaxed text-[#202020]/74">{t("about.team_text_2")}</p>
+          <p className="mt-7 max-w-xl rounded-2xl border border-[#162A42]/12 bg-white/70 p-5 text-sm leading-relaxed text-[#162A42]/85">
             {t("about.philosophy_text")}
           </p>
         </motion.div>
       </section>
-    </div>
+    </main>
   );
 };
 

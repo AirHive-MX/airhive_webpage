@@ -1,17 +1,281 @@
-/* tailwindcss */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
+:root {
+  --ah-navy: #162a42;
+  --ah-indigo: #1501a5;
+  --ah-violet: #6443db;
+  --ah-blue: #2a47f6;
+  --ah-gray: #dddddd;
+  --ah-white: #ffffff;
+  --ah-charcoal: #202020;
+}
 
-/* Scrollbar moderna y fina */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background: var(--ah-white);
+  color: var(--ah-charcoal);
+}
+
+html[data-theme="dark"] body {
+  background: #0d1424;
+  color: #e7edf9;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+.ah-page {
+  background:
+    radial-gradient(circle at 80% 10%, rgb(42 71 246 / 8%), transparent 42%),
+    radial-gradient(circle at 20% 80%, rgb(100 67 219 / 8%), transparent 38%),
+    var(--ah-white);
+}
+
+html[data-theme="dark"] .ah-page {
+  background:
+    radial-gradient(circle at 80% 12%, rgb(42 71 246 / 18%), transparent 45%),
+    radial-gradient(circle at 20% 78%, rgb(100 67 219 / 16%), transparent 44%),
+    #0d1424;
+}
+
+.ah-container {
+  width: min(1120px, calc(100% - 3rem));
+  margin: 0 auto;
+}
+
+.ah-surface {
+  border: 1px solid rgb(255 255 255 / 98%);
+  border-radius: 1.25rem;
+  background: rgb(255 255 255 / 94%);
+  box-shadow:
+    0 10px 26px rgb(22 42 66 / 8%),
+    inset 0 0 0 1px rgb(255 255 255 / 85%);
+  backdrop-filter: blur(8px);
+}
+
+main [class*="border-[#DDDDDD]"] {
+  border-color: rgb(255 255 255 / 98%) !important;
+}
+
+main [class*="border-[#162A42]/10"],
+main [class*="border-[#162A42]/12"],
+main [class*="border-[#162A42]/15"] {
+  border-color: rgb(255 255 255 / 96%) !important;
+}
+
+html:not([data-theme="dark"]) main article,
+html:not([data-theme="dark"]) main details,
+html:not([data-theme="dark"]) main form,
+html:not([data-theme="dark"]) main .ah-surface {
+  border-color: rgb(255 255 255 / 98%) !important;
+  background: rgb(255 255 255 / 96%) !important;
+  box-shadow:
+    0 12px 30px rgb(22 42 66 / 9%),
+    inset 0 0 0 1px rgb(255 255 255 / 88%);
+}
+
+html[data-theme="dark"] .ah-surface {
+  border-color: rgb(108 136 220 / 28%);
+  background: rgb(14 23 40 / 74%);
+  box-shadow: 0 10px 30px rgb(5 10 20 / 35%);
+}
+
+.ah-gradient-text {
+  background: linear-gradient(120deg, var(--ah-navy) 20%, var(--ah-blue) 50%, var(--ah-violet) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.ah-button {
+  transition: all 420ms ease;
+}
+
+.ah-button-primary {
+  background: linear-gradient(115deg, var(--ah-indigo), var(--ah-blue));
+  color: var(--ah-white);
+  box-shadow: 0 14px 34px rgb(21 1 165 / 22%);
+}
+
+.ah-button-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 42px rgb(21 1 165 / 30%);
+}
+
+.ah-button-secondary {
+  border: 1px solid rgb(22 42 66 / 16%);
+  color: var(--ah-navy);
+  background: rgb(255 255 255 / 70%);
+}
+
+.ah-button-secondary:hover {
+  border-color: rgb(42 71 246 / 40%);
+  color: var(--ah-blue);
+}
+
+.ah-auto-reveal {
+  opacity: 0;
+  transform: translate3d(0, 26px, 0);
+  transition-delay: var(--ah-reveal-delay, 0ms);
+  transition:
+    opacity 680ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 680ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.ah-auto-reveal.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ah-auto-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 9px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #444;
-  border-radius: 10px;
+  background: linear-gradient(var(--ah-indigo), var(--ah-blue));
+  border-radius: 999px;
 }
 
 ::-webkit-scrollbar-track {
-  background-color: #111;
+  background: #f4f4f4;
+}
+
+::selection {
+  background: rgb(42 71 246 / 35%);
+  color: #162a42;
+}
+
+html[data-theme="dark"] header nav {
+  background: rgb(42 71 246 / 95%) !important;
+  border-color: rgb(174 196 255 / 36%) !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] header [class*="bg-white/95"] {
+  background: rgb(31 60 207 / 96%) !important;
+  border-color: rgb(174 196 255 / 28%) !important;
+}
+
+html[data-theme="dark"] header nav a,
+html[data-theme="dark"] header nav button {
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] header nav a:hover,
+html[data-theme="dark"] header nav button:hover {
+  color: #dfe8ff !important;
+}
+
+html[data-theme="dark"] header nav img {
+  filter: brightness(0) invert(1) !important;
+}
+
+html[data-theme="dark"] header nav .ah-nav-cta,
+html[data-theme="dark"] header nav .ah-nav-cta:hover {
+  background: #ffffff !important;
+  color: #2a47f6 !important;
+}
+
+html[data-theme="dark"] header nav .ah-nav-cta:hover {
+  background: #eff4ff !important;
+}
+
+html[data-theme="dark"] main [class*="bg-white"] {
+  background-color: rgb(16 24 40 / 88%) !important;
+}
+
+html[data-theme="dark"] main [class*="text-[#162A42]"] {
+  color: #edf3ff !important;
+}
+
+html[data-theme="dark"] main [class*="text-[#202020]"] {
+  color: rgb(224 233 249 / 92%) !important;
+}
+
+html[data-theme="dark"] main [class*="border-[#DDDDDD]"] {
+  border-color: rgb(108 136 220 / 30%) !important;
+}
+
+html[data-theme="dark"] main [class*="text-[#1501A5]"],
+html[data-theme="dark"] main [class*="text-[#6443DB]"] {
+  color: #9e8cff !important;
+}
+
+html[data-theme="dark"] .diagnostic-block {
+  background: #0b1020 !important;
+  color: #eaf0ff !important;
+}
+
+html[data-theme="dark"] .diagnostic-glow-a {
+  opacity: 0.2 !important;
+}
+
+html[data-theme="dark"] .diagnostic-glow-b {
+  opacity: 0.18 !important;
+}
+
+html[data-theme="dark"] .diagnostic-kicker {
+  color: #6f8eff !important;
+}
+
+html[data-theme="dark"] .diagnostic-title {
+  background: none !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+html[data-theme="dark"] .diagnostic-subtitle {
+  color: #7db0ff !important;
+}
+
+html[data-theme="dark"] .diagnostic-chip {
+  background: rgb(17 26 47 / 80%) !important;
+  border-color: rgb(93 127 255 / 35%) !important;
+  color: #b8cdff !important;
+}
+
+html[data-theme="dark"] .diagnostic-chip-icon {
+  color: #7db0ff !important;
+}
+
+html[data-theme="dark"] .diagnostic-card {
+  background: rgb(16 26 49 / 88%) !important;
+  border-color: rgb(97 127 226 / 28%) !important;
+  box-shadow: 0 10px 28px rgb(5 8 18 / 40%) !important;
+}
+
+html[data-theme="dark"] .diagnostic-card-title {
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .diagnostic-item {
+  border-color: rgb(91 117 202 / 30%) !important;
+}
+
+html[data-theme="dark"] .diagnostic-item-icon {
+  color: #7db0ff !important;
+}
+
+html[data-theme="dark"] .diagnostic-item-title {
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .diagnostic-item-text {
+  color: #90bcff !important;
 }

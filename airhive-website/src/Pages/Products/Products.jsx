@@ -1,134 +1,92 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import hero1 from "/hero1.webp";
 import kit from "/kitarmatudron.webp";
-import kit2 from "/kitarmatudron2.webp";
 import personalizado from "/dronpersonalizado.webp";
 import personalizado2 from "/personalizado2.webp";
-import products from "/products.webp";
 
 const Products = () => {
   const { t } = useTranslation();
-  const [kitIndex, setKitIndex] = useState(0);
-  const kitImages = [kit, kit2];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setKitIndex((prev) => (prev + 1) % kitImages.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
-    <div className="bg-white text-black">
-      {/* Hero personalizado */}
-      <div
-        className="relative w-full h-[85vh] bg-cover bg-center flex items-center justify-center"
-        style={{ backgroundImage: `url(${products})` }}
-      >
-        <div className="bg-black/60 w-full h-full absolute top-0 left-0" />
-        <div className="relative z-10 text-center px-6">
-          <h1 className="text-5xl md:text-6xl font-bold text-white drop-shadow-lg animate-fade-in">
-            {t("products.title")}
-          </h1>
-          <p className="mt-4 text-lg md:text-xl text-white drop-shadow-md animate-fade-in delay-200">
-            {t("products.subtitle")}
-          </p>
-        </div>
-      </div>
+    <main className="ah-page pt-28">
+      <section className="ah-container py-16 text-center">
+        <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#1501A5]/70">Catalog</p>
+        <h1 className="mt-4 text-4xl font-semibold text-[#162A42] sm:text-5xl">{t("products.title")}</h1>
+        <p className="mx-auto mt-4 max-w-2xl text-base text-[#202020]/72">{t("products.subtitle")}</p>
+      </section>
 
-      {/* Sección Kit Educativo */}
-      <section className="max-w-7xl mx-auto py-28 px-6 grid md:grid-cols-2 items-center gap-16">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
+      <section className="ah-container grid items-center gap-8 py-10 lg:grid-cols-2">
+        <motion.img
+          src={kit}
+          alt={t("products.kit_title")}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="relative overflow-hidden rounded-l shadow-2xl w-full max-h-[520px]"
-        >
-          <img
-            src={kitImages[kitIndex]}
-            alt="Kit Arma tu Dron"
-            className={`object-cover w-full h-full transition-transform duration-700 ${kitIndex === 0 ? "scale-200 -translate-x-6" : "scale-100 translate-x-0"}`}
-          />
-          <div className="absolute bottom-4 right-4 flex gap-2 z-10">
-            {kitImages.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setKitIndex(i)}
-                className={`w-3 h-3 rounded-full ${kitIndex === i ? "bg-red-600" : "bg-white/70"}`}
-              ></button>
-            ))}
-          </div>
-        </motion.div>
-
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: 0.6 }}
+          className="h-[420px] w-full rounded-2xl border border-white bg-white object-cover p-2 shadow-[0_12px_30px_rgba(22,42,66,0.1)]"
+        />
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="rounded-2xl border border-white bg-white p-7 shadow-[0_12px_30px_rgba(22,42,66,0.1)]"
         >
-          <h2 className="text-4xl font-bold mb-6">{t("products.kit_title")}</h2>
-          <p className="text-lg text-gray-700 mb-6">{t("products.kit_description")}</p>
-          <ul className="list-disc pl-5 text-gray-800 space-y-2 mb-6">
+          <h2 className="text-3xl font-semibold text-[#162A42]">{t("products.kit_title")}</h2>
+          <p className="mt-4 text-sm leading-relaxed text-[#202020]/76 sm:text-base">{t("products.kit_description")}</p>
+          <ul className="mt-5 space-y-2 text-sm text-[#162A42]/85 sm:text-base">
             <li>{t("products.kit_feature1")}</li>
             <li>{t("products.kit_feature2")}</li>
             <li>{t("products.kit_feature3")}</li>
             <li>{t("products.kit_feature4")}</li>
           </ul>
-          <Link
-            to="/contact"
-            className="inline-block px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-full font-semibold shadow transition hover:scale-105"
-          >
+          <Link to="/contact" className="ah-button ah-button-primary mt-7 inline-block rounded-full px-6 py-3 text-sm font-semibold">
             {t("products.kit_button")}
           </Link>
         </motion.div>
       </section>
 
-      {/* Sección Drones Personalizados */}
-      <section className="bg-gray-100 py-28 px-6">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h2 className="text-4xl font-bold mb-6">{t("products.custom_title")}</h2>
-            <p className="text-lg text-gray-700 mb-6">{t("products.custom_description")}</p>
-            <ul className="list-disc pl-5 text-gray-800 space-y-2 mb-6">
-              <li>{t("products.custom_feature1")}</li>
-              <li>{t("products.custom_feature2")}</li>
-              <li>{t("products.custom_feature3")}</li>
-              <li>{t("products.custom_feature4")}</li>
-            </ul>
-            <Link
-              to="/contact"
-              className="inline-block px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-full font-semibold shadow transition hover:scale-105"
-            >
-              {t("products.custom_button")}
-            </Link>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="grid grid-cols-2 gap-4"
-          >
-            <img
-              src={personalizado}
-              className="rounded-l shadow-lg object-cover w-full h-full"
-              alt="Drone personalizado 1"
-            />
-            <img
-              src={personalizado2}
-              className="rounded-l shadow-lg object-cover w-full h-full"
-              alt="Drone personalizado 2"
-            />
-          </motion.div>
-        </div>
+      <section className="ah-container grid items-center gap-8 py-10 lg:grid-cols-2">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: 0.6 }}
+          className="rounded-2xl border border-white bg-white p-7 shadow-[0_12px_30px_rgba(22,42,66,0.1)]"
+        >
+          <h2 className="text-3xl font-semibold text-[#162A42]">{t("products.custom_title")}</h2>
+          <p className="mt-4 text-sm leading-relaxed text-[#202020]/76 sm:text-base">{t("products.custom_description")}</p>
+          <ul className="mt-5 space-y-2 text-sm text-[#162A42]/85 sm:text-base">
+            <li>{t("products.custom_feature1")}</li>
+            <li>{t("products.custom_feature2")}</li>
+            <li>{t("products.custom_feature3")}</li>
+            <li>{t("products.custom_feature4")}</li>
+          </ul>
+          <Link to="/contact" className="ah-button ah-button-primary mt-7 inline-block rounded-full px-6 py-3 text-sm font-semibold">
+            {t("products.custom_button")}
+          </Link>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="grid gap-4 sm:grid-cols-2"
+        >
+          <img
+            src={personalizado}
+            alt="Custom drone 1"
+            className="h-64 w-full rounded-2xl border border-white bg-white object-cover p-2 shadow-[0_12px_30px_rgba(22,42,66,0.1)] sm:h-80"
+          />
+          <img
+            src={personalizado2}
+            alt="Custom drone 2"
+            className="h-64 w-full rounded-2xl border border-white bg-white object-cover p-2 shadow-[0_12px_30px_rgba(22,42,66,0.1)] sm:h-80"
+          />
+        </motion.div>
       </section>
-    </div>
+    </main>
   );
 };
 

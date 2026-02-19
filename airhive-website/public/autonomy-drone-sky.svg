@@ -1,0 +1,88 @@
+<svg width="1600" height="1000" viewBox="0 0 1600 1000" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Autonomous drone in blue sky</title>
+  <desc id="desc">Stylized quadcopter in a bright blue sky, without hanging camera and without landing legs.</desc>
+
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1000" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5CB8FF"/>
+      <stop offset="0.55" stop-color="#7CC8FF"/>
+      <stop offset="1" stop-color="#BEE5FF"/>
+    </linearGradient>
+    <radialGradient id="sunGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1310 170) rotate(90) scale(210 210)">
+      <stop stop-color="#FFF6C9" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#FFF6C9" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="droneBody" x1="640" y1="390" x2="960" y2="610" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1C212B"/>
+      <stop offset="1" stop-color="#2F3948"/>
+    </linearGradient>
+    <linearGradient id="arm" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#2E3746"/>
+      <stop offset="1" stop-color="#171C25"/>
+    </linearGradient>
+    <linearGradient id="rotorRing" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#111723"/>
+      <stop offset="1" stop-color="#2A3443"/>
+    </linearGradient>
+    <filter id="softShadow" x="450" y="250" width="700" height="500" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="1000" fill="url(#sky)"/>
+  <circle cx="1310" cy="170" r="210" fill="url(#sunGlow)"/>
+
+  <g opacity="0.78" fill="#F6FBFF">
+    <ellipse cx="280" cy="250" rx="140" ry="58"/>
+    <ellipse cx="390" cy="245" rx="95" ry="46"/>
+    <ellipse cx="210" cy="285" rx="98" ry="40"/>
+
+    <ellipse cx="1200" cy="320" rx="150" ry="60"/>
+    <ellipse cx="1310" cy="314" rx="100" ry="48"/>
+    <ellipse cx="1120" cy="350" rx="105" ry="42"/>
+
+    <ellipse cx="540" cy="150" rx="95" ry="38"/>
+    <ellipse cx="620" cy="145" rx="72" ry="32"/>
+  </g>
+
+  <g opacity="0.2" filter="url(#softShadow)">
+    <ellipse cx="800" cy="590" rx="220" ry="80" fill="#0A1624"/>
+  </g>
+
+  <g>
+    <rect x="770" y="440" width="60" height="90" rx="22" fill="url(#droneBody)"/>
+    <rect x="710" y="455" width="180" height="70" rx="28" fill="url(#droneBody)"/>
+    <rect x="735" y="430" width="130" height="22" rx="11" fill="#3E4B5E" opacity="0.8"/>
+
+    <g stroke="url(#arm)" stroke-width="20" stroke-linecap="round">
+      <line x1="790" y1="468" x2="620" y2="350"/>
+      <line x1="810" y1="468" x2="980" y2="350"/>
+      <line x1="790" y1="520" x2="620" y2="640"/>
+      <line x1="810" y1="520" x2="980" y2="640"/>
+    </g>
+
+    <g>
+      <circle cx="610" cy="344" r="70" fill="url(#rotorRing)"/>
+      <circle cx="610" cy="344" r="48" fill="#6FAACF" opacity="0.24"/>
+      <ellipse cx="610" cy="344" rx="98" ry="20" fill="#D7EFFF" opacity="0.5"/>
+
+      <circle cx="990" cy="344" r="70" fill="url(#rotorRing)"/>
+      <circle cx="990" cy="344" r="48" fill="#6FAACF" opacity="0.24"/>
+      <ellipse cx="990" cy="344" rx="98" ry="20" fill="#D7EFFF" opacity="0.5"/>
+
+      <circle cx="610" cy="646" r="70" fill="url(#rotorRing)"/>
+      <circle cx="610" cy="646" r="48" fill="#6FAACF" opacity="0.24"/>
+      <ellipse cx="610" cy="646" rx="98" ry="20" fill="#D7EFFF" opacity="0.5"/>
+
+      <circle cx="990" cy="646" r="70" fill="url(#rotorRing)"/>
+      <circle cx="990" cy="646" r="48" fill="#6FAACF" opacity="0.24"/>
+      <ellipse cx="990" cy="646" rx="98" ry="20" fill="#D7EFFF" opacity="0.5"/>
+    </g>
+
+    <g>
+      <circle cx="800" cy="492" r="8" fill="#7AD0FF"/>
+      <circle cx="770" cy="492" r="6" fill="#91FFC4"/>
+      <circle cx="830" cy="492" r="6" fill="#FFD67A"/>
+    </g>
+  </g>
+</svg>
