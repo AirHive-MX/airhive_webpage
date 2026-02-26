@@ -1,30 +1,8 @@
 import { Link } from "react-router-dom";
 import { FaInstagram, FaLinkedin, FaFacebook, FaTiktok } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
-import { useEffect, useState } from "react";
-
 const Footer = () => {
   const { t, i18n } = useTranslation();
-  const [theme, setTheme] = useState("light");
-
-  useEffect(() => {
-    const stored = localStorage.getItem("airhive_theme");
-    if (stored === "light" || stored === "dark") {
-      setTheme(stored);
-      document.documentElement.setAttribute("data-theme", stored);
-      return;
-    }
-
-    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const initialTheme = systemPrefersDark ? "dark" : "light";
-    setTheme(initialTheme);
-    document.documentElement.setAttribute("data-theme", initialTheme);
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("airhive_theme", theme);
-  }, [theme]);
 
   return (
     <footer className="mt-24 bg-[#202020] px-6 pb-10 pt-16 text-[#DDDDDD]">
@@ -104,31 +82,6 @@ const Footer = () => {
               }`}
             >
               EN
-            </button>
-          </div>
-          <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 p-1 text-xs">
-            <span className="px-2 text-[#DDDDDD]/75">{t("footer.theme")}</span>
-            <button
-              type="button"
-              onClick={() => setTheme("light")}
-              className={`rounded-full px-3 py-1 font-semibold transition ${
-                theme === "light"
-                  ? "bg-[#2A47F6] text-white"
-                  : "text-[#DDDDDD] hover:bg-white/10"
-              }`}
-            >
-              {t("footer.theme_light")}
-            </button>
-            <button
-              type="button"
-              onClick={() => setTheme("dark")}
-              className={`rounded-full px-3 py-1 font-semibold transition ${
-                theme === "dark"
-                  ? "bg-[#2A47F6] text-white"
-                  : "text-[#DDDDDD] hover:bg-white/10"
-              }`}
-            >
-              {t("footer.theme_dark")}
             </button>
           </div>
         </div>

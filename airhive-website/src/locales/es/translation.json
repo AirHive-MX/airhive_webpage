@@ -9,7 +9,7 @@
         "home_short": "Inicio",
         "solutions": "Soluciones",
         "how_we_work": "Cómo trabajamos",
-        "cases": "Casos",
+        "cases": "Productos",
         "free_diagnostic": "Diagnóstico Gratis",
         "schedule_diagnostic": "Agenda diagnóstico gratuito",
         "whatsapp": "WhatsApp",
@@ -143,21 +143,51 @@
     },
     "products": {
         "title": "Nuestros Productos",
-        "subtitle": "Drones educativos y personalizados para un futuro autónomo.",
-        "kit_title": "Kit Educativo “Arma tu Dron”",
-        "kit_description": "Diseñado para centros educativos, este kit permite a los estudiantes ensamblar un dron desde cero, comprender su funcionamiento y programarlo para ejecutar misiones autónomas. Incluye capacitación y tutoriales exclusivos por parte de nuestro equipo.",
-        "kit_feature1": "Compatible con software Open Source",
-        "kit_feature2": "Incluye GPS, IMU, ESCs, controladora de vuelo, estructura, hélices y más",
-        "kit_feature3": "Ideal para talleres, cursos de ingeniería y competencias educativas",
-        "kit_feature4": "Precio accesible y soporte directo con Air Hive",
-        "kit_button": "Solicita una cotización",
-        "custom_title": "Drones Personalizados",
-        "custom_description": "Fabricamos drones a la medida según las necesidades de nuestros clientes: desde drones FPV para acrobacias hasta plataformas profesionales para fotografía aérea o misiones completamente autónomas.",
-        "custom_feature1": "Diseños aerodinámicos optimizados",
-        "custom_feature2": "Componentes de alta calidad seleccionados según su uso",
-        "custom_feature3": "Integración de cámaras, GPS, LiDAR y más",
-        "custom_feature4": "Personalización visual y funcional",
-        "custom_button": "Contáctanos para tu diseño"
+        "subtitle": "Soluciones tecnológicas para automatizar, monitorear y optimizar tu operación.",
+        "cta_button": "Solicitar demo",
+        "drone_inventory": {
+            "title": "Dron para Conteo de Inventarios",
+            "description": "Elimina conteos manuales y reduce errores humanos mediante drones que escanean etiquetas en racks de hasta 10 m de altura.",
+            "feature1": "Inventarios autónomos, rápidos y precisos",
+            "feature2": "Operación segura y sin riesgo — sustituye trabajos en altura con vuelos autónomos indoor",
+            "feature3": "Integración directa con ERP — los datos escaneados se sincronizan en tiempo real con el sistema de inventarios",
+            "feature4": "Camino a autonomía total 24/7 — diseñado para evolucionar hasta nivel 5 de autonomía con misiones programadas",
+            "feature5": "Ahorro directo en tiempo y costos — automatiza el conteo de inventario y reduce horas-hombre y paros operativos"
+        },
+        "tracking": {
+            "title": "Tracking System",
+            "description": "Plataforma digital diseñada para monitorear, gestionar y dar trazabilidad a activos e inspecciones en tiempo real, centralizando información crítica para mejorar el control operativo y la toma de decisiones.",
+            "feature1": "Monitoreo en tiempo real del estado y ubicación de activos",
+            "feature2": "Registro y seguimiento de inspecciones y mantenimientos",
+            "feature3": "Alertas automáticas por incidencias o vencimientos",
+            "feature4": "Historial y trazabilidad completa de cada activo"
+        },
+        "ai_agents": {
+            "title": "Agentes AI",
+            "description": "Nuestros Agentes IA están diseñados para automatizar procesos clave y potenciar la operación y toma de decisiones en diferentes áreas.",
+            "feature1": "Tracking System Agent — monitorea el estado y vida útil de activos, enviando alertas automáticas sobre inspecciones y mantenimientos",
+            "feature2": "Leads Classifier Agent — usa IA para clasificar y priorizar leads comerciales, mejorando la eficiencia en la captación de clientes potenciales",
+            "feature3": "Otros agentes de alto impacto desarrollados para diversas necesidades empresariales"
+        },
+        "crm": {
+            "title": "CRM",
+            "description": "Centraliza tu operación comercial y convierte oportunidades en decisiones claras.",
+            "feature1": "Control de leads, clientes y pipeline de ventas",
+            "feature2": "Métricas comerciales y forecast de ventas",
+            "feature3": "Seguimiento del embudo comercial",
+            "feature4": "Visibilidad ejecutiva y reportes claros"
+        },
+        "other_projects": {
+            "title": "Otros Proyectos",
+            "logistics_title": "Logística",
+            "logistics_text": "Soluciones para optimización de procesos logísticos, trazabilidad de activos, control de inventarios y automatización de flujos operativos en almacenes y centros de distribución.",
+            "counting_title": "Conteo inteligente de inventario",
+            "counting_text": "Sistema de conteo de piezas mediante básculas, integrando software y bases de datos para realizar auditorías de inventario más rápidas, precisas y sin conteo manual.",
+            "vision_title": "Visión computacional",
+            "vision_text": "Desarrollo de soluciones con visión artificial para detección, inspección, validación y análisis visual en entornos industriales y operativos.",
+            "hardware_title": "Software y Hardware Especializado",
+            "hardware_text": "Desarrollo e integración de soluciones tecnológicas a la medida, combinando software y hardware especializado para automatizar procesos, capturar datos en tiempo real e implementar sistemas robustos en entornos industriales y operativos."
+        }
     },
     "contact": {
         "success": "¡Mensaje enviado correctamente!",

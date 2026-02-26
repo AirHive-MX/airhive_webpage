@@ -9,7 +9,7 @@
         "home_short": "Home",
         "solutions": "Solutions",
         "how_we_work": "How we work",
-        "cases": "Cases",
+        "cases": "Products",
         "free_diagnostic": "Free Diagnostic",
         "schedule_diagnostic": "Schedule free diagnostic",
         "whatsapp": "WhatsApp",
@@ -143,21 +143,51 @@
     },
     "products": {
         "title": "Our Products",
-        "subtitle": "Educational and custom drones for an autonomous future.",
-        "kit_title": "Educational Kit “Build Your Drone”",
-        "kit_description": "Designed for educational centers, this kit allows students to assemble a drone from scratch, understand how it works, and program it for autonomous missions. Includes exclusive training and tutorials from our team.",
-        "kit_feature1": "Compatible with Open Source software",
-        "kit_feature2": "Includes GPS, IMU, ESCs, flight controller, frame, propellers and more",
-        "kit_feature3": "Ideal for workshops, engineering courses and educational competitions",
-        "kit_feature4": "Affordable price and direct support from Air Hive",
-        "kit_button": "Request a quote",
-        "custom_title": "Custom Drones",
-        "custom_description": "We build custom drones tailored to our clients' needs: from FPV stunt drones to professional platforms for aerial photography or fully autonomous missions.",
-        "custom_feature1": "Optimized aerodynamic designs",
-        "custom_feature2": "High-quality components selected for their use case",
-        "custom_feature3": "Integration of cameras, GPS, LiDAR, and more",
-        "custom_feature4": "Visual and functional customization",
-        "custom_button": "Contact us for your design"
+        "subtitle": "Technology solutions to automate, monitor, and optimize your operation.",
+        "cta_button": "Request a demo",
+        "drone_inventory": {
+            "title": "Inventory Counting Drone",
+            "description": "Eliminate manual counts and reduce human errors with drones that scan labels on racks up to 10 meters high.",
+            "feature1": "Autonomous, fast, and precise inventories",
+            "feature2": "Safe operation without risk — replaces high-altitude work with autonomous indoor flights",
+            "feature3": "Direct ERP integration — scanned data syncs in real time with your inventory system",
+            "feature4": "Path to full 24/7 autonomy — designed to evolve to level 5 autonomy with scheduled missions",
+            "feature5": "Direct time and cost savings — automates inventory counting and reduces man-hours and operational stops"
+        },
+        "tracking": {
+            "title": "Tracking System",
+            "description": "A digital platform designed to monitor, manage, and trace assets and inspections in real time, centralizing critical information to improve operational control and decision-making.",
+            "feature1": "Real-time monitoring of asset status and location",
+            "feature2": "Inspection and maintenance logging and tracking",
+            "feature3": "Automatic alerts for incidents or expirations",
+            "feature4": "Complete history and traceability for every asset"
+        },
+        "ai_agents": {
+            "title": "AI Agents",
+            "description": "Our AI Agents are designed to automate key processes and enhance operations and decision-making across different areas.",
+            "feature1": "Tracking System Agent — monitors asset status and lifespan, sending automatic alerts on inspections and maintenance",
+            "feature2": "Leads Classifier Agent — uses AI to classify and prioritize commercial leads, improving customer acquisition efficiency",
+            "feature3": "Other high-impact agents developed for diverse business needs"
+        },
+        "crm": {
+            "title": "CRM",
+            "description": "Centralize your commercial operation and turn opportunities into clear decisions.",
+            "feature1": "Lead, customer, and sales pipeline control",
+            "feature2": "Commercial metrics and sales forecasting",
+            "feature3": "Sales funnel tracking",
+            "feature4": "Executive visibility and clear reports"
+        },
+        "other_projects": {
+            "title": "Other Projects",
+            "logistics_title": "Logistics",
+            "logistics_text": "Solutions for logistics process optimization, asset traceability, inventory control, and workflow automation in warehouses and distribution centers.",
+            "counting_title": "Smart Inventory Counting",
+            "counting_text": "Scale-based piece counting system, integrating software and databases for faster, more precise inventory audits without manual counting.",
+            "vision_title": "Computer Vision",
+            "vision_text": "Development of computer vision solutions for detection, inspection, validation, and visual analysis in industrial and operational environments.",
+            "hardware_title": "Specialized Software & Hardware",
+            "hardware_text": "Development and integration of custom technology solutions, combining software and specialized hardware to automate processes, capture real-time data, and implement robust systems in industrial environments."
+        }
     },
     "contact": {
         "success": "Message sent successfully!",

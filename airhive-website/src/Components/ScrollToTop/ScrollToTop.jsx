@@ -7,12 +7,11 @@ const ScrollToTop = () => {
 
   useEffect(() => {
     if (hash) {
-      const targetId = hash.replace("#", "");
-      const target = document.getElementById(targetId);
-      if (target) {
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
-        return;
-      }
+      const timer = setTimeout(() => {
+        const target = document.getElementById(hash.replace("#", ""));
+        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 150);
+      return () => clearTimeout(timer);
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [pathname, hash]);

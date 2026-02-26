@@ -36,10 +36,10 @@ const About = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.4 }}
             transition={{ duration: 0.5 }}
-            className="rounded-2xl border border-white bg-gradient-to-br from-[#2A47F6] to-[#1501A5] p-7 text-white shadow-[0_14px_34px_rgba(42,71,246,0.24),inset_0_0_0_1px_rgba(255,255,255,0.35)] sm:p-8"
+            className="rounded-2xl border border-[#2A47F6]/15 bg-white p-7 shadow-[0_14px_34px_rgba(22,42,66,0.08)] sm:p-8"
           >
-            <p className="text-base font-bold uppercase tracking-[0.24em] text-white/95 sm:text-lg">{t(`about.${item.key}_button`)}</p>
-            <p className="mt-4 text-lg leading-relaxed text-white/90 sm:text-xl">{item.text}</p>
+            <p className="text-base font-bold uppercase tracking-[0.24em] text-[#2A47F6] sm:text-lg">{t(`about.${item.key}_button`)}</p>
+            <p className="mt-4 text-lg leading-relaxed text-[#202020]/74 sm:text-xl">{item.text}</p>
           </motion.article>
         ))}
       </section>

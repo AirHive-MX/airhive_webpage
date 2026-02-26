@@ -86,7 +86,7 @@ const Diagnostic = () => {
       </section>
 
       <section className="ah-container grid gap-12 pb-16 lg:grid-cols-2">
-        <article className="rounded-3xl border border-white bg-white p-6 shadow-[0_12px_30px_rgba(22,42,66,0.1)] sm:p-8">
+        <article className="rounded-3xl border border-[#DDDDDD] bg-white p-6 shadow-[0_12px_30px_rgba(22,42,66,0.1)] sm:p-8">
           <h2 className="text-2xl font-semibold text-[#162A42]">{t("diagnostic_page.for_whom")}</h2>
           <ul className="mt-6 space-y-4">
             {[t("diagnostic_page.for_1"), t("diagnostic_page.for_2"), t("diagnostic_page.for_3"), t("diagnostic_page.for_4")].map((item, idx) => {
@@ -101,11 +101,11 @@ const Diagnostic = () => {
           </ul>
         </article>
 
-        <article className="rounded-3xl border border-white bg-white p-6 shadow-[0_12px_30px_rgba(22,42,66,0.1)] sm:p-8">
+        <article className="rounded-3xl border border-[#DDDDDD] bg-white p-6 shadow-[0_12px_30px_rgba(22,42,66,0.1)] sm:p-8">
           <h2 className="text-2xl font-semibold text-[#162A42]">{t("diagnostic_page.duration_title")}</h2>
           <div className="mt-6 space-y-3">
             {steps.map((step, idx) => (
-              <div key={step} className="flex items-center gap-3 rounded-2xl border border-white bg-white p-3 shadow-[0_6px_16px_rgba(22,42,66,0.06)]">
+              <div key={step} className="flex items-center gap-3 rounded-2xl border border-[#DDDDDD] bg-white p-3 shadow-[0_6px_16px_rgba(22,42,66,0.06)]">
                 <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#2A47F6]/12 text-xs font-semibold text-[#2A47F6]">
                   {idx + 1}
                 </span>
@@ -118,9 +118,9 @@ const Diagnostic = () => {
 
       <section className="ah-container pb-16">
         <h2 className="text-2xl font-semibold text-[#162A42] sm:text-3xl">{t("diagnostic_page.mock_title")}</h2>
-        <div className="mt-6 rounded-3xl border border-white bg-white p-6 shadow-[0_12px_30px_rgba(22,42,66,0.1)] sm:p-8">
+        <div className="mt-6 rounded-3xl border border-[#DDDDDD] bg-white p-6 shadow-[0_12px_30px_rgba(22,42,66,0.1)] sm:p-8">
           <div className="grid gap-5 lg:grid-cols-3">
-            <div className="rounded-2xl border border-white bg-white p-4 shadow-[0_6px_16px_rgba(22,42,66,0.06)]">
+            <div className="rounded-2xl border border-[#DDDDDD] bg-white p-4 shadow-[0_6px_16px_rgba(22,42,66,0.06)]">
               <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#6443DB]">{t("diagnostic_page.mock_map")}</p>
               <div className="space-y-3 text-xs text-[#162A42]/85 sm:text-sm">
                 <div className="flex items-center gap-2"><Network className="h-4 w-4 text-[#2A47F6]" /> {t("diagnostic_page.mock_map_1")}</div>
@@ -131,17 +131,17 @@ const Diagnostic = () => {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-white bg-white p-4 shadow-[0_6px_16px_rgba(22,42,66,0.06)]">
+            <div className="rounded-2xl border border-[#DDDDDD] bg-white p-4 shadow-[0_6px_16px_rgba(22,42,66,0.06)]">
               <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#6443DB]">{t("diagnostic_page.mock_matrix")}</p>
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="rounded-lg border border-white bg-[#2A47F6]/7 p-2">{t("diagnostic_page.mock_matrix_1")}</div>
-                <div className="rounded-lg border border-white p-2">{t("diagnostic_page.mock_matrix_2")}</div>
-                <div className="rounded-lg border border-white p-2">{t("diagnostic_page.mock_matrix_3")}</div>
-                <div className="rounded-lg border border-white bg-[#6443DB]/10 p-2">{t("diagnostic_page.mock_matrix_4")}</div>
+                <div className="rounded-lg border border-[#DDDDDD] bg-[#2A47F6]/7 p-2">{t("diagnostic_page.mock_matrix_1")}</div>
+                <div className="rounded-lg border border-[#DDDDDD] p-2">{t("diagnostic_page.mock_matrix_2")}</div>
+                <div className="rounded-lg border border-[#DDDDDD] p-2">{t("diagnostic_page.mock_matrix_3")}</div>
+                <div className="rounded-lg border border-[#DDDDDD] bg-[#6443DB]/10 p-2">{t("diagnostic_page.mock_matrix_4")}</div>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-white bg-white p-4 shadow-[0_6px_16px_rgba(22,42,66,0.06)]">
+            <div className="rounded-2xl border border-[#DDDDDD] bg-white p-4 shadow-[0_6px_16px_rgba(22,42,66,0.06)]">
               <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#6443DB]">{t("diagnostic_page.mock_roadmap")}</p>
               <div className="space-y-3 text-xs sm:text-sm">
                 <div>
@@ -163,11 +163,11 @@ const Diagnostic = () => {
       </section>
 
       <section className="ah-container grid gap-10 pb-6 lg:grid-cols-[1fr_1.1fr]">
-        <article>
+        <article className="rounded-3xl bg-white border border-[#162A42]/10 p-6 shadow-[0_12px_30px_rgba(22,42,66,0.1)] sm:p-8">
           <h2 className="text-2xl font-semibold text-[#162A42] sm:text-3xl">{t("diagnostic_page.faq_title")}</h2>
           <div className="mt-5 space-y-3">
             {faqs.map((faq) => (
-              <details key={faq.q} className="rounded-2xl border border-white bg-white p-4 shadow-[0_6px_16px_rgba(22,42,66,0.06)]">
+              <details key={faq.q} className="rounded-2xl border border-[#162A42]/10 bg-white p-4 shadow-[0_6px_16px_rgba(22,42,66,0.06)]">
                 <summary className="cursor-pointer list-none text-sm font-semibold text-[#162A42] sm:text-base">{faq.q}</summary>
                 <p className="mt-3 text-sm text-[#202020]/76">{faq.a}</p>
               </details>
@@ -175,7 +175,7 @@ const Diagnostic = () => {
           </div>
         </article>
 
-        <article id="diagnostic-form" className="rounded-3xl border border-white bg-white p-6 shadow-[0_12px_30px_rgba(22,42,66,0.1)] sm:p-8">
+        <article id="diagnostic-form" className="ah-form-card p-6 sm:p-8">
           <h2 className="text-2xl font-semibold text-[#162A42]">{t("diagnostic_page.form_title")}</h2>
           <p className="mt-2 text-sm text-[#202020]/72">{t("diagnostic_page.form_subtitle")}</p>
           <form
@@ -184,9 +184,9 @@ const Diagnostic = () => {
             onSubmit={onSubmit}
             className="mt-5 space-y-4"
           >
-            <input name="name" required placeholder={t("contact.form.name")} className="w-full rounded-xl border border-[#DDDDDD] px-4 py-2.5 text-sm outline-none transition focus:border-[#2A47F6]" />
-            <input type="email" name="email" required placeholder={t("contact.form.email")} className="w-full rounded-xl border border-[#DDDDDD] px-4 py-2.5 text-sm outline-none transition focus:border-[#2A47F6]" />
-            <textarea name="message" rows="4" required placeholder={t("diagnostic_page.form_placeholder")} className="w-full rounded-xl border border-[#DDDDDD] px-4 py-2.5 text-sm outline-none transition focus:border-[#2A47F6]" />
+            <input name="name" required placeholder={t("contact.form.name")} className="w-full rounded-xl border border-[#2A47F6]/40 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-[#2A47F6]" />
+            <input type="email" name="email" required placeholder={t("contact.form.email")} className="w-full rounded-xl border border-[#2A47F6]/40 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-[#2A47F6]" />
+            <textarea name="message" rows="4" required placeholder={t("diagnostic_page.form_placeholder")} className="w-full rounded-xl border border-[#2A47F6]/40 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-[#2A47F6]" />
             <button type="submit" className="w-full rounded-full bg-[#1501A5] px-5 py-3 text-sm font-semibold text-white transition duration-500 hover:bg-[#2A47F6]">
               {t("diagnostic_page.cta_primary")}
             </button>
