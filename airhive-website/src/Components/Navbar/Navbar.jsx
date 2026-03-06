@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FaWhatsapp } from "react-icons/fa";
 import { Sun, Moon } from "lucide-react";
-import logo from "/Air Hive Log.png";
+import logo from "/logo sin fondo.png";
 
 const productItems = [
   { key: "drone_inventory", to: "/products#drone-inventory" },
@@ -56,19 +56,19 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-6">
+      <header className="fixed inset-x-0 top-0 z-50">
         <nav
-          className={`mx-auto flex w-full max-w-7xl items-center justify-between rounded-2xl border px-4 py-3 transition-all duration-500 sm:px-6 ${
+          className={`flex w-full items-center justify-between px-4 py-3 transition-all duration-500 sm:px-6 lg:px-10 ${
             transparentHeader
-              ? "border-white/25 bg-white/8 text-[#162A42] shadow-[0_10px_34px_rgba(0,0,0,0.18)] backdrop-blur-md"
-              : "border-[#162A42]/15 bg-white/92 text-[#162A42] shadow-[0_18px_60px_rgba(22,42,66,0.14)] backdrop-blur-xl"
+              ? "bg-white/8 text-[#162A42] shadow-[0_10px_34px_rgba(0,0,0,0.18)] backdrop-blur-md"
+              : "bg-white/92 text-[#162A42] shadow-[0_18px_60px_rgba(22,42,66,0.14)] backdrop-blur-xl"
           }`}
         >
           <Link to="/" className="flex items-center gap-2">
             <img
               src={logo}
               alt="Air Hive"
-              className="h-9 w-auto transition duration-500 [filter:hue-rotate(220deg)_saturate(1.15)_brightness(0.85)]"
+              className="h-9 w-auto transition duration-500"
             />
           </Link>
 
@@ -179,7 +179,7 @@ const Navbar = () => {
         </nav>
 
         {isOpen && (
-          <div className="mx-auto mt-2 w-full max-w-7xl rounded-2xl border border-[#162A42]/12 bg-white/95 p-4 text-[#162A42] backdrop-blur-xl lg:hidden">
+          <div className="w-full border-t border-[#162A42]/12 bg-white/95 p-4 text-[#162A42] backdrop-blur-xl lg:hidden">
             <ul className="flex flex-col gap-2 text-sm font-medium">
               <li>
                 <Link to="/" className="block rounded-lg px-3 py-2 hover:bg-[#162A42]/5">
