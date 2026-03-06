@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import about1 from "/about1.webp";
-import about2 from "/about2.webp";
+import fotoEquipo from "/foto equipo.JPG";
 
 const About = () => {
   const { t } = useTranslation();
@@ -18,14 +18,18 @@ const About = () => {
             {t("navbar.diagnostic")}
           </Link>
         </motion.div>
-        <motion.img
-          src={about1}
-          alt="Air Hive story"
+        <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="h-[420px] w-full rounded-2xl border border-white bg-white object-cover p-2 shadow-[0_12px_30px_rgba(22,42,66,0.1)]"
-        />
+          className="product-img-card overflow-hidden rounded-2xl transition-all duration-400 hover:-translate-y-1"
+        >
+          <img
+            src={about1}
+            alt="Air Hive story"
+            className="h-[420px] w-full object-cover"
+          />
+        </motion.div>
       </section>
 
       <section className="ah-container grid gap-6 py-8 md:grid-cols-2">
@@ -45,15 +49,19 @@ const About = () => {
       </section>
 
       <section className="ah-container grid items-center gap-10 py-16 lg:grid-cols-2">
-        <motion.img
-          src={about2}
-          alt="Air Hive team"
+        <motion.div
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, amount: 0.35 }}
           transition={{ duration: 0.6 }}
-          className="h-[360px] w-full rounded-2xl border border-white bg-white object-cover p-2 shadow-[0_12px_30px_rgba(22,42,66,0.1)]"
-        />
+          className="product-img-card overflow-hidden rounded-2xl transition-all duration-400 hover:-translate-y-1"
+        >
+          <img
+            src={fotoEquipo}
+            alt="Air Hive team"
+            className="h-[360px] w-[115%] max-w-none object-cover object-left"
+          />
+        </motion.div>
         <motion.div
           initial={{ opacity: 0, x: 30 }}
           whileInView={{ opacity: 1, x: 0 }}
