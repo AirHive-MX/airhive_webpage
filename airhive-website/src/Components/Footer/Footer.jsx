@@ -6,40 +6,32 @@ const Footer = () => {
 
   return (
     <footer className="mt-24 bg-[#202020] px-6 pb-10 pt-16 text-[#DDDDDD]">
-      <div className="mx-auto grid w-full max-w-7xl gap-10 border-b border-white/10 pb-10 md:grid-cols-4">
+      <div className="mx-auto grid w-full max-w-7xl gap-10 border-b border-white/10 pb-10 md:grid-cols-3">
         <div>
           <img
-            src="/Air Hive Logo.png"
+            src="/logo sin fondo.png"
             alt="Air Hive"
-            className="mb-4 h-11 w-auto [filter:hue-rotate(220deg)_saturate(1.2)_brightness(0.85)]"
+            className="mb-4 h-6 w-auto"
           />
           <p className="max-w-xs text-sm leading-relaxed text-[#DDDDDD]/85">{t("footer.description")}</p>
         </div>
 
-        <div>
+        <div className="text-center">
           <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.14em] text-white">{t("footer.navigation")}</h3>
           <ul className="space-y-2 text-sm">
-            <li><Link to="/" className="hover:text-white">{t("navbar.home")}</Link></li>
-            <li><Link to="/about" className="hover:text-white">{t("navbar.about")}</Link></li>
-            <li><Link to="/products" className="hover:text-white">{t("navbar.products")}</Link></li>
-            <li><Link to="/services" className="hover:text-white">{t("navbar.services")}</Link></li>
-            <li><Link to="/contact" className="hover:text-white">{t("navbar.contact")}</Link></li>
+            <li><Link to="/" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">{t("navbar.home_short")}</Link></li>
+            <li><Link to="/products" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">{t("navbar.cases")}</Link></li>
+            <li><Link to="/a-erp" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">A-ERP</Link></li>
+            <li><Link to="/services#como-trabajamos" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">{t("navbar.how_we_work")}</Link></li>
+            <li><Link to="/about" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">{t("navbar.about")}</Link></li>
+            <li><Link to="/diagnostico-gratis" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">{t("navbar.free_diagnostic")}</Link></li>
           </ul>
         </div>
 
-        <div>
-          <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.14em] text-white">{t("footer.resources")}</h3>
-          <ul className="space-y-2 text-sm text-[#DDDDDD]/85">
-            <li>{t("footer.help_center")}</li>
-            <li>{t("footer.terms")}</li>
-            <li>{t("footer.privacy")}</li>
-            <li>{t("footer.downloads")}</li>
-          </ul>
-        </div>
 
-        <div>
+        <div className="flex flex-col items-end">
           <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.14em] text-white">{t("footer.follow")}</h3>
-          <div className="mb-6 flex gap-4 text-xl">
+          <div className="mb-4 flex gap-4 text-xl">
             <a href="https://www.instagram.com/airhive.mx?igsh=aDR1dnBmbmJlOXMx" target="_blank" rel="noopener noreferrer" className="hover:text-white">
               <FaInstagram />
             </a>
@@ -55,11 +47,11 @@ const Footer = () => {
           </div>
           <Link
             to="/contact"
-            className="ah-button ah-button-primary inline-block rounded-full px-4 py-2 text-sm font-semibold"
+            className="ah-button ah-button-primary mb-3 inline-block rounded-full px-4 py-2 text-sm font-semibold"
           >
             {t("footer.diagnostic")}
           </Link>
-          <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 p-1 text-xs">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 p-1 text-xs">
             <span className="px-2 text-[#DDDDDD]/75">{t("footer.language")}</span>
             <button
               type="button"

@@ -8,6 +8,7 @@ import Products from "../Pages/Products/Products";
 import Services from "../Pages/Services/Services";
 import Contact from "../Pages/Contact/Contact";
 import Diagnostic from "../Pages/Diagnostic/Diagnostic";
+import ARP from "../Pages/ARP/ARP";
 import Footer from "../Components/Footer/Footer";
 import Error from "../Pages/Error/Error";
 import ScrollToTop from "../Components/ScrollToTop/ScrollToTop";
@@ -28,6 +29,7 @@ const MainLayout = () => {
         <Route path="/" element={<Home/>} />
         <Route path="/about" element={<About/>} />
         <Route path="/products" element={<Products/>} />
+        <Route path="/a-erp" element={<ARP/>} />
         <Route path="/services" element={<Services/>} />
         <Route path="/diagnostico-gratis" element={<Diagnostic/>} />
         <Route path="/contact" element={<Contact/>} /> 

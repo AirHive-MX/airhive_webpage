@@ -177,8 +177,15 @@
             "feature3": "Sales funnel tracking",
             "feature4": "Executive visibility and clear reports"
         },
-        "other_projects": {
-            "title": "Other Projects",
+        "mrp": {
+            "title": "MRP System",
+            "description": "MRP system for material planning that integrates inventory, production, and demand through automation and artificial intelligence, enabling precise calculation of required materials and optimizing supply and production management while reducing manual processes and improving operational efficiency.",
+            "feature1": "Reduced errors in material planning by automating calculations and eliminating manual estimates",
+            "feature2": "Faster operational decision-making and increased operational efficiency",
+            "feature3": "Inventory and supply optimization, avoiding shortages or unnecessary purchases"
+        },
+        "other_products": {
+            "title": "Other Products",
             "logistics_title": "Logistics",
             "logistics_text": "Solutions for logistics process optimization, asset traceability, inventory control, and workflow automation in warehouses and distribution centers.",
             "counting_title": "Smart Inventory Counting",
@@ -188,6 +195,10 @@
             "hardware_title": "Specialized Software & Hardware",
             "hardware_text": "Development and integration of custom technology solutions, combining software and specialized hardware to automate processes, capture real-time data, and implement robust systems in industrial environments."
         }
+    },
+    "a_erp": {
+        "title": "A-ERP",
+        "subtitle": "Digital platforms for commercial management and real-time asset traceability."
     },
     "contact": {
         "success": "Message sent successfully!",

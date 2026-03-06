@@ -7,10 +7,14 @@ import logo from "/logo sin fondo.png";
 
 const productItems = [
   { key: "drone_inventory", to: "/products#drone-inventory" },
-  { key: "tracking", to: "/products#tracking" },
   { key: "ai_agents", to: "/products#ai-agents" },
-  { key: "crm", to: "/products#crm" },
-  { key: "other_projects", to: "/products#other-projects" },
+  { key: "other_products", to: "/products#other-products" },
+];
+
+const aerpItems = [
+  { key: "tracking", to: "/a-erp#tracking" },
+  { key: "crm", to: "/a-erp#crm" },
+  { key: "mrp", to: "/a-erp#mrp" },
 ];
 
 const Navbar = () => {
@@ -112,6 +116,19 @@ const Navbar = () => {
                     {t(`products.${item.key}.title`)}
                   </Link>
                 ))}
+                <div className={`my-1 border-t ${theme === "dark" ? "border-white/10" : "border-[#162A42]/10"}`} />
+                <p className={`px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-[0.2em] ${theme === "dark" ? "text-white/50" : "text-[#162A42]/50"}`}>A-ERP</p>
+                {aerpItems.map((item) => (
+                  <Link
+                    key={item.key}
+                    to={item.to}
+                    className={`block rounded-lg px-3 py-2.5 text-sm transition hover:text-[#2A47F6] ${
+                      theme === "dark" ? "hover:bg-white/10" : "hover:bg-[#162A42]/5"
+                    }`}
+                  >
+                    {t(`products.${item.key}.title`)}
+                  </Link>
+                ))}
               </div>
             </li>
 
@@ -190,6 +207,15 @@ const Navbar = () => {
                 <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#162A42]/65">{t("navbar.cases")}</p>
                 <div className="space-y-1">
                   {productItems.map((item) => (
+                    <Link key={item.key} to={item.to} className="block rounded-md px-2 py-1.5 text-sm hover:bg-[#162A42]/5">
+                      {t(`products.${item.key}.title`)}
+                    </Link>
+                  ))}
+                </div>
+                <div className="my-2 border-t border-[#162A42]/10" />
+                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#162A42]/65">A-ERP</p>
+                <div className="space-y-1">
+                  {aerpItems.map((item) => (
                     <Link key={item.key} to={item.to} className="block rounded-md px-2 py-1.5 text-sm hover:bg-[#162A42]/5">
                       {t(`products.${item.key}.title`)}
                     </Link>
