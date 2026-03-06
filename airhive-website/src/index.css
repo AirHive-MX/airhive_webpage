@@ -87,6 +87,15 @@ html:not([data-theme="dark"]) main .ah-surface {
     inset 0 0 0 1px rgb(255 255 255 / 88%);
 }
 
+/* Light mode: subtle blue glow on hover */
+html:not([data-theme="dark"]) main article:not(.ah-form-card):hover {
+  border-color: rgb(42 71 246 / 30%) !important;
+  box-shadow:
+    0 0 0 1px rgb(42 71 246 / 15%),
+    0 14px 34px rgb(42 71 246 / 12%) !important;
+  transform: translateY(-2px);
+}
+
 html:not([data-theme="dark"]) main .ah-form-card,
 html:not([data-theme="dark"]) main .ah-form-card form {
   background: transparent !important;
@@ -175,6 +184,11 @@ html[data-theme="dark"] .ah-surface {
   background: #f4f4f4;
 }
 
+main article,
+.diagnostic-card {
+  transition: border-color 400ms ease, box-shadow 400ms ease, transform 400ms ease;
+}
+
 ::selection {
   background: rgb(42 71 246 / 35%);
   color: #162a42;
@@ -217,6 +231,15 @@ html[data-theme="dark"] header nav .ah-nav-cta:hover {
 
 html[data-theme="dark"] main [class*="bg-white"] {
   background-color: rgb(16 24 40 / 88%) !important;
+}
+
+/* Dark mode: subtle white glow on hover */
+html[data-theme="dark"] main article:not(.ah-form-card):hover {
+  border-color: rgb(255 255 255 / 18%) !important;
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 8%),
+    0 14px 34px rgb(255 255 255 / 6%) !important;
+  transform: translateY(-2px);
 }
 
 html[data-theme="dark"] main [class*="text-[#162A42]"] {
@@ -279,6 +302,22 @@ html[data-theme="dark"] .diagnostic-card {
   box-shadow: 0 10px 28px rgb(5 8 18 / 40%) !important;
 }
 
+html[data-theme="dark"] .diagnostic-card:hover {
+  border-color: rgb(255 255 255 / 16%) !important;
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 6%),
+    0 14px 34px rgb(255 255 255 / 5%) !important;
+  transform: translateY(-2px);
+}
+
+html:not([data-theme="dark"]) .diagnostic-card:hover {
+  border-color: rgb(42 71 246 / 28%) !important;
+  box-shadow:
+    0 0 0 1px rgb(42 71 246 / 12%),
+    0 14px 34px rgb(42 71 246 / 10%) !important;
+  transform: translateY(-2px);
+}
+
 html[data-theme="dark"] .diagnostic-card-title {
   color: #ffffff !important;
 }
@@ -297,4 +336,44 @@ html[data-theme="dark"] .diagnostic-item-title {
 
 html[data-theme="dark"] .diagnostic-item-text {
   color: #90bcff !important;
+}
+
+/* Product image cards — light mode: light blue glow */
+.product-img-card {
+  box-shadow:
+    0 0 10px 2px rgb(42 71 246 / 12%),
+    0 0 24px 4px rgb(42 71 246 / 6%);
+}
+.product-img-card:hover {
+  box-shadow:
+    0 0 18px 4px rgb(42 71 246 / 22%),
+    0 0 40px 8px rgb(42 71 246 / 10%) !important;
+}
+
+/* Product image cards — dark mode: white glow */
+html[data-theme="dark"] .product-img-card {
+  box-shadow:
+    0 0 10px 2px rgb(255 255 255 / 15%),
+    0 0 24px 4px rgb(255 255 255 / 8%);
+}
+html[data-theme="dark"] .product-img-card:hover {
+  box-shadow:
+    0 0 18px 4px rgb(255 255 255 / 30%),
+    0 0 40px 8px rgb(255 255 255 / 15%) !important;
+}
+
+/* Phone image — light mode: light blue drop-shadow */
+.product-phone-img {
+  filter: drop-shadow(0 0 12px rgb(42 71 246 / 18%));
+}
+.product-phone-img:hover {
+  filter: drop-shadow(0 0 22px rgb(42 71 246 / 35%)) !important;
+}
+
+/* Phone image — dark mode: white drop-shadow */
+html[data-theme="dark"] .product-phone-img {
+  filter: drop-shadow(0 0 12px rgb(255 255 255 / 20%));
+}
+html[data-theme="dark"] .product-phone-img:hover {
+  filter: drop-shadow(0 0 22px rgb(255 255 255 / 40%)) !important;
 }

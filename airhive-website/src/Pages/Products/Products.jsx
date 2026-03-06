@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import droneInventory from "/product-drone-inventory.jpg";
-import tracking from "/product-tracking.png";
+import droneInventory from "/definitiva.png";
+import tracking from "/TRAKING SYSTEM.jpeg";
 import aiAgents from "/product-ai-agents.png";
-import crm from "/product-crm.png";
+import crm from "/CRM.jpeg";
 
 const Products = () => {
   const { t } = useTranslation();
@@ -20,15 +20,19 @@ const Products = () => {
 
       {/* 1 — Inventory Counting Drone (image left, text right) */}
       <section id="drone-inventory" className="ah-container grid items-center gap-10 py-16 lg:grid-cols-2">
-        <motion.img
-          src={droneInventory}
-          alt={t("products.drone_inventory.title")}
+        <motion.div
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, amount: 0.35 }}
           transition={{ duration: 0.6 }}
-          className="h-[420px] w-full rounded-2xl border border-white bg-white object-cover p-2 shadow-[0_12px_30px_rgba(22,42,66,0.1)]"
-        />
+          className="product-img-card overflow-hidden rounded-2xl transition-all duration-400 hover:-translate-y-1"
+        >
+          <img
+            src={droneInventory}
+            alt={t("products.drone_inventory.title")}
+            className="w-[125%] max-w-none object-cover"
+          />
+        </motion.div>
         <motion.div
           initial={{ opacity: 0, x: 30 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -38,11 +42,11 @@ const Products = () => {
           <h2 className="text-3xl font-semibold text-[#162A42] sm:text-4xl">{t("products.drone_inventory.title")}</h2>
           <p className="mt-4 text-base leading-relaxed text-[#202020]/74">{t("products.drone_inventory.description")}</p>
           <ul className="mt-5 space-y-2 text-sm text-[#162A42]/85 sm:text-base">
-            <li>— {t("products.drone_inventory.feature1")}</li>
-            <li>— {t("products.drone_inventory.feature2")}</li>
-            <li>— {t("products.drone_inventory.feature3")}</li>
-            <li>— {t("products.drone_inventory.feature4")}</li>
-            <li>— {t("products.drone_inventory.feature5")}</li>
+            <li className="flex items-start gap-2"><span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2A47F6]" /><span>{t("products.drone_inventory.feature1")}</span></li>
+            <li className="flex items-start gap-2"><span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2A47F6]" /><span>{t("products.drone_inventory.feature2")}</span></li>
+            <li className="flex items-start gap-2"><span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2A47F6]" /><span>{t("products.drone_inventory.feature3")}</span></li>
+            <li className="flex items-start gap-2"><span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2A47F6]" /><span>{t("products.drone_inventory.feature4")}</span></li>
+            <li className="flex items-start gap-2"><span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2A47F6]" /><span>{t("products.drone_inventory.feature5")}</span></li>
           </ul>
           <Link to="/contact" className="ah-button ah-button-primary mt-7 inline-block rounded-full px-6 py-3 text-sm font-semibold">
             {t("products.cta_button")}
@@ -61,24 +65,28 @@ const Products = () => {
           <h2 className="text-3xl font-semibold text-[#162A42] sm:text-4xl">{t("products.tracking.title")}</h2>
           <p className="mt-4 text-base leading-relaxed text-[#202020]/74">{t("products.tracking.description")}</p>
           <ul className="mt-5 space-y-2 text-sm text-[#162A42]/85 sm:text-base">
-            <li>— {t("products.tracking.feature1")}</li>
-            <li>— {t("products.tracking.feature2")}</li>
-            <li>— {t("products.tracking.feature3")}</li>
-            <li>— {t("products.tracking.feature4")}</li>
+            <li className="flex items-start gap-2"><span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2A47F6]" /><span>{t("products.tracking.feature1")}</span></li>
+            <li className="flex items-start gap-2"><span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2A47F6]" /><span>{t("products.tracking.feature2")}</span></li>
+            <li className="flex items-start gap-2"><span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2A47F6]" /><span>{t("products.tracking.feature3")}</span></li>
+            <li className="flex items-start gap-2"><span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2A47F6]" /><span>{t("products.tracking.feature4")}</span></li>
           </ul>
           <Link to="/contact" className="ah-button ah-button-primary mt-7 inline-block rounded-full px-6 py-3 text-sm font-semibold">
             {t("products.cta_button")}
           </Link>
         </motion.div>
-        <motion.img
-          src={tracking}
-          alt={t("products.tracking.title")}
+        <motion.div
           initial={{ opacity: 0, x: 30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, amount: 0.35 }}
           transition={{ duration: 0.6 }}
-          className="h-[420px] w-full rounded-2xl border border-white bg-white object-contain p-4 shadow-[0_12px_30px_rgba(22,42,66,0.1)]"
-        />
+          className="product-img-card overflow-hidden rounded-2xl transition-all duration-400 hover:-translate-y-1"
+        >
+          <img
+            src={tracking}
+            alt={t("products.tracking.title")}
+            className="w-[125%] max-w-none object-cover"
+          />
+        </motion.div>
       </section>
 
       {/* 3 — AI Agents (image left, text right) */}
@@ -88,12 +96,12 @@ const Products = () => {
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, amount: 0.35 }}
           transition={{ duration: 0.6 }}
-          className="flex justify-center"
+          className="flex justify-center transition-all duration-400 hover:-translate-y-1"
         >
           <img
             src={aiAgents}
             alt={t("products.ai_agents.title")}
-            className="h-[420px] w-auto rounded-2xl border border-white bg-white object-contain p-2 shadow-[0_12px_30px_rgba(22,42,66,0.1)]"
+            className="product-phone-img h-[420px] w-auto object-contain transition-all duration-400"
           />
         </motion.div>
         <motion.div
@@ -105,9 +113,9 @@ const Products = () => {
           <h2 className="text-3xl font-semibold text-[#162A42] sm:text-4xl">{t("products.ai_agents.title")}</h2>
           <p className="mt-4 text-base leading-relaxed text-[#202020]/74">{t("products.ai_agents.description")}</p>
           <ul className="mt-5 space-y-2 text-sm text-[#162A42]/85 sm:text-base">
-            <li>— {t("products.ai_agents.feature1")}</li>
-            <li>— {t("products.ai_agents.feature2")}</li>
-            <li>— {t("products.ai_agents.feature3")}</li>
+            <li className="flex items-start gap-2"><span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2A47F6]" /><span>{t("products.ai_agents.feature1")}</span></li>
+            <li className="flex items-start gap-2"><span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2A47F6]" /><span>{t("products.ai_agents.feature2")}</span></li>
+            <li className="flex items-start gap-2"><span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2A47F6]" /><span>{t("products.ai_agents.feature3")}</span></li>
           </ul>
           <Link to="/contact" className="ah-button ah-button-primary mt-7 inline-block rounded-full px-6 py-3 text-sm font-semibold">
             {t("products.cta_button")}
@@ -126,24 +134,28 @@ const Products = () => {
           <h2 className="text-3xl font-semibold text-[#162A42] sm:text-4xl">{t("products.crm.title")}</h2>
           <p className="mt-4 text-base leading-relaxed text-[#202020]/74">{t("products.crm.description")}</p>
           <ul className="mt-5 space-y-2 text-sm text-[#162A42]/85 sm:text-base">
-            <li>— {t("products.crm.feature1")}</li>
-            <li>— {t("products.crm.feature2")}</li>
-            <li>— {t("products.crm.feature3")}</li>
-            <li>— {t("products.crm.feature4")}</li>
+            <li className="flex items-start gap-2"><span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2A47F6]" /><span>{t("products.crm.feature1")}</span></li>
+            <li className="flex items-start gap-2"><span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2A47F6]" /><span>{t("products.crm.feature2")}</span></li>
+            <li className="flex items-start gap-2"><span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2A47F6]" /><span>{t("products.crm.feature3")}</span></li>
+            <li className="flex items-start gap-2"><span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2A47F6]" /><span>{t("products.crm.feature4")}</span></li>
           </ul>
           <Link to="/contact" className="ah-button ah-button-primary mt-7 inline-block rounded-full px-6 py-3 text-sm font-semibold">
             {t("products.cta_button")}
           </Link>
         </motion.div>
-        <motion.img
-          src={crm}
-          alt={t("products.crm.title")}
+        <motion.div
           initial={{ opacity: 0, x: 30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, amount: 0.35 }}
           transition={{ duration: 0.6 }}
-          className="h-[420px] w-full rounded-2xl border border-white bg-white object-contain p-4 shadow-[0_12px_30px_rgba(22,42,66,0.1)]"
-        />
+          className="product-img-card overflow-hidden rounded-2xl transition-all duration-400 hover:-translate-y-1"
+        >
+          <img
+            src={crm}
+            alt={t("products.crm.title")}
+            className="w-[125%] max-w-none object-cover"
+          />
+        </motion.div>
       </section>
 
       {/* 5 — Other Projects (full width cards) */}

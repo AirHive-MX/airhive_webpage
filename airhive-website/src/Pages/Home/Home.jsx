@@ -83,13 +83,13 @@ const Home = () => {
   const [activeShowcase, setActiveShowcase] = useState(0);
 
   return (
-    <main className="ah-page overflow-hidden text-[#202020]">
+    <main className="ah-page overflow-hidden pt-[60px] text-[#202020]">
       <section className="relative min-h-[86vh] overflow-hidden bg-[#162A42] text-white">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(100,67,219,0.24),transparent_35%),radial-gradient(circle_at_80%_80%,rgba(21,1,165,0.38),transparent_40%),linear-gradient(130deg,#162A42_0%,#1501A5_55%,#6443DB_100%)]" />
         <div className="absolute inset-0 opacity-30 [background:repeating-linear-gradient(0deg,transparent,transparent_46px,rgba(255,255,255,0.06)_47px),repeating-linear-gradient(90deg,transparent,transparent_46px,rgba(255,255,255,0.06)_47px)]" />
         <div className="absolute left-1/2 top-1/2 h-[360px] w-[360px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#2A47F6]/25 blur-[110px]" />
 
-        <div className="ah-container relative flex min-h-[86vh] items-center pt-28 pb-16">
+        <div className="ah-container relative flex min-h-[86vh] items-center py-16">
           <div className="max-w-3xl">
             <motion.h1
               initial={{ opacity: 0, y: 26 }}

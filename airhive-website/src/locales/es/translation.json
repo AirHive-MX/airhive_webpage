@@ -149,10 +149,10 @@
             "title": "Dron para Conteo de Inventarios",
             "description": "Elimina conteos manuales y reduce errores humanos mediante drones que escanean etiquetas en racks de hasta 10 m de altura.",
             "feature1": "Inventarios autónomos, rápidos y precisos",
-            "feature2": "Operación segura y sin riesgo — sustituye trabajos en altura con vuelos autónomos indoor",
-            "feature3": "Integración directa con ERP — los datos escaneados se sincronizan en tiempo real con el sistema de inventarios",
-            "feature4": "Camino a autonomía total 24/7 — diseñado para evolucionar hasta nivel 5 de autonomía con misiones programadas",
-            "feature5": "Ahorro directo en tiempo y costos — automatiza el conteo de inventario y reduce horas-hombre y paros operativos"
+            "feature2": "Operación segura y sin riesgo: sustituye trabajos en altura con vuelos autónomos indoor",
+            "feature3": "Integración directa con ERP: los datos escaneados se sincronizan en tiempo real con el sistema de inventarios",
+            "feature4": "Camino a autonomía total 24/7: diseñado para evolucionar hasta nivel 5 de autonomía con misiones programadas",
+            "feature5": "Ahorro directo en tiempo y costos: automatiza el conteo de inventario y reduce horas-hombre y paros operativos"
         },
         "tracking": {
             "title": "Tracking System",
@@ -165,8 +165,8 @@
         "ai_agents": {
             "title": "Agentes AI",
             "description": "Nuestros Agentes IA están diseñados para automatizar procesos clave y potenciar la operación y toma de decisiones en diferentes áreas.",
-            "feature1": "Tracking System Agent — monitorea el estado y vida útil de activos, enviando alertas automáticas sobre inspecciones y mantenimientos",
-            "feature2": "Leads Classifier Agent — usa IA para clasificar y priorizar leads comerciales, mejorando la eficiencia en la captación de clientes potenciales",
+            "feature1": "Tracking System Agent: monitorea el estado y vida útil de activos, enviando alertas automáticas sobre inspecciones y mantenimientos",
+            "feature2": "Leads Classifier Agent: usa IA para clasificar y priorizar leads comerciales, mejorando la eficiencia en la captación de clientes potenciales",
             "feature3": "Otros agentes de alto impacto desarrollados para diversas necesidades empresariales"
         },
         "crm": {
