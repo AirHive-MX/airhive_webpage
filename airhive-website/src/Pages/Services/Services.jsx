@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import services from "/foto edu.JPG";
 import heroWeb from "/hero_web.webp";
-import home2 from "/foto rafa.jpg";
+import home2 from "/foto nueva rafa .jpg";
 import droneCustom from "/dronpersonalizado.webp";
 
 const Services = () => {
@@ -82,7 +82,7 @@ const Services = () => {
             transition={{ duration: 0.45, delay: index * 0.05 }}
             className="overflow-hidden rounded-2xl border border-white bg-white shadow-[0_12px_30px_rgba(22,42,66,0.1)]"
           >
-            <img src={service.image} alt={service.title} className="h-80 w-full object-cover object-center" />
+            <img src={service.image} alt={service.title} className="h-80 w-[115%] max-w-none object-cover object-left" />
             <div className="p-6">
               <h2 className="text-xl font-semibold text-[#1F3CCF]">{service.title}</h2>
               <p className="mt-3 text-sm leading-relaxed text-[#202020]/75">{service.text}</p>
