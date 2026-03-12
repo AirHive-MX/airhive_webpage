@@ -40,7 +40,7 @@ const About = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.4 }}
             transition={{ duration: 0.5 }}
-            className="rounded-2xl border border-[#2A47F6]/15 bg-white p-7 shadow-[0_14px_34px_rgba(22,42,66,0.08)] sm:p-8"
+            className="rounded-2xl border-2 bg-white p-7 shadow-[0_14px_34px_rgba(42,71,246,0.18)] sm:p-8" style={{ borderColor: 'rgba(42, 71, 246, 0.55)' }}
           >
             <p className="text-base font-bold uppercase tracking-[0.24em] text-[#2A47F6] sm:text-lg">{t(`about.${item.key}_button`)}</p>
             <p className="mt-4 text-lg leading-relaxed text-[#202020]/74 sm:text-xl">{item.text}</p>
@@ -71,7 +71,7 @@ const About = () => {
           <h2 className="text-3xl font-semibold text-[#162A42] sm:text-4xl">{t("about.team_title")}</h2>
           <p className="mt-4 text-base leading-relaxed text-[#202020]/74">{t("about.team_text_1")}</p>
           <p className="mt-3 text-base leading-relaxed text-[#202020]/74">{t("about.team_text_2")}</p>
-          <p className="mt-7 max-w-xl rounded-2xl border border-[#162A42]/12 bg-white/70 p-5 text-sm leading-relaxed text-[#162A42]/85">
+          <p className="mt-4 text-base leading-relaxed text-[#202020]/74">
             {t("about.philosophy_text")}
           </p>
         </motion.div>

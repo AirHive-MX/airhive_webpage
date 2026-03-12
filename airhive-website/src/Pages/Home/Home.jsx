@@ -342,7 +342,7 @@ const Home = () => {
           >
             <Link
               to="/contact"
-              className="rounded-full bg-[#1501A5] px-8 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_26px_rgba(21,1,165,0.28)] transition duration-500 hover:bg-[#2A47F6] hover:shadow-[0_16px_30px_rgba(42,71,246,0.28)]"
+              className="rounded-full border border-[#2A47F6]/20 bg-white px-8 py-3 text-center text-sm font-semibold shadow-[0_12px_26px_rgba(21,1,165,0.12)] transition duration-500 hover:bg-[#2A47F6] hover:!text-white hover:shadow-[0_16px_30px_rgba(42,71,246,0.28)]" style={{ color: '#2A47F6' }}
             >
               {t("home_redesign.cta_primary")}
             </Link>

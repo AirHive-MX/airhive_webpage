@@ -52,23 +52,10 @@ const Products = () => {
         </motion.div>
       </section>
 
-      {/* 2 — AI Agents (image left, text right) */}
+      {/* 2 — AI Agents (text left, image right) */}
       <section id="ai-agents" className="ah-container grid items-center gap-10 py-16 lg:grid-cols-2">
         <motion.div
           initial={{ opacity: 0, x: -30 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, amount: 0.35 }}
-          transition={{ duration: 0.6 }}
-          className="flex justify-center transition-all duration-400 hover:-translate-y-1"
-        >
-          <img
-            src={aiAgents}
-            alt={t("products.ai_agents.title")}
-            className="product-phone-img h-[420px] w-auto object-contain transition-all duration-400"
-          />
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, x: 30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, amount: 0.35 }}
           transition={{ duration: 0.6 }}
@@ -83,6 +70,19 @@ const Products = () => {
           <Link to="/contact" className="ah-button ah-button-primary mt-7 inline-block rounded-full px-6 py-3 text-sm font-semibold">
             {t("products.cta_button")}
           </Link>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, x: 30 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: 0.6 }}
+          className="flex justify-center transition-all duration-400 hover:-translate-y-1"
+        >
+          <img
+            src={aiAgents}
+            alt={t("products.ai_agents.title")}
+            className="product-phone-img h-[420px] w-auto object-contain transition-all duration-400"
+          />
         </motion.div>
       </section>
 

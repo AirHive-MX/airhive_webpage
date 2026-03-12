@@ -233,6 +233,11 @@ html[data-theme="dark"] main [class*="bg-white"] {
   background-color: rgb(16 24 40 / 88%) !important;
 }
 
+/* Dark mode: visible border on cards */
+html[data-theme="dark"] main article:not(.ah-form-card) {
+  border-color: rgb(255 255 255 / 15%) !important;
+}
+
 /* Dark mode: subtle white glow on hover */
 html[data-theme="dark"] main article:not(.ah-form-card):hover {
   border-color: rgb(255 255 255 / 18%) !important;
