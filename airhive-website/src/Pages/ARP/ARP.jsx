@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import tracking from "/product-tracking.png";
 import crm from "/CRM.jpeg";
 
 const ARP = () => {
@@ -22,8 +23,13 @@ const ARP = () => {
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, amount: 0.35 }}
           transition={{ duration: 0.6 }}
-          className="overflow-hidden rounded-2xl"
+          className="product-img-card overflow-hidden rounded-2xl transition-all duration-400 hover:-translate-y-1"
         >
+          <img
+            src={tracking}
+            alt={t("products.tracking.title")}
+            className="w-[125%] max-w-none object-cover"
+          />
         </motion.div>
         <motion.div
           initial={{ opacity: 0, x: 30 }}
