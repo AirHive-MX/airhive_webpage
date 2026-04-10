@@ -110,9 +110,9 @@ html:not([data-theme="dark"]) main .ah-form-card textarea {
 }
 
 html[data-theme="dark"] .ah-surface {
-  border-color: rgb(108 136 220 / 28%);
-  background: rgb(14 23 40 / 74%);
-  box-shadow: 0 10px 30px rgb(5 10 20 / 35%);
+  border-color: rgb(42 71 246 / 20%);
+  background: rgb(12 20 38 / 80%);
+  box-shadow: 0 10px 30px rgb(5 10 20 / 45%);
 }
 
 .ah-gradient-text {
@@ -230,29 +230,46 @@ html[data-theme="dark"] header nav .ah-nav-cta:hover {
 }
 
 html[data-theme="dark"] main [class*="bg-white"] {
-  background-color: rgb(16 24 40 / 88%) !important;
+  background-color: rgb(14 22 38 / 90%) !important;
 }
 
-/* Dark mode: visible border on cards */
+html[data-theme="dark"] .ah-button-secondary {
+  border-color: rgb(42 71 246 / 30%) !important;
+  color: #8aa8ff !important;
+  background: rgb(42 71 246 / 8%) !important;
+}
+
+html[data-theme="dark"] .ah-button-secondary:hover {
+  border-color: rgb(42 71 246 / 50%) !important;
+  color: #a8c0ff !important;
+  background: rgb(42 71 246 / 14%) !important;
+}
+
+/* Dark mode: visible border on cards — use blue tint */
 html[data-theme="dark"] main article:not(.ah-form-card) {
-  border-color: rgb(255 255 255 / 15%) !important;
+  border-color: rgb(42 71 246 / 22%) !important;
+  box-shadow: 0 8px 24px rgb(5 10 30 / 50%) !important;
 }
 
-/* Dark mode: subtle white glow on hover */
+/* Dark mode: blue glow on hover */
 html[data-theme="dark"] main article:not(.ah-form-card):hover {
-  border-color: rgb(255 255 255 / 18%) !important;
+  border-color: rgb(42 71 246 / 40%) !important;
   box-shadow:
-    0 0 0 1px rgb(255 255 255 / 8%),
-    0 14px 34px rgb(255 255 255 / 6%) !important;
+    0 0 0 1px rgb(42 71 246 / 18%),
+    0 14px 34px rgb(42 71 246 / 16%) !important;
   transform: translateY(-2px);
 }
 
 html[data-theme="dark"] main [class*="text-[#162A42]"] {
-  color: #edf3ff !important;
+  color: #f0f4ff !important;
 }
 
 html[data-theme="dark"] main [class*="text-[#202020]"] {
-  color: rgb(224 233 249 / 92%) !important;
+  color: rgb(200 216 248 / 82%) !important;
+}
+
+html[data-theme="dark"] main [class*="text-[#1F3CCF]"] {
+  color: #7b9bff !important;
 }
 
 html[data-theme="dark"] main [class*="border-[#DDDDDD]"] {
@@ -261,57 +278,69 @@ html[data-theme="dark"] main [class*="border-[#DDDDDD]"] {
 
 html[data-theme="dark"] main [class*="text-[#1501A5]"],
 html[data-theme="dark"] main [class*="text-[#6443DB]"] {
-  color: #9e8cff !important;
+  color: #a594ff !important;
+}
+
+html[data-theme="dark"] main [class*="text-[#2A47F6]"] {
+  color: #6b8fff !important;
 }
 
 html[data-theme="dark"] .diagnostic-block {
-  background: #0b1020 !important;
+  background: linear-gradient(180deg, #080d1c 0%, #0d1530 50%, #080d1c 100%) !important;
   color: #eaf0ff !important;
 }
 
 html[data-theme="dark"] .diagnostic-glow-a {
-  opacity: 0.2 !important;
+  opacity: 0.35 !important;
 }
 
 html[data-theme="dark"] .diagnostic-glow-b {
-  opacity: 0.18 !important;
+  opacity: 0.30 !important;
 }
 
-html[data-theme="dark"] .diagnostic-kicker {
-  color: #6f8eff !important;
+html[data-theme="dark"] main .diagnostic-kicker {
+  color: #ffffff !important;
 }
 
 html[data-theme="dark"] .diagnostic-title {
   background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
 }
 
 html[data-theme="dark"] .diagnostic-subtitle {
-  color: #7db0ff !important;
+  color: #ffffff !important;
 }
 
-html[data-theme="dark"] .diagnostic-chip {
-  background: rgb(17 26 47 / 80%) !important;
-  border-color: rgb(93 127 255 / 35%) !important;
-  color: #b8cdff !important;
+html[data-theme="dark"] main .diagnostic-chip {
+  background: rgb(42 71 246 / 85%) !important;
+  background-color: rgb(42 71 246 / 85%) !important;
+  border-color: rgb(100 145 255 / 40%) !important;
+  color: #ffffff !important;
 }
 
-html[data-theme="dark"] .diagnostic-chip-icon {
-  color: #7db0ff !important;
+html[data-theme="dark"] main .diagnostic-chip-icon {
+  color: #ffffff !important;
 }
 
-html[data-theme="dark"] .diagnostic-card {
-  background: rgb(16 26 49 / 88%) !important;
-  border-color: rgb(97 127 226 / 28%) !important;
-  box-shadow: 0 10px 28px rgb(5 8 18 / 40%) !important;
+html[data-theme="dark"] main section article.diagnostic-card {
+  background: rgb(42 71 246 / 85%) !important;
+  background-color: rgb(42 71 246 / 85%) !important;
+  background-image: linear-gradient(145deg, rgb(42 71 246 / 85%), rgb(34 58 210 / 88%)) !important;
+  border-color: rgb(100 145 255 / 40%) !important;
+  box-shadow:
+    0 10px 28px rgb(5 8 18 / 55%),
+    inset 0 1px 0 rgb(150 195 255 / 22%) !important;
 }
 
 html[data-theme="dark"] .diagnostic-card:hover {
-  border-color: rgb(255 255 255 / 16%) !important;
+  border-color: rgb(42 71 246 / 50%) !important;
   box-shadow:
-    0 0 0 1px rgb(255 255 255 / 6%),
-    0 14px 34px rgb(255 255 255 / 5%) !important;
+    0 0 0 1px rgb(42 71 246 / 20%),
+    0 14px 34px rgb(42 71 246 / 18%),
+    inset 0 1px 0 rgb(42 71 246 / 14%) !important;
   transform: translateY(-2px);
 }
 
@@ -328,19 +357,19 @@ html[data-theme="dark"] .diagnostic-card-title {
 }
 
 html[data-theme="dark"] .diagnostic-item {
-  border-color: rgb(91 117 202 / 30%) !important;
+  border-color: rgb(42 71 246 / 15%) !important;
 }
 
 html[data-theme="dark"] .diagnostic-item-icon {
-  color: #7db0ff !important;
-}
-
-html[data-theme="dark"] .diagnostic-item-title {
   color: #ffffff !important;
 }
 
+html[data-theme="dark"] .diagnostic-item-title {
+  color: #f0f4ff !important;
+}
+
 html[data-theme="dark"] .diagnostic-item-text {
-  color: #90bcff !important;
+  color: #9ab6ee !important;
 }
 
 /* Product image cards — light mode: light blue glow */
@@ -355,16 +384,16 @@ html[data-theme="dark"] .diagnostic-item-text {
     0 0 40px 8px rgb(42 71 246 / 10%) !important;
 }
 
-/* Product image cards — dark mode: white glow */
+/* Product image cards — dark mode: blue glow */
 html[data-theme="dark"] .product-img-card {
   box-shadow:
-    0 0 10px 2px rgb(255 255 255 / 15%),
-    0 0 24px 4px rgb(255 255 255 / 8%);
+    0 0 10px 2px rgb(42 71 246 / 18%),
+    0 0 24px 4px rgb(42 71 246 / 10%);
 }
 html[data-theme="dark"] .product-img-card:hover {
   box-shadow:
-    0 0 18px 4px rgb(255 255 255 / 30%),
-    0 0 40px 8px rgb(255 255 255 / 15%) !important;
+    0 0 18px 4px rgb(42 71 246 / 30%),
+    0 0 40px 8px rgb(42 71 246 / 16%) !important;
 }
 
 /* Phone image — light mode: light blue drop-shadow */
@@ -375,10 +404,98 @@ html[data-theme="dark"] .product-img-card:hover {
   filter: drop-shadow(0 0 22px rgb(42 71 246 / 35%)) !important;
 }
 
-/* Phone image — dark mode: white drop-shadow */
+/* Phone image — dark mode: blue drop-shadow */
 html[data-theme="dark"] .product-phone-img {
-  filter: drop-shadow(0 0 12px rgb(255 255 255 / 20%));
+  filter: drop-shadow(0 0 12px rgb(42 71 246 / 25%));
 }
 html[data-theme="dark"] .product-phone-img:hover {
-  filter: drop-shadow(0 0 22px rgb(255 255 255 / 40%)) !important;
+  filter: drop-shadow(0 0 22px rgb(42 71 246 / 45%)) !important;
+}
+
+/* Blue card hover glow + scale — both modes */
+.ah-blue-card {
+  transition: border-color 400ms ease, box-shadow 400ms ease, transform 400ms ease;
+}
+
+html[data-theme="dark"] main .ah-blue-card.ah-blue-card:hover {
+  border-color: rgb(160 195 255 / 65%) !important;
+  box-shadow:
+    0 0 0 1px rgb(100 145 255 / 30%),
+    0 0 24px 6px rgb(42 71 246 / 35%),
+    0 16px 40px rgb(42 71 246 / 25%) !important;
+  transform: translateY(-4px) scale(1.025);
+}
+
+html:not([data-theme="dark"]) main .ah-blue-card.ah-blue-card:hover {
+  border-color: rgb(42 71 246 / 45%) !important;
+  box-shadow:
+    0 0 0 1px rgb(42 71 246 / 20%),
+    0 0 22px 5px rgb(42 71 246 / 18%),
+    0 16px 40px rgb(42 71 246 / 18%) !important;
+  transform: translateY(-4px) scale(1.025);
+}
+
+/* Contact form inputs in dark mode — blue tint */
+html[data-theme="dark"] main form input[class*="border-[#162A42]"],
+html[data-theme="dark"] main form textarea[class*="border-[#162A42]"],
+html[data-theme="dark"] main form input[type="text"],
+html[data-theme="dark"] main form input[type="email"],
+html[data-theme="dark"] main form textarea {
+  background: rgb(14 22 38 / 75%) !important;
+  border-color: rgb(100 145 255 / 40%) !important;
+  color: #e7edf9 !important;
+}
+
+html[data-theme="dark"] main form input::placeholder,
+html[data-theme="dark"] main form textarea::placeholder {
+  color: rgb(200 216 248 / 55%) !important;
+}
+
+html[data-theme="dark"] main form input:focus,
+html[data-theme="dark"] main form textarea:focus {
+  border-color: rgb(160 195 255 / 75%) !important;
+  box-shadow: 0 0 0 3px rgb(42 71 246 / 20%) !important;
+}
+
+html[data-theme="dark"] main form label {
+  color: #e7edf9 !important;
+}
+
+/* Dark mode: Diagnostic form inputs — more distinguishable */
+html[data-theme="dark"] main .ah-form-card form input,
+html[data-theme="dark"] main .ah-form-card form input[type="text"],
+html[data-theme="dark"] main .ah-form-card form input[type="email"],
+html[data-theme="dark"] main .ah-form-card form textarea {
+  background: rgb(42 71 246 / 18%) !important;
+  border-color: rgb(100 145 255 / 70%) !important;
+  color: #ffffff !important;
+  box-shadow:
+    inset 0 0 0 1px rgb(100 145 255 / 25%),
+    0 4px 14px rgb(5 10 30 / 40%) !important;
+}
+
+html[data-theme="dark"] main .ah-form-card form input::placeholder,
+html[data-theme="dark"] main .ah-form-card form textarea::placeholder {
+  color: rgb(210 222 250 / 65%) !important;
+}
+
+html[data-theme="dark"] main .ah-form-card form input:focus,
+html[data-theme="dark"] main .ah-form-card form input[type="text"]:focus,
+html[data-theme="dark"] main .ah-form-card form input[type="email"]:focus,
+html[data-theme="dark"] main .ah-form-card form textarea:focus {
+  background: rgb(42 71 246 / 28%) !important;
+  border-color: rgb(160 195 255 / 90%) !important;
+  box-shadow:
+    inset 0 0 0 1px rgb(160 195 255 / 40%),
+    0 0 0 3px rgb(42 71 246 / 30%) !important;
+}
+
+/* Dark mode scrollbar */
+html[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: #0d1424;
+}
+
+html[data-theme="dark"] ::selection {
+  background: rgb(42 71 246 / 45%);
+  color: #ffffff;
 }

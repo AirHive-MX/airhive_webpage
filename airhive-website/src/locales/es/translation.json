@@ -184,6 +184,14 @@
             "feature2": "Mayor velocidad en la toma de decisiones operativas e incremento en la eficiencia operativa",
             "feature3": "Optimización del inventario y abastecimiento, evitando faltantes o compras innecesarias"
         },
+        "wms": {
+            "title": "WMS",
+            "description": "Plataforma digital que orquesta cada proceso del almacén desde la recepción hasta el despacho, brindando control de inventario en tiempo real e insights accionables para reducir errores y acelerar el cumplimiento de órdenes.",
+            "feature1": "Visibilidad de stock en tiempo real en todas las ubicaciones y zonas",
+            "feature2": "Cumplimiento de órdenes de extremo a extremo: picking, empaque y envío",
+            "feature3": "Alertas automáticas para reabastecimiento, discrepancias y retrasos",
+            "feature4": "Historial completo de movimientos y trazabilidad para cada SKU"
+        },
         "other_products": {
             "title": "Otros Productos",
             "logistics_title": "Logística",

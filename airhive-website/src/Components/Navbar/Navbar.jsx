@@ -14,7 +14,7 @@ const productItems = [
 const aerpItems = [
   { key: "tracking", to: "/a-erp#tracking" },
   { key: "crm", to: "/a-erp#crm" },
-  { key: "mrp", to: "/a-erp#mrp" },
+  { key: "wms", to: "/a-erp#wms" },
 ];
 
 const Navbar = () => {

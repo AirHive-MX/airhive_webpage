@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
+import useDarkMode from "../../hooks/useDarkMode";
 import {
   AlertTriangle,
   BarChart3,
@@ -81,6 +82,7 @@ const deliverItems = [
 const Home = () => {
   const { t } = useTranslation();
   const [activeShowcase, setActiveShowcase] = useState(0);
+  const isDark = useDarkMode();
 
   return (
     <main className="ah-page overflow-hidden pt-[60px] text-[#202020]">
@@ -115,12 +117,12 @@ const Home = () => {
               transition={{ duration: 0.65, delay: 0.2, ease: "easeOut" }}
               className="mt-8 flex flex-col gap-3 sm:flex-row"
             >
-              <Link to="/contact" className="rounded-full bg-white px-7 py-3 text-center text-sm font-semibold text-[#162A42] transition duration-500 hover:bg-[#DDDDDD]">
+              <Link to="/contact" className="rounded-full bg-[#2A47F6] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_8px_24px_rgba(42,71,246,0.4)] transition duration-500 hover:bg-[#3d5aff] hover:shadow-[0_12px_32px_rgba(42,71,246,0.55)]">
                 {t("home_redesign.cta_primary")}
               </Link>
               <Link
                 to="/products"
-                className="rounded-full border border-white/40 px-7 py-3 text-center text-sm font-semibold text-white transition duration-500 hover:border-white hover:bg-white/8"
+                className="rounded-full bg-[#2A47F6] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_8px_24px_rgba(42,71,246,0.4)] transition duration-500 hover:bg-[#3d5aff] hover:shadow-[0_12px_32px_rgba(42,71,246,0.55)]"
               >
                 {t("home_redesign.cta_cases")}
               </Link>
@@ -129,6 +131,7 @@ const Home = () => {
         </div>
       </section>
 
+      <div style={isDark ? { background: '#0d1424' } : undefined}>
       <section className="ah-container py-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -137,10 +140,10 @@ const Home = () => {
           transition={{ duration: 0.55 }}
           className="mb-10"
         >
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#1501A5]/70">
+          <p className={`text-xs font-semibold uppercase tracking-[0.24em] ${isDark ? 'text-white' : 'text-[#1501A5]/70'}`}>
             {t("home_redesign.what_we_do_kicker")}
           </p>
-          <h2 className="mt-3 max-w-2xl text-3xl font-semibold leading-tight text-[#162A42] sm:text-4xl">
+          <h2 className={`mt-3 max-w-2xl text-3xl font-semibold leading-tight sm:text-4xl ${isDark ? 'text-white' : 'text-[#162A42]'}`}>
             {t("home_redesign.what_we_do_title")}
           </h2>
         </motion.div>
@@ -165,11 +168,12 @@ const Home = () => {
                   visible: { opacity: 1, y: 0 },
                 }}
                 transition={{ duration: 0.45, ease: "easeOut" }}
-                className="group rounded-2xl border border-[#162A42]/10 bg-white/85 p-6 transition duration-500 hover:border-[#2A47F6]/50 hover:shadow-[0_0_0_1px_rgba(42,71,246,0.35),0_12px_30px_rgba(42,71,246,0.16)]"
+                className={`group ah-blue-card rounded-2xl border p-6 transition duration-500 ${isDark ? 'border-[rgba(100,145,255,0.4)]' : 'border-[#162A42]/10 bg-white/85 hover:border-[#2A47F6]/50 hover:shadow-[0_0_0_1px_rgba(42,71,246,0.35),0_12px_30px_rgba(42,71,246,0.16)]'}`}
+                style={isDark ? { background: 'linear-gradient(145deg, rgba(42,71,246,0.85), rgba(34,58,210,0.88))' } : undefined}
               >
-                <Icon className="h-5 w-5 text-[#2A47F6]" strokeWidth={1.8} />
-                <h3 className="mt-5 text-lg font-semibold leading-snug text-[#162A42]">{t(card.titleKey)}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-[#202020]/75">{t(card.textKey)}</p>
+                <Icon className={`h-5 w-5 ${isDark ? 'text-white' : 'text-[#2A47F6]'}`} strokeWidth={1.8} />
+                <h3 className={`mt-5 text-lg font-semibold leading-snug ${isDark ? 'text-white' : 'text-[#162A42]'}`}>{t(card.titleKey)}</h3>
+                <p className={`mt-3 text-sm leading-relaxed ${isDark ? 'text-white/80' : 'text-[#202020]/75'}`}>{t(card.textKey)}</p>
               </motion.article>
             );
           })}
@@ -178,11 +182,11 @@ const Home = () => {
 
       <section className="ah-container grid gap-8 py-20 lg:grid-cols-[1fr_1.15fr]">
         <div className="lg:sticky lg:top-28 lg:h-fit">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#1501A5]/70">{t("home_redesign.stack_kicker")}</p>
-          <h2 className="mt-4 max-w-md text-3xl font-semibold leading-tight text-[#162A42] sm:text-4xl">
+          <p className={`text-xs font-semibold uppercase tracking-[0.24em] ${isDark ? 'text-white' : 'text-[#1501A5]/70'}`}>{t("home_redesign.stack_kicker")}</p>
+          <h2 className={`mt-4 max-w-md text-3xl font-semibold leading-tight sm:text-4xl ${isDark ? 'text-white' : 'text-[#162A42]'}`}>
             {t("home_redesign.stack_title")}
           </h2>
-          <p className="mt-4 max-w-md text-base text-[#202020]/72">{t("home_redesign.stack_text")}</p>
+          <p className={`mt-4 max-w-md text-base ${isDark ? 'text-white/80' : 'text-[#202020]/72'}`}>{t("home_redesign.stack_text")}</p>
           <Link to="/products" className="ah-button ah-button-secondary mt-7 inline-block rounded-full px-6 py-3 text-sm font-semibold">
             {t("home_redesign.stack_button")}
           </Link>
@@ -210,21 +214,25 @@ const Home = () => {
               onViewportEnter={() => setActiveShowcase(index)}
               viewport={{ once: true, amount: 0.35 }}
               transition={{ duration: 0.5 + index * 0.1, ease: "easeOut" }}
-              className={`rounded-2xl border bg-white/88 p-6 transition duration-500 sm:p-8 ${
-                activeShowcase === index
-                  ? "border-[#2A47F6]/35 shadow-[0_0_0_1px_rgba(42,71,246,0.18),0_14px_34px_rgba(42,71,246,0.12)]"
-                  : "border-[#162A42]/10 shadow-[0_6px_18px_rgba(22,42,66,0.05)]"
+              className={`ah-blue-card rounded-2xl border p-6 transition duration-500 sm:p-8 ${
+                isDark
+                  ? 'border-[rgba(100,145,255,0.4)]'
+                  : `bg-white/88 ${activeShowcase === index
+                      ? "border-[#2A47F6]/35 shadow-[0_0_0_1px_rgba(42,71,246,0.18),0_14px_34px_rgba(42,71,246,0.12)]"
+                      : "border-[#162A42]/10 shadow-[0_6px_18px_rgba(22,42,66,0.05)]"}`
               }`}
+              style={isDark ? { background: 'linear-gradient(145deg, rgba(42,71,246,0.85), rgba(34,58,210,0.88))' } : undefined}
             >
-              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#2A47F6]/75">
+              <p className={`mb-3 text-xs font-semibold uppercase tracking-[0.22em] ${isDark ? 'text-white/80' : 'text-[#2A47F6]/75'}`}>
                 0{index + 1}
               </p>
-              <h3 className="text-2xl font-semibold text-[#162A42]">{t(card.titleKey)}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-[#202020]/75 sm:text-base">{t(card.textKey)}</p>
+              <h3 className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-[#162A42]'}`}>{t(card.titleKey)}</h3>
+              <p className={`mt-3 text-sm leading-relaxed sm:text-base ${isDark ? 'text-white/80' : 'text-[#202020]/75'}`}>{t(card.textKey)}</p>
             </motion.article>
           ))}
         </div>
       </section>
+      </div>
 
       <section className="diagnostic-block relative overflow-hidden bg-white py-24 text-[#202020] lg:py-28">
         <div className="diagnostic-glow-a absolute right-[-120px] top-[-60px] h-80 w-80 rounded-full bg-[radial-gradient(circle,#1501A5_0%,transparent_65%)] opacity-[0.08]" />
@@ -271,7 +279,8 @@ const Home = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="diagnostic-card rounded-3xl border border-white bg-white p-6 shadow-[0_10px_28px_rgba(22,42,66,0.08)] transition duration-500 hover:border-[#2A47F6]/35 hover:shadow-[0_12px_34px_rgba(42,71,246,0.1)] sm:p-7"
+              className={`diagnostic-card ah-blue-card rounded-3xl border p-6 shadow-[0_10px_28px_rgba(22,42,66,0.08)] transition duration-500 sm:p-7 ${isDark ? '' : 'border-white bg-white hover:border-[#2A47F6]/35 hover:shadow-[0_12px_34px_rgba(42,71,246,0.1)]'}`}
+              style={isDark ? { background: 'linear-gradient(145deg, rgba(42,71,246,0.85), rgba(34,58,210,0.88))', borderColor: 'rgba(100,145,255,0.4)' } : undefined}
             >
               <h3 className="diagnostic-card-title mb-5 text-xl font-semibold text-[#162A42]">{t("home_redesign.review_title")}</h3>
               <ul className="space-y-4">
@@ -304,7 +313,8 @@ const Home = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.55, ease: "easeOut", delay: 0.08 }}
-              className="diagnostic-card rounded-3xl border border-white bg-white p-6 shadow-[0_10px_28px_rgba(22,42,66,0.08)] transition duration-500 hover:border-[#6443DB]/35 hover:shadow-[0_12px_34px_rgba(100,67,219,0.1)] sm:p-7"
+              className={`diagnostic-card ah-blue-card rounded-3xl border p-6 shadow-[0_10px_28px_rgba(22,42,66,0.08)] transition duration-500 sm:p-7 ${isDark ? '' : 'border-white bg-white hover:border-[#6443DB]/35 hover:shadow-[0_12px_34px_rgba(100,67,219,0.1)]'}`}
+              style={isDark ? { background: 'linear-gradient(145deg, rgba(42,71,246,0.85), rgba(34,58,210,0.88))', borderColor: 'rgba(100,145,255,0.4)' } : undefined}
             >
               <h3 className="diagnostic-card-title mb-5 text-xl font-semibold text-[#162A42]">{t("home_redesign.deliver_title")}</h3>
               <ul className="space-y-4">

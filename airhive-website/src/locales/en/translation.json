@@ -184,6 +184,14 @@
             "feature2": "Faster operational decision-making and increased operational efficiency",
             "feature3": "Inventory and supply optimization, avoiding shortages or unnecessary purchases"
         },
+        "wms": {
+            "title": "WMS",
+            "description": "A digital platform that orchestrates every warehouse process from receiving to dispatch, providing real-time inventory control and actionable insights to reduce errors and accelerate fulfillment.",
+            "feature1": "Real-time stock visibility across locations and zones",
+            "feature2": "End-to-end order fulfillment: picking, packing, and shipping",
+            "feature3": "Automated alerts for replenishment, discrepancies, and delays",
+            "feature4": "Full movement history and traceability for every SKU"
+        },
         "other_products": {
             "title": "Other Products",
             "logistics_title": "Logistics",

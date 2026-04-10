@@ -5,9 +5,11 @@ import services from "/foto edu.JPG";
 import heroWeb from "/ai agents.jpg";
 import home2 from "/foto nueva rafa .jpg";
 import droneCustom from "/red velvet.JPG";
+import useDarkMode from "../../hooks/useDarkMode";
 
 const Services = () => {
   const { t } = useTranslation();
+  const isDark = useDarkMode();
 
   const servicesData = [
     { title: t("services_redesign.card_1_title"), text: t("services_redesign.card_1_text"), image: services },
@@ -59,13 +61,20 @@ const Services = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.25 }}
                 transition={{ duration: 0.45, delay: index * 0.15, ease: "easeOut" }}
-                className="relative rounded-2xl border border-white bg-white p-5 shadow-[0_12px_30px_rgba(22,42,66,0.1)]"
+                className={`ah-blue-card relative rounded-2xl border p-5 transition duration-500 ${
+                  isDark
+                    ? 'border-[rgba(100,145,255,0.4)]'
+                    : 'border-white bg-white shadow-[0_12px_30px_rgba(22,42,66,0.1)]'
+                }`}
+                style={isDark ? { background: 'linear-gradient(145deg, rgba(42,71,246,0.85), rgba(34,58,210,0.88))' } : undefined}
               >
-                <span className="mb-3 inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#2A47F6]/12 text-xs font-semibold text-[#2A47F6]">
+                <span className={`mb-3 inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${
+                  isDark ? 'bg-white/20 text-white' : 'bg-[#2A47F6]/12 text-[#2A47F6]'
+                }`}>
                   {index + 1}
                 </span>
-                <h3 className="text-lg font-semibold text-[#162A42]">{step.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-[#202020]/74">{step.text}</p>
+                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-[#162A42]'}`}>{step.title}</h3>
+                <p className={`mt-2 text-sm leading-relaxed ${isDark ? 'text-white/85' : 'text-[#202020]/74'}`}>{step.text}</p>
               </motion.article>
             ))}
           </div>
@@ -80,7 +89,12 @@ const Services = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.45, delay: index * 0.05 }}
-            className="overflow-hidden rounded-2xl border border-white bg-white shadow-[0_12px_30px_rgba(22,42,66,0.1)]"
+            className={`ah-blue-card overflow-hidden rounded-2xl border transition duration-500 ${
+              isDark
+                ? 'border-[rgba(100,145,255,0.4)]'
+                : 'border-white bg-white shadow-[0_12px_30px_rgba(22,42,66,0.1)]'
+            }`}
+            style={isDark ? { background: 'linear-gradient(145deg, rgba(42,71,246,0.85), rgba(34,58,210,0.88))' } : undefined}
           >
             <img
               src={service.image}
@@ -89,8 +103,8 @@ const Services = () => {
               style={index === 3 ? { filter: "saturate(0.85) contrast(1.15) brightness(0.92) hue-rotate(-8deg)" } : undefined}
             />
             <div className="p-6">
-              <h2 className="text-xl font-semibold text-[#1F3CCF]">{service.title}</h2>
-              <p className="mt-3 text-sm leading-relaxed text-[#202020]/75">{service.text}</p>
+              <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-[#1F3CCF]'}`}>{service.title}</h2>
+              <p className={`mt-3 text-sm leading-relaxed ${isDark ? 'text-white/85' : 'text-[#202020]/75'}`}>{service.text}</p>
             </div>
           </motion.article>
         ))}
