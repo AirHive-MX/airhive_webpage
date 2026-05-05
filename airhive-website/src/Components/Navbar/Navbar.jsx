@@ -2,47 +2,20 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FaWhatsapp } from "react-icons/fa";
-import { Sun, Moon } from "lucide-react";
 import logo from "/logo sin fondo.png";
 
 const productItems = [
   { key: "drone_inventory", to: "/products#drone-inventory" },
-  { key: "ai_agents", to: "/products#ai-agents" },
-  { key: "other_products", to: "/products#other-products" },
 ];
 
-const aerpItems = [
-  { key: "tracking", to: "/a-erp#tracking" },
-  { key: "crm", to: "/a-erp#crm" },
-  { key: "wms", to: "/a-erp#wms" },
-];
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [productsOpen, setProductsOpen] = useState(false);
-  const [theme, setTheme] = useState("light");
   const location = useLocation();
   const { t } = useTranslation();
   const isHome = location.pathname === "/";
-
-  useEffect(() => {
-    const stored = localStorage.getItem("airhive_theme");
-    if (stored === "light" || stored === "dark") {
-      setTheme(stored);
-      document.documentElement.setAttribute("data-theme", stored);
-      return;
-    }
-    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const initialTheme = systemPrefersDark ? "dark" : "light";
-    setTheme(initialTheme);
-    document.documentElement.setAttribute("data-theme", initialTheme);
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("airhive_theme", theme);
-  }, [theme]);
 
   useEffect(() => {
     setIsOpen(false);
@@ -97,11 +70,7 @@ const Navbar = () => {
               </Link>
 
               <div
-                className={`absolute left-0 top-full mt-3 w-72 rounded-xl border p-2 pt-4 shadow-2xl transition-all duration-300 before:absolute before:-top-3 before:left-0 before:h-3 before:w-full ${
-                  theme === "dark"
-                    ? "border-white/10 bg-[#1a1a2e] text-[#2A47F6]"
-                    : "border-[#162A42]/10 bg-white text-[#162A42]"
-                } ${
+                className={`absolute left-0 top-full mt-3 w-72 rounded-xl border border-[#162A42]/10 bg-white p-2 pt-4 text-[#162A42] shadow-2xl transition-all duration-300 before:absolute before:-top-3 before:left-0 before:h-3 before:w-full ${
                   productsOpen ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-2 opacity-0"
                 }`}
               >
@@ -109,22 +78,7 @@ const Navbar = () => {
                   <Link
                     key={item.key}
                     to={item.to}
-                    className={`block rounded-lg px-3 py-2.5 text-sm transition hover:text-[#2A47F6] ${
-                      theme === "dark" ? "hover:bg-white/10" : "hover:bg-[#162A42]/5"
-                    }`}
-                  >
-                    {t(`products.${item.key}.title`)}
-                  </Link>
-                ))}
-                <div className={`my-1 border-t ${theme === "dark" ? "border-white/10" : "border-[#162A42]/10"}`} />
-                <p className={`px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-[0.2em] ${theme === "dark" ? "text-white/50" : "text-[#162A42]/50"}`}>A-ERP</p>
-                {aerpItems.map((item) => (
-                  <Link
-                    key={item.key}
-                    to={item.to}
-                    className={`block rounded-lg px-3 py-2.5 text-sm transition hover:text-[#2A47F6] ${
-                      theme === "dark" ? "hover:bg-white/10" : "hover:bg-[#162A42]/5"
-                    }`}
+                    className="block rounded-lg px-3 py-2.5 text-sm transition hover:bg-[#162A42]/5 hover:text-[#2A47F6]"
                   >
                     {t(`products.${item.key}.title`)}
                   </Link>
@@ -150,16 +104,6 @@ const Navbar = () => {
           </ul>
 
           <div className="hidden items-center gap-3 lg:flex">
-            <button
-              type="button"
-              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-              className={`rounded-full p-2 transition-all duration-300 hover:bg-[#162A42]/10 ${
-                scrolled ? "pointer-events-none w-0 scale-0 opacity-0" : "w-auto scale-100 opacity-100"
-              }`}
-              aria-label="Toggle theme"
-            >
-              {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-            </button>
             <a
               href="https://wa.me/528116070330"
               target="_blank"
@@ -171,16 +115,6 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-2 lg:hidden">
-            <button
-              type="button"
-              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-              className={`rounded-full p-2 transition-all duration-300 hover:bg-[#162A42]/10 ${
-                scrolled ? "pointer-events-none scale-0 opacity-0" : "scale-100 opacity-100"
-              }`}
-              aria-label="Toggle theme"
-            >
-              {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-            </button>
           <button
             onClick={() => setIsOpen((prev) => !prev)}
             className={`rounded-lg border p-2 ${
@@ -207,15 +141,6 @@ const Navbar = () => {
                 <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#162A42]/65">{t("navbar.cases")}</p>
                 <div className="space-y-1">
                   {productItems.map((item) => (
-                    <Link key={item.key} to={item.to} className="block rounded-md px-2 py-1.5 text-sm hover:bg-[#162A42]/5">
-                      {t(`products.${item.key}.title`)}
-                    </Link>
-                  ))}
-                </div>
-                <div className="my-2 border-t border-[#162A42]/10" />
-                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#162A42]/65">A-ERP</p>
-                <div className="space-y-1">
-                  {aerpItems.map((item) => (
                     <Link key={item.key} to={item.to} className="block rounded-md px-2 py-1.5 text-sm hover:bg-[#162A42]/5">
                       {t(`products.${item.key}.title`)}
                     </Link>
