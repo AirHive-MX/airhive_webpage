@@ -1,0 +1,100 @@
+.ah-wrap { font-family: inherit; padding: 48px 24px; color: #162A42; max-width: 1100px; margin: 0 auto; }
+.ah-wrap *, .ah-wrap *::before, .ah-wrap *::after { box-sizing: border-box; }
+
+.ah-header { text-align: left; margin-bottom: 40px; }
+.ah-eyebrow {
+  display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.24em;
+  text-transform: uppercase; color: rgba(21,1,165,0.7); margin-bottom: 16px;
+}
+.ah-title { font-size: 32px; font-weight: 600; margin: 0 0 10px; color: #162A42; letter-spacing: -0.5px; line-height: 1.2; }
+.ah-subtitle { font-size: 16px; color: #64748B; margin: 0; }
+
+.ah-stage {
+  position: relative; background: #FAFBFD; border: 1px solid #E2E8F0;
+  border-radius: 20px; overflow: hidden; height: 320px;
+}
+.ah-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(42,71,246,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(42,71,246,0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.ah-status {
+  position: absolute; top: 18px; left: 18px; display: flex; align-items: center;
+  gap: 8px; background: #fff; border: 1px solid #E2E8F0; border-radius: 999px;
+  padding: 7px 14px; font-size: 12px; font-weight: 500; color: #162A42; z-index: 5;
+  box-shadow: 0 2px 6px rgba(22,42,66,0.04);
+}
+.ah-status .ah-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: #10B981;
+  animation: ah-pulse 1.5s ease-in-out infinite;
+}
+@keyframes ah-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.4); } }
+
+.ah-counter {
+  position: absolute; top: 18px; right: 18px; background: #fff;
+  border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 14px; z-index: 5;
+  box-shadow: 0 2px 6px rgba(22,42,66,0.04);
+}
+.ah-counter-label { font-size: 9px; letter-spacing: 1.4px; text-transform: uppercase; color: #94A3B8; font-weight: 600; }
+.ah-counter-value { font-size: 20px; font-weight: 600; color: #2A47F6; font-variant-numeric: tabular-nums; line-height: 1.2; }
+
+@keyframes ah-fly {
+  0%   { transform: translateX(0)   translateY(0); }
+  20%  { transform: translateX(20%) translateY(-8px); }
+  40%  { transform: translateX(40%) translateY(4px); }
+  60%  { transform: translateX(60%) translateY(-6px); }
+  80%  { transform: translateX(80%) translateY(2px); }
+  100% { transform: translateX(95%) translateY(0); }
+}
+@keyframes ah-hover { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes ah-prop  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes ah-scan  { 0% { transform: scale(0.6); opacity: 0.8; } 100% { transform: scale(2.4); opacity: 0; } }
+@keyframes ah-signal { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+@keyframes ah-data  { 0% { stroke-dashoffset: 100; } 100% { stroke-dashoffset: 0; } }
+
+.ah-drone-track {
+  position: absolute; top: 70px; left: 30px; width: calc(100% - 90px);
+  animation: ah-fly 12s ease-in-out infinite;
+}
+.ah-drone { position: relative; animation: ah-hover 0.8s ease-in-out infinite; width: 60px; height: 60px; }
+.ah-prop  { animation: ah-prop 0.15s linear infinite; }
+.ah-scan-ring { animation: ah-scan 1.6s ease-out infinite; transform-origin: center; }
+.ah-warehouse { position: absolute; inset: 0; }
+
+.ah-steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 28px; }
+.ah-step {
+  background: #fff; border: 1px solid #E2E8F0; border-radius: 14px;
+  padding: 20px 16px; position: relative;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.ah-step.ah-active {
+  border-color: #2A47F6; background: rgba(42,71,246,0.07);
+  transform: translateY(-3px); box-shadow: 0 6px 20px rgba(42,71,246,0.15);
+}
+.ah-step-num {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: #F1F5F9; color: #64748B; font-size: 12px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px; transition: all 0.3s ease;
+}
+.ah-step.ah-active .ah-step-num { background: #2A47F6; color: #fff; }
+.ah-step-icon { width: 30px; height: 30px; margin-bottom: 10px; color: #64748B; transition: color 0.3s ease; }
+.ah-step.ah-active .ah-step-icon { color: #2A47F6; }
+.ah-step-title { font-size: 14px; font-weight: 600; color: #162A42; margin-bottom: 4px; }
+.ah-step-desc  { font-size: 12px; color: #64748B; line-height: 1.5; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ah-drone-track, .ah-drone, .ah-prop, .ah-scan-ring, .ah-status .ah-dot { animation: none; }
+}
+@media (max-width: 768px) {
+  .ah-wrap { padding: 32px 16px; }
+  .ah-title { font-size: 24px; }
+  .ah-subtitle { font-size: 14px; }
+  .ah-stage { height: 240px; }
+  .ah-steps { grid-template-columns: repeat(2, 1fr); }
+  .ah-counter-value { font-size: 16px; }
+}
+@media (max-width: 480px) { .ah-steps { grid-template-columns: 1fr; } }

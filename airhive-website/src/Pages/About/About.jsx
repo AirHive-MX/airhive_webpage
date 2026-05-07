@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import about1 from "/about1.webp";
+import about1 from "/foto3entrevista.jpg";
 import fotoEquipo from "/foto equipo.JPG";
 
 const About = () => {
@@ -14,9 +14,6 @@ const About = () => {
           <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#1501A5]/70">Air Hive</p>
           <h1 className="mt-4 max-w-xl text-4xl font-semibold leading-tight text-[#162A42] sm:text-5xl">{t("about.story_title")}</h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-[#202020]/74">{t("about.story_text")}</p>
-          <Link to="/contact" className="ah-button ah-button-primary mt-8 inline-block rounded-full px-6 py-3 text-sm font-semibold">
-            {t("navbar.diagnostic")}
-          </Link>
         </motion.div>
         <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
@@ -71,10 +68,6 @@ const About = () => {
         >
           <h2 className="text-3xl font-semibold text-[#162A42] sm:text-4xl">{t("about.team_title")}</h2>
           <p className="mt-4 text-base leading-relaxed text-[#202020]/74">{t("about.team_text_1")}</p>
-          <p className="mt-3 text-base leading-relaxed text-[#202020]/74">{t("about.team_text_2")}</p>
-          <p className="mt-4 text-base leading-relaxed text-[#202020]/74">
-            {t("about.philosophy_text")}
-          </p>
         </motion.div>
       </section>
     </main>

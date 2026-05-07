@@ -1,0 +1,57 @@
+#ah-solutions { padding: 64px 32px; font-family: inherit; background: linear-gradient(180deg,#FFFFFF 0%,#F5F6FA 100%); max-width: 1280px; margin: 0 auto; }
+#ah-solutions .ah-sol-kicker { font-size: 12px; font-weight: 600; letter-spacing: 2px; color: rgba(21,1,165,0.7); margin-bottom: 16px; text-transform: uppercase; }
+#ah-solutions .ah-sol-title { font-size: 36px; font-weight: 700; color: #0A1A3F; margin: 0 0 48px; line-height: 1.2; letter-spacing: -0.5px; max-width: 720px; }
+#ah-solutions .ah-sol-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+#ah-solutions .ah-sol-card { background: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 16px rgba(10,26,63,0.08); display: flex; flex-direction: column; transition: transform 0.25s ease, box-shadow 0.25s ease; }
+#ah-solutions .ah-sol-card:hover { transform: translateY(-4px); box-shadow: 0 14px 32px rgba(10,26,63,0.15); }
+#ah-solutions .ah-img-wrap { position: relative; height: 220px; overflow: hidden; }
+#ah-solutions .ah-img-wrap--gradient-blue { background: linear-gradient(135deg,#3D4FF0 0%,#1E2FD8 100%); }
+#ah-solutions .ah-img-wrap--gradient-deep { background: linear-gradient(135deg,#0A1A3F 0%,#1E2FD8 100%); }
+#ah-solutions .ah-img-wrap img { width: 100%; height: 100%; object-fit: cover; mix-blend-mode: luminosity; opacity: 0.55; }
+#ah-solutions .ah-img-wrap img.ah-img-drone { transform: scale(2.2); transform-origin: 50% 85%; }
+#ah-solutions .ah-img-wrap img.ah-img-monitoring { transform: scale(2); transform-origin: 50% 25%; }
+#ah-solutions .ah-overlay { position: absolute; inset: 0; }
+#ah-solutions .ah-overlay--blue   { background: linear-gradient(135deg,rgba(45,63,231,0.55),rgba(10,26,63,0.75)); }
+#ah-solutions .ah-overlay--purple { background: linear-gradient(135deg,rgba(91,79,224,0.55),rgba(10,26,63,0.75)); }
+#ah-solutions .ah-badge { position: absolute; top: 16px; left: 16px; background: rgba(255,255,255,0.18); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.25); border-radius: 20px; padding: 6px 14px; font-size: 11px; font-weight: 700; color: #FFFFFF; letter-spacing: 1px; }
+#ah-solutions .ah-sol-body { padding: 24px; }
+#ah-solutions .ah-sol-card-title { color: #0A1A3F; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+#ah-solutions .ah-sol-line { width: 32px; height: 2px; background: #2D3FE7; margin-bottom: 12px; }
+#ah-solutions .ah-sol-desc { color: #5A6580; font-size: 14px; line-height: 1.5; }
+
+/* SOFTWARE badge — navy solid on blue gradient background */
+#ah-solutions .ah-img-wrap--gradient-blue .ah-badge {
+  background: rgba(10, 26, 63, 0.82);
+  border-color: rgba(42, 71, 246, 0.55);
+  color: #FFFFFF;
+}
+
+/* WMS Mockup */
+#ah-solutions .ah-mockup { position: absolute; inset: 24px; background: #FFFFFF; border-radius: 8px; padding: 14px; box-shadow: 0 12px 32px rgba(0,0,0,0.25); }
+#ah-solutions .ah-mockup-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+#ah-solutions .ah-mockup-dots { display: flex; gap: 5px; }
+#ah-solutions .ah-mockup-dots span { display: inline-block; width: 9px; height: 9px; border-radius: 50%; }
+#ah-solutions .ah-mockup-name { font-size: 10px; color: #5A6580; font-weight: 600; }
+#ah-solutions .ah-mockup-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+#ah-solutions .ah-stat { background: #F0F2FA; border-radius: 5px; padding: 8px; }
+#ah-solutions .ah-stat--accent { background: #EEF0FF; }
+#ah-solutions .ah-stat-label { font-size: 9px; color: #5A6580; margin-bottom: 2px; }
+#ah-solutions .ah-stat-value { font-size: 14px; font-weight: 700; color: #0A1A3F; }
+#ah-solutions .ah-stat-value--accent { color: #1E2FD8; }
+#ah-solutions .ah-mockup-chart { display: flex; align-items: flex-end; gap: 4px; height: 60px; padding: 0 2px; }
+#ah-solutions .ah-mockup-chart div { flex: 1; border-radius: 3px; }
+
+/* SVG hub */
+#ah-solutions .ah-hub-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Live pill */
+#ah-solutions .ah-live-pill { position: absolute; bottom: 16px; left: 16px; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.18); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.25); border-radius: 20px; padding: 6px 14px; }
+#ah-solutions .ah-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #28C840; box-shadow: 0 0 10px #28C840; animation: ah-sol-pulse 2s infinite; }
+#ah-solutions .ah-live-label { font-size: 11px; font-weight: 700; color: #FFFFFF; letter-spacing: 0.5px; }
+@keyframes ah-sol-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+@media (max-width: 768px) {
+  #ah-solutions .ah-sol-grid { grid-template-columns: 1fr; }
+  #ah-solutions .ah-sol-title { font-size: 28px; }
+  #ah-solutions { padding: 48px 20px; }
+}

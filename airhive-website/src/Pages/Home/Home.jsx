@@ -2,21 +2,14 @@ import { Fragment } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import AirHiveComparator from "../../Components/AirHiveComparator/AirHiveComparator";
 import {
-  AlertTriangle,
   ArrowRight,
-  BarChart3,
-  CheckCircle2,
   ClipboardCheck,
-  Clock3,
   Cpu,
-  Database,
-  Layers3,
   LayoutGrid,
   Package,
-  Route,
   Truck,
-  Workflow,
 } from "lucide-react";
 import droneIcon from "/drone-icon@1x.png";
 import wmsIcon from "/wms-air-hive-icon@2x.png";
@@ -30,51 +23,6 @@ const whatWeDoCards = [
 ];
 
 
-const reviewItems = [
-  {
-    icon: Workflow,
-    titleKey: "home_redesign.review_1_title",
-    textKey: "home_redesign.review_1_text",
-  },
-  {
-    icon: Database,
-    titleKey: "home_redesign.review_2_title",
-    textKey: "home_redesign.review_2_text",
-  },
-  {
-    icon: AlertTriangle,
-    titleKey: "home_redesign.review_3_title",
-    textKey: "home_redesign.review_3_text",
-  },
-  {
-    icon: BarChart3,
-    titleKey: "home_redesign.review_4_title",
-    textKey: "home_redesign.review_4_text",
-  },
-];
-
-const deliverItems = [
-  {
-    icon: Layers3,
-    titleKey: "home_redesign.deliver_1_title",
-    textKey: "home_redesign.deliver_1_text",
-  },
-  {
-    icon: BarChart3,
-    titleKey: "home_redesign.deliver_2_title",
-    textKey: "home_redesign.deliver_2_text",
-  },
-  {
-    icon: Route,
-    titleKey: "home_redesign.deliver_3_title",
-    textKey: "home_redesign.deliver_3_text",
-  },
-  {
-    icon: CheckCircle2,
-    titleKey: "home_redesign.deliver_4_title",
-    textKey: "home_redesign.deliver_4_text",
-  },
-];
 
 const Home = () => {
   const { t } = useTranslation();
@@ -316,129 +264,10 @@ const Home = () => {
         </motion.div>
       </section>
 
-      <section className="diagnostic-block relative overflow-hidden bg-white py-24 text-[#202020] lg:py-28">
-        <div className="diagnostic-glow-a absolute right-[-120px] top-[-60px] h-80 w-80 rounded-full bg-[radial-gradient(circle,#1501A5_0%,transparent_65%)] opacity-[0.08]" />
-        <div className="diagnostic-glow-b absolute left-[-110px] bottom-[-90px] h-80 w-80 rounded-full bg-[radial-gradient(circle,#2A47F6_0%,transparent_68%)] opacity-[0.08]" />
-
-        <div className="ah-container relative">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.35 }}
-              transition={{ duration: 0.55, ease: "easeOut" }}
-              className="max-w-3xl"
-            >
-              <p className="diagnostic-kicker text-xs font-semibold uppercase tracking-[0.22em] text-[#6443DB]">
-                {t("home_redesign.diagnostic_kicker")}
-              </p>
-              <h2 className="diagnostic-title mt-3 bg-gradient-to-r from-[#2A47F6] via-[#1501A5] to-[#6443DB] bg-clip-text text-3xl font-semibold leading-tight text-transparent sm:text-4xl lg:text-[2.65rem]">
-                {t("home_redesign.diagnostic_title")}
-              </h2>
-              <p className="diagnostic-subtitle mt-4 text-sm text-[#202020]/70 sm:text-base">{t("home_redesign.diagnostic_subtitle")}</p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.35 }}
-              transition={{ duration: 0.55, delay: 0.08, ease: "easeOut" }}
-              className="flex flex-wrap gap-2 lg:justify-end"
-            >
-              <span className="diagnostic-chip inline-flex items-center gap-2 rounded-full border border-[#DDDDDD] bg-white px-3 py-1.5 text-xs font-medium text-[#162A42]/85">
-                <Clock3 className="diagnostic-chip-icon h-3.5 w-3.5 text-[#6443DB]" />
-                {t("home_redesign.diagnostic_chip_1")}
-              </span>
-              <span className="diagnostic-chip inline-flex items-center rounded-full border border-white bg-white px-3 py-1.5 text-xs font-medium text-[#162A42]/85 shadow-[0_4px_12px_rgba(22,42,66,0.06)]">
-                {t("home_redesign.diagnostic_chip_2")}
-              </span>
-            </motion.div>
-          </div>
-
-          <div className="mt-10 grid gap-6 lg:grid-cols-2 lg:gap-12">
-            <motion.article
-              initial={{ opacity: 0, y: 22 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.25 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-              className="diagnostic-card ah-blue-card rounded-3xl border border-white bg-white p-6 shadow-[0_10px_28px_rgba(22,42,66,0.08)] transition duration-500 hover:border-[#2A47F6]/35 hover:shadow-[0_12px_34px_rgba(42,71,246,0.1)] sm:p-7"
-            >
-              <h3 className="diagnostic-card-title mb-5 text-xl font-semibold text-[#162A42]">{t("home_redesign.review_title")}</h3>
-              <ul className="space-y-4">
-                {reviewItems.map((item, idx) => {
-                  const Icon = item.icon;
-                  return (
-                    <motion.li
-                      key={item.titleKey}
-                      initial={{ opacity: 0, y: 18 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, amount: 0.2 }}
-                      transition={{ duration: 0.4, delay: idx * 0.18, ease: "easeOut" }}
-                      className="diagnostic-item border-b border-white pb-4 last:border-b-0 last:pb-0"
-                    >
-                      <div className="flex items-start gap-3">
-                        <Icon className="diagnostic-item-icon mt-0.5 h-4.5 w-4.5 text-[#2A47F6]" strokeWidth={1.8} />
-                        <div>
-                          <p className="diagnostic-item-title text-sm font-semibold text-[#162A42] sm:text-[0.95rem]">{t(item.titleKey)}</p>
-                          <p className="diagnostic-item-text mt-1 text-xs text-[#202020]/72 sm:text-sm">{t(item.textKey)}</p>
-                        </div>
-                      </div>
-                    </motion.li>
-                  );
-                })}
-              </ul>
-            </motion.article>
-
-            <motion.article
-              initial={{ opacity: 0, y: 22 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.25 }}
-              transition={{ duration: 0.55, ease: "easeOut", delay: 0.08 }}
-              className="diagnostic-card ah-blue-card rounded-3xl border border-white bg-white p-6 shadow-[0_10px_28px_rgba(22,42,66,0.08)] transition duration-500 hover:border-[#6443DB]/35 hover:shadow-[0_12px_34px_rgba(100,67,219,0.1)] sm:p-7"
-            >
-              <h3 className="diagnostic-card-title mb-5 text-xl font-semibold text-[#162A42]">{t("home_redesign.deliver_title")}</h3>
-              <ul className="space-y-4">
-                {deliverItems.map((item, idx) => {
-                  const Icon = item.icon;
-                  return (
-                    <motion.li
-                      key={item.titleKey}
-                      initial={{ opacity: 0, y: 18 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, amount: 0.2 }}
-                      transition={{ duration: 0.4, delay: idx * 0.18, ease: "easeOut" }}
-                      className="diagnostic-item border-b border-white pb-4 last:border-b-0 last:pb-0"
-                    >
-                      <div className="flex items-start gap-3">
-                        <Icon className="diagnostic-item-icon mt-0.5 h-4.5 w-4.5 text-[#6443DB]" strokeWidth={1.8} />
-                        <div>
-                          <p className="diagnostic-item-title text-sm font-semibold text-[#162A42] sm:text-[0.95rem]">{t(item.titleKey)}</p>
-                          <p className="diagnostic-item-text mt-1 text-xs text-[#202020]/72 sm:text-sm">{t(item.textKey)}</p>
-                        </div>
-                      </div>
-                    </motion.li>
-                  );
-                })}
-              </ul>
-            </motion.article>
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.25 }}
-            transition={{ duration: 0.55, ease: "easeOut" }}
-            className="mt-10 flex justify-center"
-          >
-            <Link
-              to="/contact"
-              className="rounded-full border border-[#2A47F6]/20 bg-white px-8 py-3 text-center text-sm font-semibold shadow-[0_12px_26px_rgba(21,1,165,0.12)] transition duration-500 hover:bg-[#2A47F6] hover:!text-white hover:shadow-[0_16px_30px_rgba(42,71,246,0.28)]" style={{ color: '#2A47F6' }}
-            >
-              {t("home_redesign.cta_primary")}
-            </Link>
-          </motion.div>
-        </div>
+      <section id="airhive-comparador" className="py-20 px-6">
+        <AirHiveComparator />
       </section>
+
     </main>
   );
 };

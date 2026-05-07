@@ -21,7 +21,6 @@ const Footer = () => {
           <ul className="space-y-2 text-sm">
             <li><Link to="/" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">{t("navbar.home_short")}</Link></li>
             <li><Link to="/products" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">{t("navbar.cases")}</Link></li>
-            <li><Link to="/a-erp" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">A-ERP</Link></li>
             <li><Link to="/services#como-trabajamos" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">{t("navbar.how_we_work")}</Link></li>
             <li><Link to="/about" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">{t("navbar.about")}</Link></li>
             <li><Link to="/diagnostico-gratis" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">{t("navbar.free_diagnostic")}</Link></li>
