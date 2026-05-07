@@ -80,7 +80,7 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="ah-container py-20">
+      <section className="ah-container pt-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -139,7 +139,7 @@ const Home = () => {
         </motion.div>
       </section>
 
-      <section className="ah-container py-24">
+      <section className="ah-container pt-12">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -264,7 +264,7 @@ const Home = () => {
         </motion.div>
       </section>
 
-      <section id="airhive-comparador" className="py-20 px-6">
+      <section id="airhive-comparador" className="pt-12 px-6">
         <AirHiveComparator />
       </section>
 

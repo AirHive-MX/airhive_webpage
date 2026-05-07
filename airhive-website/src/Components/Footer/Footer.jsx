@@ -5,7 +5,7 @@ const Footer = () => {
   const { t, i18n } = useTranslation();
 
   return (
-    <footer className="mt-24 bg-[#202020] px-6 pb-10 pt-16 text-[#DDDDDD]">
+    <footer className="bg-[#202020] px-6 pb-10 pt-16 text-[#DDDDDD]">
       <div className="mx-auto grid w-full max-w-7xl gap-10 border-b border-white/10 pb-10 md:grid-cols-3">
         <div>
           <img

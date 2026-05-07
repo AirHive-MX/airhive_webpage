@@ -9,7 +9,7 @@ const Services = () => {
 
 return (
     <main className="ah-page pt-28">
-      <section id="como-trabajamos" className="scroll-mt-28 py-16" style={{ background: "linear-gradient(180deg,#FFFFFF 0%,#F5F6FA 100%)" }}>
+      <section id="como-trabajamos" className="scroll-mt-28 pt-12 pb-0" style={{ background: "linear-gradient(180deg,#FFFFFF 0%,#F5F6FA 100%)" }}>
         <div className="ah-container">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -127,6 +127,7 @@ return (
             })}
           </div>
         </div>
+        <div className="pb-10" />
       </section>
 
       <Soluciones />

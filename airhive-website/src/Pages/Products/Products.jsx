@@ -19,16 +19,21 @@ const Products = () => {
   }, []);
 
   return (
-    <main className="ah-page pt-28">
+    <main className="ah-page pt-24 pb-12">
       {/* Header */}
-      <section className="ah-container py-16 text-center">
+      <section className="ah-container pt-12 text-center">
         <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#1501A5]/70">Catalog</p>
         <h1 className="mt-4 text-4xl font-semibold text-[#162A42] sm:text-5xl">{t("products.title")}</h1>
         <p className="mx-auto mt-4 max-w-2xl text-base text-[#202020]/72">{t("products.subtitle")}</p>
       </section>
 
-      {/* 1 — Inventory Counting Drone (image left, text right) */}
-      <section id="drone-inventory" className="ah-container grid items-center gap-10 py-16 lg:grid-cols-2">
+      {/* 1 — WMS */}
+      <section id="wms">
+        <WMSSection />
+      </section>
+
+      {/* 2 — Inventory Counting Drone (image left, text right) */}
+      <section id="drone-inventory" className="ah-container grid items-center gap-10 pt-12 lg:grid-cols-2">
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -100,13 +105,10 @@ const Products = () => {
             </div>
           </div>
 
-          <Link to="/contact" className="ah-button ah-button-primary mt-7 inline-block rounded-full px-6 py-3 text-sm font-semibold">
-            {t("products.cta_button")}
-          </Link>
         </motion.div>
       </section>
 
-      <div className="ah-container pb-2 pt-10">
+      <div className="ah-container pt-12 pb-0">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#1501A5]/70">
           {t("products.flujo_kicker")}
         </p>
@@ -116,10 +118,11 @@ const Products = () => {
       </div>
       <FlujoOperativo />
 
-      {/* 2 — WMS */}
-      <section id="wms">
-        <WMSSection />
-      </section>
+      <div className="ah-container pt-10">
+        <Link to="/contact" className="ah-button ah-button-primary inline-block rounded-full px-6 py-3 text-sm font-semibold">
+          {t("products.cta_button")}
+        </Link>
+      </div>
     </main>
   );
 };

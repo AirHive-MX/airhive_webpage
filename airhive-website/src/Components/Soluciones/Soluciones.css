@@ -1,4 +1,4 @@
-#ah-solutions { padding: 64px 32px; font-family: inherit; background: linear-gradient(180deg,#FFFFFF 0%,#F5F6FA 100%); max-width: 1280px; margin: 0 auto; }
+#ah-solutions { padding: 48px 32px 64px; font-family: inherit; background: linear-gradient(180deg,#FFFFFF 0%,#F5F6FA 100%); max-width: 1280px; margin: 0 auto; }
 #ah-solutions .ah-sol-kicker { font-size: 12px; font-weight: 600; letter-spacing: 2px; color: rgba(21,1,165,0.7); margin-bottom: 16px; text-transform: uppercase; }
 #ah-solutions .ah-sol-title { font-size: 36px; font-weight: 700; color: #0A1A3F; margin: 0 0 48px; line-height: 1.2; letter-spacing: -0.5px; max-width: 720px; }
 #ah-solutions .ah-sol-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
@@ -7,14 +7,14 @@
 #ah-solutions .ah-img-wrap { position: relative; height: 220px; overflow: hidden; }
 #ah-solutions .ah-img-wrap--gradient-blue { background: linear-gradient(135deg,#3D4FF0 0%,#1E2FD8 100%); }
 #ah-solutions .ah-img-wrap--gradient-deep { background: linear-gradient(135deg,#0A1A3F 0%,#1E2FD8 100%); }
-#ah-solutions .ah-img-wrap img { width: 100%; height: 100%; object-fit: cover; mix-blend-mode: luminosity; opacity: 0.55; }
+#ah-solutions .ah-img-wrap img { width: 100%; height: 100%; object-fit: cover; opacity: 0.72; }
 #ah-solutions .ah-img-wrap img.ah-img-drone { transform: scale(2.2); transform-origin: 50% 85%; }
 #ah-solutions .ah-img-wrap img.ah-img-monitoring { transform: scale(2); transform-origin: 50% 25%; }
 #ah-solutions .ah-overlay { position: absolute; inset: 0; }
-#ah-solutions .ah-overlay--blue   { background: linear-gradient(135deg,rgba(45,63,231,0.55),rgba(10,26,63,0.75)); }
-#ah-solutions .ah-overlay--purple { background: linear-gradient(135deg,rgba(91,79,224,0.55),rgba(10,26,63,0.75)); }
+#ah-solutions .ah-overlay--blue   { background: linear-gradient(135deg,rgba(45,63,231,0.38),rgba(10,26,63,0.58)); }
+#ah-solutions .ah-overlay--purple { background: linear-gradient(135deg,rgba(91,79,224,0.38),rgba(10,26,63,0.58)); }
 #ah-solutions .ah-badge { position: absolute; top: 16px; left: 16px; background: rgba(255,255,255,0.18); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.25); border-radius: 20px; padding: 6px 14px; font-size: 11px; font-weight: 700; color: #FFFFFF; letter-spacing: 1px; }
-#ah-solutions .ah-sol-body { padding: 24px; }
+#ah-solutions .ah-sol-body { padding: 24px; min-height: 130px; }
 #ah-solutions .ah-sol-card-title { color: #0A1A3F; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
 #ah-solutions .ah-sol-line { width: 32px; height: 2px; background: #2D3FE7; margin-bottom: 12px; }
 #ah-solutions .ah-sol-desc { color: #5A6580; font-size: 14px; line-height: 1.5; }
@@ -49,6 +49,42 @@
 #ah-solutions .ah-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #28C840; box-shadow: 0 0 10px #28C840; animation: ah-sol-pulse 2s infinite; }
 #ah-solutions .ah-live-label { font-size: 11px; font-weight: 700; color: #FFFFFF; letter-spacing: 0.5px; }
 @keyframes ah-sol-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* Monitoring live dot */
+@keyframes ah-mon-live-blink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+.ah-mon-live-dot { width:7px; height:7px; border-radius:50%; background:white; display:inline-block; animation: ah-mon-live-blink 1s ease-in-out infinite; }
+
+/* Drone card status dot */
+@keyframes ah-drone-blink { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(1.3); } }
+.ah-drone-dot { width:7px; height:7px; border-radius:50%; background:#4ADE80; display:inline-block; animation: ah-drone-blink 1.2s ease-in-out infinite; }
+
+/* Hub integration animated diagram */
+@keyframes ah-hub-flow-1 { 0% { cx:300px; cy:50px;  opacity:0; } 15% { opacity:1; } 85% { opacity:1; } 100% { cx:300px; cy:180px; opacity:0; } }
+@keyframes ah-hub-flow-2 { 0% { cx:472px; cy:99px;  opacity:0; } 15% { opacity:1; } 85% { opacity:1; } 100% { cx:300px; cy:180px; opacity:0; } }
+@keyframes ah-hub-flow-3 { 0% { cx:514px; cy:209px; opacity:0; } 15% { opacity:1; } 85% { opacity:1; } 100% { cx:300px; cy:180px; opacity:0; } }
+@keyframes ah-hub-flow-4 { 0% { cx:395px; cy:297px; opacity:0; } 15% { opacity:1; } 85% { opacity:1; } 100% { cx:300px; cy:180px; opacity:0; } }
+@keyframes ah-hub-flow-5 { 0% { cx:205px; cy:297px; opacity:0; } 15% { opacity:1; } 85% { opacity:1; } 100% { cx:300px; cy:180px; opacity:0; } }
+@keyframes ah-hub-flow-6 { 0% { cx:86px;  cy:209px; opacity:0; } 15% { opacity:1; } 85% { opacity:1; } 100% { cx:300px; cy:180px; opacity:0; } }
+@keyframes ah-hub-flow-7 { 0% { cx:128px; cy:99px;  opacity:0; } 15% { opacity:1; } 85% { opacity:1; } 100% { cx:300px; cy:180px; opacity:0; } }
+@keyframes ah-hub-float-up { 0%,100% { transform:translateY(0px); } 50% { transform:translateY(-8px); } }
+
+.ah-hub-particle { filter: drop-shadow(0 0 4px #FFFFFF); }
+.ah-hub-p1 { animation: ah-hub-flow-1 2.5s linear infinite 0.00s; }
+.ah-hub-p2 { animation: ah-hub-flow-2 2.5s linear infinite 0.35s; }
+.ah-hub-p3 { animation: ah-hub-flow-3 2.5s linear infinite 0.70s; }
+.ah-hub-p4 { animation: ah-hub-flow-4 2.5s linear infinite 1.05s; }
+.ah-hub-p5 { animation: ah-hub-flow-5 2.5s linear infinite 1.40s; }
+.ah-hub-p6 { animation: ah-hub-flow-6 2.5s linear infinite 1.75s; }
+.ah-hub-p7 { animation: ah-hub-flow-7 2.5s linear infinite 2.10s; }
+.ah-hub-logo { filter: drop-shadow(0 0 12px rgba(255,255,255,0.4)); }
+.ah-hub-float { transform-box: fill-box; transform-origin: center; }
+.ah-hub-float-1 { animation: ah-hub-float-up 4.0s ease-in-out infinite 0.0s; }
+.ah-hub-float-2 { animation: ah-hub-float-up 4.2s ease-in-out infinite 0.5s; }
+.ah-hub-float-3 { animation: ah-hub-float-up 3.8s ease-in-out infinite 1.0s; }
+.ah-hub-float-4 { animation: ah-hub-float-up 4.5s ease-in-out infinite 1.5s; }
+.ah-hub-float-5 { animation: ah-hub-float-up 4.0s ease-in-out infinite 2.0s; }
+.ah-hub-float-6 { animation: ah-hub-float-up 4.3s ease-in-out infinite 2.5s; }
+.ah-hub-float-7 { animation: ah-hub-float-up 3.9s ease-in-out infinite 3.0s; }
 
 @media (max-width: 768px) {
   #ah-solutions .ah-sol-grid { grid-template-columns: 1fr; }

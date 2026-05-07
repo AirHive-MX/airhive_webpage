@@ -9,7 +9,7 @@ const About = () => {
 
   return (
     <main className="ah-page pt-28">
-      <section className="ah-container grid items-center gap-10 py-16 lg:grid-cols-2">
+      <section className="ah-container grid items-center gap-10 pt-12 lg:grid-cols-2">
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
           <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#1501A5]/70">Air Hive</p>
           <h1 className="mt-4 max-w-xl text-4xl font-semibold leading-tight text-[#162A42] sm:text-5xl">{t("about.story_title")}</h1>
@@ -29,7 +29,7 @@ const About = () => {
         </motion.div>
       </section>
 
-      <section className="ah-container grid gap-6 py-8 md:grid-cols-2">
+      <section className="ah-container grid gap-6 pt-12 md:grid-cols-2">
         {[{ key: "mission", text: t("about.mission_text") }, { key: "vision", text: t("about.vision_text") }].map((item) => (
           <motion.article
             key={item.key}
@@ -46,7 +46,7 @@ const About = () => {
         ))}
       </section>
 
-      <section className="ah-container grid items-center gap-10 py-16 lg:grid-cols-2">
+      <section className="ah-container grid items-center gap-10 pt-12 pb-16 lg:grid-cols-2">
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}

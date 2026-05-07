@@ -12,7 +12,7 @@ const Contact = () => {
   };
 
   return (
-    <main className="ah-page px-6 pb-14 pt-32">
+    <main className="ah-page px-6 pt-32">
       {submitted && (
         <motion.div
           initial={{ opacity: 0, y: -20 }}

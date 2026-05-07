@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Package, Warehouse, ArrowDownToLine, ArrowUpFromLine, MapPin, GitBranch, Activity, Bell, BarChart3, TrendingUp, Box, AlertCircle, CheckCircle2, Clock, Layers, Eye, Zap, Shield, Radio, Boxes } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -32,7 +33,7 @@ export default function WMSSection() {
   }, []);
 
   useEffect(() => {
-    const rackInterval = setInterval(() => setRackHighlight(prev => (prev + 1) % 4), 1500);
+    const rackInterval = setInterval(() => setRackHighlight(prev => (prev + 1) % 4), 2800);
     return () => clearInterval(rackInterval);
   }, []);
 
@@ -62,11 +63,11 @@ export default function WMSSection() {
   ];
 
   return (
-    <div className="py-24 px-6 md:px-12 lg:px-20 overflow-hidden" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+    <div className="pt-12 px-6 md:px-12 lg:px-20 overflow-hidden" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
       <div className="max-w-7xl mx-auto">
 
         {/* MAIN HERO */}
-        <div className="mb-32 relative">
+        <div className="mb-16 relative">
           <div className="absolute -top-8 -right-8 w-72 h-72 bg-indigo-100 rounded-full blur-3xl opacity-40 animate-pulse-slow" />
           <div className="absolute -bottom-12 left-32 w-64 h-64 bg-blue-100 rounded-full blur-3xl opacity-30" />
           <div className="relative">
@@ -85,7 +86,7 @@ export default function WMSSection() {
         </div>
 
         {/* CONTROL CENTER */}
-        <div className="mb-32">
+        <div className="mb-16">
           <p className="text-xs font-bold tracking-[0.2em] text-indigo-600 mb-4">{t('wms_section.control_kicker')}</p>
           <h3 className="text-3xl md:text-4xl font-bold text-slate-900 leading-tight mb-3 tracking-tight">
             {t('wms_section.control_title')}
@@ -118,7 +119,7 @@ export default function WMSSection() {
         </div>
 
         {/* IN ACTION */}
-        <div className="mb-32">
+        <div className="mb-16">
           <p className="text-xs font-bold tracking-[0.2em] text-indigo-600 mb-4">{t('wms_section.action_kicker')}</p>
           <h3 className="text-3xl md:text-4xl font-bold text-slate-900 leading-tight mb-12 tracking-tight">
             {t('wms_section.action_title')}
@@ -218,7 +219,7 @@ export default function WMSSection() {
         </div>
 
         {/* SMART 3D */}
-        <div className="mb-32">
+        <div className="mb-16">
           <p className="text-xs font-bold tracking-[0.2em] text-indigo-600 mb-4">{t('wms_section.smart3d_kicker')}</p>
           <h3 className="text-3xl md:text-4xl font-bold text-slate-900 leading-tight mb-3 tracking-tight">
             {t('wms_section.smart3d_title')}
@@ -306,22 +307,42 @@ export default function WMSSection() {
                       </g>
                     );
                   })}
-                  {[0, 1, 2, 3].map(i => rackHighlight === i && (
-                    <g key={`beam-${i}`}>
-                      <line x1={80 + i * 110 + 40} y1="40" x2={80 + i * 110 + 40} y2="120"
-                        stroke="#818cf8" strokeWidth="2" strokeDasharray="4 4" opacity="0.8">
-                        <animate attributeName="stroke-dashoffset" from="0" to="-16" dur="0.8s" repeatCount="indefinite" />
-                      </line>
-                      <circle cx={80 + i * 110 + 40} cy="40" r="6" fill="#818cf8">
-                        <animate attributeName="r" values="6;10;6" dur="1.5s" repeatCount="indefinite" />
-                      </circle>
-                      <circle cx={80 + i * 110 + 40} cy="40" r="3" fill="white" />
-                    </g>
+                  {/* Flight path route */}
+                  <line x1="120" y1="62" x2="450" y2="62" stroke="#818cf8" strokeWidth="1" strokeDasharray="6 4" opacity="0.22" />
+                  {[0, 1, 2, 3].map(i => (
+                    <circle key={`stop-${i}`} cx={80 + i * 110 + 40} cy="62" r="3.5"
+                      fill={rackHighlight >= i ? "#818cf8" : "#cbd5e1"} opacity="0.55"
+                      style={{ transition: 'fill 0.5s' }} />
                   ))}
+
+                  {/* Drone — animates smoothly between rack positions */}
+                  <motion.g
+                    initial={{ x: 120, y: 62 }}
+                    animate={{ x: 80 + rackHighlight * 110 + 40, y: 62 }}
+                    transition={{ duration: 0.9, ease: [0.4, 0, 0.2, 1] }}
+                  >
+                    <line x1="0" y1="13" x2="0" y2="43" stroke="#818cf8" strokeWidth="2" strokeDasharray="4 4" opacity="0.8">
+                      <animate attributeName="stroke-dashoffset" from="0" to="-16" dur="0.8s" repeatCount="indefinite" />
+                    </line>
+                    <line x1="0" y1="0" x2="-18" y2="-8" stroke="#0A1530" strokeWidth="2" strokeLinecap="round" />
+                    <line x1="0" y1="0" x2="18" y2="-8" stroke="#0A1530" strokeWidth="2" strokeLinecap="round" />
+                    <line x1="0" y1="0" x2="-18" y2="8" stroke="#0A1530" strokeWidth="2" strokeLinecap="round" />
+                    <line x1="0" y1="0" x2="18" y2="8" stroke="#0A1530" strokeWidth="2" strokeLinecap="round" />
+                    <ellipse cx="0" cy="0" rx="9" ry="5" fill="#0A1530" />
+                    <ellipse cx="0" cy="-1" rx="4.5" ry="2.5" fill="#2D4EF5" />
+                    <circle cx="0" cy="-1" r="1.5" fill="#A0B4FF" />
+                    <ellipse className="wms-prop" cx="-18" cy="-8" rx="9" ry="1.5" fill="#2D4EF5" opacity="0.55" />
+                    <ellipse className="wms-prop" cx="18" cy="-8" rx="9" ry="1.5" fill="#2D4EF5" opacity="0.55" />
+                    <ellipse className="wms-prop" cx="-18" cy="8" rx="9" ry="1.5" fill="#2D4EF5" opacity="0.55" />
+                    <ellipse className="wms-prop" cx="18" cy="8" rx="9" ry="1.5" fill="#2D4EF5" opacity="0.55" />
+                    <line x1="0" y1="5" x2="0" y2="10" stroke="#0A1530" strokeWidth="1.5" />
+                    <rect x="-4" y="10" width="8" height="3" fill="#0A1530" rx="0.5" />
+                  </motion.g>
+
                   <g>
-                    <rect x="450" y="20" width="130" height="40" rx="8" fill="white" stroke="#e2e8f0" />
-                    <text x="465" y="38" fill="#64748b" fontSize="9" fontWeight="700" letterSpacing="1">{t('wms_section.scanning')}</text>
-                    <text x="465" y="54" fill="#0f172a" fontSize="14" fontWeight="700">{t('wms_section.rack_of', { n: rackHighlight + 1 })}</text>
+                    <rect x="10" y="3" width="130" height="30" rx="7" fill="white" stroke="#e2e8f0" />
+                    <text x="25" y="15" fill="#64748b" fontSize="9" fontWeight="700" letterSpacing="1">{t('wms_section.scanning')}</text>
+                    <text x="25" y="27" fill="#0f172a" fontSize="12" fontWeight="700">{t('wms_section.rack_of', { n: rackHighlight + 1 })}</text>
                   </g>
                 </svg>
                 <div className="absolute bottom-4 left-6 flex items-center gap-4 text-xs text-slate-500">
@@ -335,7 +356,7 @@ export default function WMSSection() {
         </div>
 
         {/* CAPABILITIES */}
-        <div className="mb-20">
+        <div className="mb-10">
           <p className="text-xs font-bold tracking-[0.2em] text-indigo-600 mb-4">{t('wms_section.cap_kicker')}</p>
           <h3 className="text-2xl md:text-3xl font-bold text-slate-900 leading-tight mb-10 tracking-tight">
             {t('wms_section.cap_title')}
@@ -381,6 +402,15 @@ export default function WMSSection() {
         .animate-pulse-slow { animation: pulse-slow 4s ease-in-out infinite; }
         .animate-grow-line { animation: grow-line 1.2s ease-out 0.3s both; }
         .animate-twinkle { animation: twinkle 2s ease-in-out infinite; }
+        @keyframes wms-prop-spin {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+        .wms-prop {
+          transform-box: fill-box;
+          transform-origin: center;
+          animation: wms-prop-spin 0.18s linear infinite;
+        }
       `}</style>
     </div>
   );
@@ -445,7 +475,7 @@ function AlertRow({ color, icon: Icon, text, time }) {
         <Icon className="w-4 h-4" strokeWidth={2.4} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-slate-700 truncate">{text}</p>
+        <p className="text-xs font-semibold text-slate-700 leading-tight">{text}</p>
         <p className="text-[11px] text-slate-400 flex items-center gap-1">
           <Clock className="w-2.5 h-2.5" />
           {time}

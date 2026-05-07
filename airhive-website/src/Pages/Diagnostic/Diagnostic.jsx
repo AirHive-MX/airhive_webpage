@@ -12,14 +12,14 @@ const Diagnostic = () => {
   };
 
   return (
-    <main className="ah-page px-6 pb-16 pt-32">
+    <main className="ah-page px-6 pt-32">
       {submitted && (
         <div className="fixed left-1/2 top-6 z-50 -translate-x-1/2 rounded-full bg-[#2A47F6] px-6 py-2 text-sm font-semibold text-white">
           {t("contact.success")}
         </div>
       )}
 
-      <section className="ah-container max-w-2xl pb-6">
+      <section className="ah-container max-w-2xl pb-0">
         <article id="diagnostic-form" className="ah-form-card p-6 sm:p-8">
           <h2 className="text-2xl font-semibold text-[#162A42]">{t("diagnostic_page.form_title")}</h2>
           <p className="mt-2 text-sm text-[#202020]/72">{t("diagnostic_page.form_subtitle")}</p>
@@ -49,7 +49,7 @@ const Diagnostic = () => {
         </article>
       </section>
 
-      <section className="ah-container max-w-4xl pb-16">
+      <section className="ah-container max-w-4xl pt-12 pb-16">
         <div className="overflow-hidden rounded-2xl shadow-[0_12px_40px_rgba(10,26,63,0.15)] transition duration-500 hover:shadow-[0_16px_48px_rgba(42,71,246,0.45)]" style={{ maxHeight: "480px" }}>
           <img
             src="/fotocontrol.jpg"

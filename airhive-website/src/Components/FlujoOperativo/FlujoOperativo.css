@@ -1,4 +1,4 @@
-.ah-wrap { font-family: inherit; padding: 48px 24px; color: #162A42; max-width: 1100px; margin: 0 auto; }
+.ah-wrap { font-family: inherit; padding: 16px 24px 0; color: #162A42; max-width: 1100px; margin: 0 auto; }
 .ah-wrap *, .ah-wrap *::before, .ah-wrap *::after { box-sizing: border-box; }
 
 .ah-header { text-align: left; margin-bottom: 40px; }
@@ -90,7 +90,7 @@
   .ah-drone-track, .ah-drone, .ah-prop, .ah-scan-ring, .ah-status .ah-dot { animation: none; }
 }
 @media (max-width: 768px) {
-  .ah-wrap { padding: 32px 16px; }
+  .ah-wrap { padding: 12px 16px 0; }
   .ah-title { font-size: 24px; }
   .ah-subtitle { font-size: 14px; }
   .ah-stage { height: 240px; }
