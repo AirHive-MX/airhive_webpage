@@ -11,7 +11,6 @@ const productItems = [
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const [productsOpen, setProductsOpen] = useState(false);
   const location = useLocation();
   const { t } = useTranslation();
@@ -22,14 +21,14 @@ const Navbar = () => {
     setProductsOpen(false);
   }, [location.pathname, location.hash]);
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 18);
-    onScroll();
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  const transparentHeader = isHome && !scrolled;
+  /**
+   * El home es una sola sección oscura de punta a punta, así que ahí el header
+   * se queda translúcido con texto claro. Antes cambiaba a blanco al pasar los
+   * 18px de scroll: sobre este fondo ese estado deja texto navy sobre navy, y
+   * la transición del color-mix tarda lo suficiente como para dejarlo ilegible
+   * un buen rato. El resto del sitio conserva el header sólido.
+   */
+  const transparentHeader = isHome;
 
   return (
     <>
@@ -37,7 +36,7 @@ const Navbar = () => {
         <nav
           className={`flex w-full items-center justify-between px-4 py-3 transition-all duration-500 sm:px-6 lg:px-10 ${
             transparentHeader
-              ? "bg-white/8 text-[#162A42] shadow-[0_10px_34px_rgba(0,0,0,0.18)] backdrop-blur-md"
+              ? "bg-white/8 text-white shadow-[0_10px_34px_rgba(0,0,0,0.18)] backdrop-blur-md"
               : "bg-white/92 text-[#162A42] shadow-[0_18px_60px_rgba(22,42,66,0.14)] backdrop-blur-xl"
           }`}
         >
@@ -118,7 +117,7 @@ const Navbar = () => {
           <button
             onClick={() => setIsOpen((prev) => !prev)}
             className={`rounded-lg border p-2 ${
-              transparentHeader ? "border-[#162A42]/20 text-[#162A42]" : "border-[#162A42]/15 text-[#162A42]"
+              transparentHeader ? "border-white/30 text-white" : "border-[#162A42]/15 text-[#162A42]"
             }`}
             aria-label="Toggle menu"
           >

@@ -253,6 +253,22 @@ const DroneShowcase = () => {
           className="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-20 blur-[130px]"
         />
 
+        {/* Encabezado. Va antes del escenario para que el h1 quede por delante
+            del h3 del panel en el orden del documento; el z-10 conserva el
+            apilamiento que tenía cuando estaba después. */}
+        <div
+          className={`ah-container pointer-events-none relative z-10 pt-[84px] transition-opacity duration-700 ${
+            chapter === 0 ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">
+            {t("showcase.kicker")}
+          </p>
+          <h1 className="mt-3 max-w-lg text-3xl font-semibold leading-tight sm:text-4xl lg:text-[2.75rem]">
+            {t("showcase.title")}
+          </h1>
+        </div>
+
         {/* Escenario: el canvas y todo lo que se le monta encima comparten el
             mismo sistema de coordenadas. */}
         <div
@@ -339,22 +355,8 @@ const DroneShowcase = () => {
           </div>
         </div>
 
-        {/* Encabezado */}
-        <div
-          className={`ah-container pointer-events-none relative pt-[84px] transition-opacity duration-700 ${
-            chapter === 0 ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">
-            {t("showcase.kicker")}
-          </p>
-          <h2 className="mt-3 max-w-lg text-3xl font-semibold leading-tight sm:text-4xl lg:text-[2.75rem]">
-            {t("showcase.title")}
-          </h2>
-        </div>
-
         {/* Barra inferior: capítulos, lectura y salida */}
-        <div className="ah-container absolute inset-x-0 bottom-8 flex items-end justify-between gap-6">
+        <div className="ah-container absolute inset-x-0 bottom-8 z-10 flex items-end justify-between gap-6">
           <div className="flex flex-col gap-3">
             <div className="flex gap-2">
               {CHAPTERS.map((item, index) => (

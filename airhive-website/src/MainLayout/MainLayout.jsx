@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import 'leaflet/dist/leaflet.css';
 import Navbar from "../Components/Navbar/Navbar";
 import Home from "../Pages/Home/Home";
@@ -16,6 +16,15 @@ import LanguageSwitcher from "../Components/LanguageSwitcher/LanguageSwitcher";
 import PageParallax from "../Components/PageParallax/PageParallax";
 import ScrollEffects from "../Components/ScrollEffects/ScrollEffects";
 
+
+/**
+ * El home quedó como una sola pantalla con el recorrido del dron, así que ahí el
+ * footer sobra. El resto del sitio lo conserva.
+ */
+const FooterSlot = () => {
+  const { pathname } = useLocation();
+  return pathname === "/" ? null : <Footer />;
+};
 
 const MainLayout = () => {
   return (
@@ -37,8 +46,7 @@ const MainLayout = () => {
         {/* Ruta para manejar errores 404 */}
         <Route path="*" element={<Error/>} />
       </Routes>
-      {/* Sección de Footer */}
-      <Footer /> 
+      <FooterSlot />
 
     </BrowserRouter>
   );
