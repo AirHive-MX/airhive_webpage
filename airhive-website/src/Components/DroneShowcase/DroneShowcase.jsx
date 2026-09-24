@@ -30,6 +30,13 @@ import DRONE_TRACK from "./droneTrack";
  */
 
 const TOTAL_FRAMES = 240;
+
+/**
+ * El almacén entra cuando el dron deja de girar y se pone a escanear: antes es
+ * una pieza de hardware sobre fondo neutro, a partir de aquí está trabajando.
+ */
+const SCENE_FROM = 120; // fotograma en que empieza a aparecer
+const SCENE_FADE = 22; // fotogramas que tarda en asentar
 const MOBILE_FRAMES = 120; // Un fotograma de cada dos: la mitad de bytes en móvil.
 
 /**
@@ -88,6 +95,7 @@ const DroneShowcase = () => {
   const leaderRef = useRef(null);
   const angleRef = useRef(null);
   const pathDotRef = useRef(null);
+  const sceneRef = useRef(null);
 
   const layoutRef = useRef(null); // dónde queda dibujado el render dentro del canvas
   const panelRef = useRef(null);
@@ -194,6 +202,11 @@ const DroneShowcase = () => {
     }
     placeDot(cx, cy);
 
+    if (sceneRef.current) {
+      const entrada = (frame - SCENE_FROM) / SCENE_FADE;
+      sceneRef.current.style.opacity = clamp01(entrada).toFixed(3);
+    }
+
     setChapter((current) => (current === next ? current : next));
   });
 
@@ -201,6 +214,11 @@ const DroneShowcase = () => {
     const frame = frameFromProgress(scrollYProgress.get());
     const [cx, cy] = centerOf(DRONE_TRACK[frame] ?? DRONE_TRACK[0]);
     placeDot(cx, cy);
+
+    if (sceneRef.current) {
+      const entrada = (frame - SCENE_FROM) / SCENE_FADE;
+      sceneRef.current.style.opacity = clamp01(entrada).toFixed(3);
+    }
     placeOverlay(frame, sideRef.current);
   }, [chapter, frameFromProgress, placeDot, placeOverlay, scrollYProgress]);
 
@@ -245,13 +263,29 @@ const DroneShowcase = () => {
     >
       <div className="sticky top-0 h-screen overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(21,1,165,0.45),transparent_55%)]" />
-        <div className="absolute inset-0 opacity-[0.35] [background:repeating-linear-gradient(0deg,transparent,transparent_46px,rgba(255,255,255,0.05)_47px),repeating-linear-gradient(90deg,transparent,transparent_46px,rgba(255,255,255,0.05)_47px)]" />
 
         <motion.div
           animate={{ backgroundColor: active.accent }}
           transition={{ duration: 0.9, ease: "easeInOut" }}
           className="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-20 blur-[130px]"
         />
+
+        {/* El almacén. Va por encima del halo índigo y del acento de capítulo a
+            propósito: si quedara debajo, esos dos le meterían el tinte azul que
+            el rack no debe tener. En el acto 1, con el fondo aún invisible, los
+            dos se siguen viendo.
+
+            Se repite a la mitad del ancho para que el dron mida dos cajas, que
+            es la proporción real. El velo y el gris ya vienen horneados en el
+            archivo, así que aquí no hace falta ninguna capa de color. */}
+        <div
+          ref={sceneRef}
+          aria-hidden="true"
+          className="absolute inset-0 scale-105 bg-[url('/fondo-racks.webp')] bg-[length:50%_auto] bg-repeat blur-[2px]"
+          style={{ opacity: 0 }}
+        />
+
+        <div className="absolute inset-0 opacity-[0.35] [background:repeating-linear-gradient(0deg,transparent,transparent_46px,rgba(255,255,255,0.05)_47px),repeating-linear-gradient(90deg,transparent,transparent_46px,rgba(255,255,255,0.05)_47px)]" />
 
         {/* Encabezado. Va antes del escenario para que el h1 quede por delante
             del h3 del panel en el orden del documento; el z-10 conserva el
