@@ -501,5 +501,34 @@
         "chart_label_3": "May 4",
         "chart_label_4": "May 9",
         "chart_today": "Today"
+    },
+    "showcase": {
+        "kicker": "THE HARDWARE IN 360°",
+        "title": "Meet the drone that counts your inventory.",
+        "rotation": "Rotation",
+        "hint": "Scroll to rotate",
+        "cta": "See products",
+        "chapters": {
+            "vision": {
+                "kicker": "Onboard vision",
+                "title": "Reads the rack mid-flight",
+                "text": "Camera and sensors capture labels, barcodes and the state of every location — no ladders, no manual checks."
+            },
+            "flight": {
+                "kicker": "Autonomous flight",
+                "title": "Navigates aisles without GPS",
+                "text": "Flies the warehouse autonomously indoors, while the operation keeps running and the floor stays open."
+            },
+            "payload": {
+                "kicker": "Power and payload",
+                "title": "Swappable battery, modular bay",
+                "text": "The battery swaps out in seconds and the lower bay adapts to whatever sensor the mission calls for."
+            },
+            "wms": {
+                "kicker": "Connected to the WMS",
+                "title": "From flight to system, live",
+                "text": "Every count lands straight in the Air Hive WMS: SKU, lot, location and status available in real time."
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import AirHiveComparator from "../../Components/AirHiveComparator/AirHiveComparator";
+import DroneShowcase from "../../Components/DroneShowcase/DroneShowcase";
 import {
   ArrowRight,
   ClipboardCheck,
@@ -28,7 +29,7 @@ const Home = () => {
   const { t } = useTranslation();
 
   return (
-    <main className="ah-page overflow-hidden pt-[60px] text-[#202020]">
+    <main className="ah-page overflow-x-clip pt-[60px] text-[#202020]">
       <section className="relative min-h-[86vh] overflow-hidden bg-[#162A42] text-white">
         <img
           src="/foto almacen dron volando.png"
@@ -138,6 +139,8 @@ const Home = () => {
           })}
         </motion.div>
       </section>
+
+      <DroneShowcase />
 
       <section className="ah-container pt-12">
         <motion.div
