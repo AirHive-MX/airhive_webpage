@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FaWhatsapp } from "react-icons/fa";
-import logo from "/logo sin fondo.png";
+import logo from "/ah-monograma.png";
+import useAutoHideHeader from "./useAutoHideHeader";
 
 const productItems = [
   { key: "drone_inventory", to: "/products#drone-inventory" },
@@ -11,7 +12,6 @@ const productItems = [
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const [productsOpen, setProductsOpen] = useState(false);
   const location = useLocation();
   const { t } = useTranslation();
@@ -22,30 +22,39 @@ const Navbar = () => {
     setProductsOpen(false);
   }, [location.pathname, location.hash]);
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 18);
-    onScroll();
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  // Sin fondo propio: el header flota sobre el contenido. Lo único que cambia
+  // por ruta es el color del texto, porque el home es oscuro y el resto claro.
+  const onDark = isHome;
 
-  const transparentHeader = isHome && !scrolled;
+  const visible = useAutoHideHeader({
+    pinned: isOpen || productsOpen,
+    resetKey: location.pathname,
+  });
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50">
+      {/* Al esconderse no solo sube: también se desvanece, porque el CTA lleva
+          una sombra azul larga que si no se queda asomando por el borde. */}
+      <header
+        className={`fixed inset-x-0 top-0 z-50 transition-[transform,opacity] duration-300 ease-out ${
+          visible
+            ? "translate-y-0 opacity-100"
+            : "pointer-events-none -translate-y-full opacity-0"
+        }`}
+      >
         <nav
-          className={`flex w-full items-center justify-between px-4 py-3 transition-all duration-500 sm:px-6 lg:px-10 ${
-            transparentHeader
-              ? "bg-white/8 text-[#162A42] shadow-[0_10px_34px_rgba(0,0,0,0.18)] backdrop-blur-md"
-              : "bg-white/92 text-[#162A42] shadow-[0_18px_60px_rgba(22,42,66,0.14)] backdrop-blur-xl"
+          className={`flex w-full items-center justify-between px-4 py-3 sm:px-6 lg:px-10 ${
+            onDark ? "text-white" : "text-[#162A42]"
           }`}
         >
           <Link to="/" className="flex items-center gap-2">
+            {/* Monograma en vez del wordmark: ~103px de ancho contra ~263px.
+                Sobre el home va en blanco para igualar los enlaces; en las
+                páginas claras se queda en el azul de marca. */}
             <img
               src={logo}
               alt="Air Hive"
-              className="h-9 w-auto transition duration-500"
+              className={`h-9 w-auto transition duration-500 ${onDark ? "brightness-0 invert" : ""}`}
             />
           </Link>
 
@@ -101,24 +110,24 @@ const Navbar = () => {
                 {t("navbar.free_diagnostic")}
               </Link>
             </li>
+            <li>
+              <a
+                href="https://wa.me/528116070330"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition duration-300 hover:-translate-y-0.5 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]"
+              >
+                {t("navbar.schedule_diagnostic")}
+              </a>
+            </li>
           </ul>
 
-          <div className="hidden items-center gap-3 lg:flex">
-            <a
-              href="https://wa.me/528116070330"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ah-nav-cta inline-block rounded-full bg-[#2A47F6] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(42,71,246,0.35)] transition duration-500 hover:bg-[#6443DB]"
-            >
-              {t("navbar.schedule_diagnostic")}
-            </a>
-          </div>
 
           <div className="flex items-center gap-2 lg:hidden">
           <button
             onClick={() => setIsOpen((prev) => !prev)}
             className={`rounded-lg border p-2 ${
-              transparentHeader ? "border-[#162A42]/20 text-[#162A42]" : "border-[#162A42]/15 text-[#162A42]"
+              onDark ? "border-white/30 text-white" : "border-[#162A42]/15 text-[#162A42]"
             }`}
             aria-label="Toggle menu"
           >

@@ -501,5 +501,39 @@
         "chart_label_3": "4 may",
         "chart_label_4": "9 may",
         "chart_today": "Hoy"
+    },
+    "showcase": {
+        "kicker": "EL EQUIPO EN VUELO",
+        "title": "Una vuelta completa al dron que cuenta tu inventario.",
+        "rotation": "Rotación",
+        "trajectory": "Trayectoria",
+        "hint": "Haz scroll para recorrerlo",
+        "cta": "Ver productos",
+        "chapters": {
+            "inspection": {
+                "phase": "Acto 1 · Inspección",
+                "kicker": "Vuelta de 360°",
+                "title": "El equipo, por todos lados",
+                "text": "Chasis de fibra, motores, antenas y la bahía de carga inferior. Una vuelta completa al dron que entra a tu almacén."
+            },
+            "armed": {
+                "phase": "Acto 2 · Despegue",
+                "kicker": "Motores armados",
+                "title": "Arranca sin parar el piso",
+                "text": "Enciende dentro de la operación: no hay que despejar pasillos, desalojar personal ni detener el turno."
+            },
+            "position": {
+                "phase": "Acto 3 · Conteo",
+                "kicker": "En posición",
+                "title": "Baja al rack y lo lee",
+                "text": "Se coloca frente a las ubicaciones y captura etiqueta, código y estado de cada posición, nivel por nivel."
+            },
+            "route": {
+                "phase": "Acto 4 · Ruta",
+                "kicker": "Sigue la ruta",
+                "title": "Sube y encadena la siguiente",
+                "text": "Gana altura, pasa a la siguiente ubicación y no se detiene. Cada conteo entra al WMS Air Hive en tiempo real."
+            }
+        }
     }
 }

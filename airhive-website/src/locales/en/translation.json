@@ -501,5 +501,39 @@
         "chart_label_3": "May 4",
         "chart_label_4": "May 9",
         "chart_today": "Today"
+    },
+    "showcase": {
+        "kicker": "THE HARDWARE IN FLIGHT",
+        "title": "A full pass around the drone that counts your inventory.",
+        "rotation": "Rotation",
+        "trajectory": "Trajectory",
+        "hint": "Scroll to follow it",
+        "cta": "See products",
+        "chapters": {
+            "inspection": {
+                "phase": "Act 1 · Inspection",
+                "kicker": "360° pass",
+                "title": "The hardware from every side",
+                "text": "Carbon frame, motors, antennas and the lower payload bay. A full turn around the drone that flies your warehouse."
+            },
+            "armed": {
+                "phase": "Act 2 · Takeoff",
+                "kicker": "Motors armed",
+                "title": "Spins up without stopping the floor",
+                "text": "It starts inside the running operation: no aisles to clear, no staff to move out, no shift to pause."
+            },
+            "position": {
+                "phase": "Act 3 · Counting",
+                "kicker": "In position",
+                "title": "Drops to the rack and reads it",
+                "text": "It holds in front of the locations and captures label, barcode and status for each position, level by level."
+            },
+            "route": {
+                "phase": "Act 4 · Route",
+                "kicker": "Follows the route",
+                "title": "Climbs and chains the next one",
+                "text": "Gains altitude, moves to the next location and keeps going. Every count lands in the Air Hive WMS in real time."
+            }
+        }
     }
 }
