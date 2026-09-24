@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FaWhatsapp } from "react-icons/fa";
-import logo from "/logo sin fondo.png";
+import logo from "/ah-monograma.png";
 import useAutoHideHeader from "./useAutoHideHeader";
 
 const productItems = [
@@ -48,10 +48,13 @@ const Navbar = () => {
           }`}
         >
           <Link to="/" className="flex items-center gap-2">
+            {/* Monograma en vez del wordmark: ~103px de ancho contra ~263px.
+                Sobre el home va en blanco para igualar los enlaces; en las
+                páginas claras se queda en el azul de marca. */}
             <img
               src={logo}
               alt="Air Hive"
-              className="h-9 w-auto transition duration-500"
+              className={`h-9 w-auto transition duration-500 ${onDark ? "brightness-0 invert" : ""}`}
             />
           </Link>
 
@@ -107,18 +110,18 @@ const Navbar = () => {
                 {t("navbar.free_diagnostic")}
               </Link>
             </li>
+            <li>
+              <a
+                href="https://wa.me/528116070330"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition duration-300 hover:-translate-y-0.5 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]"
+              >
+                {t("navbar.schedule_diagnostic")}
+              </a>
+            </li>
           </ul>
 
-          <div className="hidden items-center gap-3 lg:flex">
-            <a
-              href="https://wa.me/528116070330"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ah-nav-cta inline-block rounded-full bg-[#2A47F6] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(42,71,246,0.35)] transition duration-500 hover:bg-[#6443DB]"
-            >
-              {t("navbar.schedule_diagnostic")}
-            </a>
-          </div>
 
           <div className="flex items-center gap-2 lg:hidden">
           <button
