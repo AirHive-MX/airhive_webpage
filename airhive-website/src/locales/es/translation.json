@@ -503,31 +503,36 @@
         "chart_today": "Hoy"
     },
     "showcase": {
-        "kicker": "EL EQUIPO EN 360°",
-        "title": "Conoce el dron que cuenta tu inventario.",
+        "kicker": "EL EQUIPO EN VUELO",
+        "title": "Una vuelta completa al dron que cuenta tu inventario.",
         "rotation": "Rotación",
-        "hint": "Haz scroll para girarlo",
+        "trajectory": "Trayectoria",
+        "hint": "Haz scroll para recorrerlo",
         "cta": "Ver productos",
         "chapters": {
-            "vision": {
-                "kicker": "Visión a bordo",
-                "title": "Lee el rack mientras vuela",
-                "text": "Cámara y sensores capturan etiquetas, códigos y estado de cada ubicación sin que nadie tenga que subir a una escalera."
+            "inspection": {
+                "phase": "Acto 1 · Inspección",
+                "kicker": "Vuelta de 360°",
+                "title": "El equipo, por todos lados",
+                "text": "Chasis de fibra, motores, antenas y la bahía de carga inferior. Una vuelta completa al dron que entra a tu almacén."
             },
-            "flight": {
-                "kicker": "Vuelo autónomo",
-                "title": "Navega pasillos sin GPS",
-                "text": "Recorre el almacén de forma autónoma en interiores, con la operación corriendo y sin detener el piso."
+            "armed": {
+                "phase": "Acto 2 · Despegue",
+                "kicker": "Motores armados",
+                "title": "Arranca sin parar el piso",
+                "text": "Enciende dentro de la operación: no hay que despejar pasillos, desalojar personal ni detener el turno."
             },
-            "payload": {
-                "kicker": "Energía y carga útil",
-                "title": "Batería y bahía modular",
-                "text": "La batería es intercambiable y la bahía inferior se adapta al sensor que pida cada misión."
+            "position": {
+                "phase": "Acto 3 · Conteo",
+                "kicker": "En posición",
+                "title": "Baja al rack y lo lee",
+                "text": "Se coloca frente a las ubicaciones y captura etiqueta, código y estado de cada posición, nivel por nivel."
             },
-            "wms": {
-                "kicker": "Conectado al WMS",
-                "title": "Del vuelo al sistema, en vivo",
-                "text": "Cada conteo entra directo al WMS Air Hive: SKU, lote, ubicación y estado disponibles en tiempo real."
+            "route": {
+                "phase": "Acto 4 · Ruta",
+                "kicker": "Sigue la ruta",
+                "title": "Sube y encadena la siguiente",
+                "text": "Gana altura, pasa a la siguiente ubicación y no se detiene. Cada conteo entra al WMS Air Hive en tiempo real."
             }
         }
     }

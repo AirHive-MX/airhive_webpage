@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AnimatePresence,
   motion,
@@ -10,41 +10,99 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowRight, MousePointer2 } from "lucide-react";
 import ScrollSequence from "../ScrollSequence/ScrollSequence";
+import DRONE_TRACK from "./droneTrack";
 
 /**
- * Vuelta de 360° al dron Air Hive, controlada por el scroll.
+ * Recorrido del dron Air Hive controlado por el scroll.
  *
- * Los 120 renders de Blender son un giro completo y cerrado, así que el avance
- * del scroll se mapea directo a grados. Cada cuarto de vuelta expone una parte
- * distinta del equipo y sincroniza el texto con lo que se está viendo.
+ * Los 240 renders no son solo un giro: el dron da una vuelta de 360°, enciende
+ * motores de frente, baja a una ubicación y vuelve a subir. Como se desplaza en
+ * horizontal y en vertical, la interfaz no puede quedarse fija en una esquina.
+ *
+ * droneTrack.js trae la posición exacta del dron en cada fotograma (medida del
+ * canal alpha de los propios renders), y con eso:
+ * - la retícula lo sigue cuadro por cuadro,
+ * - el panel de texto se coloca solo del lado contrario,
+ * - la línea guía une los dos.
+ *
+ * Nada de eso está a mano: si cambia la animación se regenera droneTrack.js y
+ * el encuadre se reacomoda solo.
  */
 
-const TOTAL_FRAMES = 120;
-const MOBILE_FRAMES = 60; // Un frame sí, uno no: la mitad de bytes, giro igual de fluido.
+const TOTAL_FRAMES = 240;
+const MOBILE_FRAMES = 120; // Un fotograma de cada dos: la mitad de bytes en móvil.
 
+/**
+ * Capítulos alineados a la coreografía real, no repartidos en cuartos iguales.
+ * `until` es el fotograma donde termina cada uno.
+ */
 const CHAPTERS = [
-  { key: "vision", accent: "#2A47F6" },
-  { key: "flight", accent: "#6443DB" },
-  { key: "payload", accent: "#1501A5" },
-  { key: "wms", accent: "#2A47F6" },
+  { key: "inspection", until: 120, accent: "#2A47F6", readout: "degrees" },
+  { key: "armed", until: 178, accent: "#6443DB", readout: "path" },
+  { key: "position", until: 214, accent: "#4F8BFF", readout: "path" },
+  { key: "route", until: 240, accent: "#2A47F6", readout: "path" },
 ];
 
+const chapterAt = (frame) => {
+  const index = CHAPTERS.findIndex((chapter) => frame < chapter.until);
+  return index === -1 ? CHAPTERS.length - 1 : index;
+};
+
 const pad = (n) => String(n).padStart(4, "0");
+const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
+const centerOf = ([l, t, r, b]) => [(l + r) / 2, (t + b) / 2];
+
+/**
+ * Lado en que vive el panel durante cada capítulo: el contrario al que ocupa el
+ * dron en promedio. Se decide por capítulo y no cuadro a cuadro para que el
+ * salto coincida con el cambio de texto, en vez de brincar a media maniobra.
+ */
+const CHAPTER_SIDES = CHAPTERS.map((chapter, index) => {
+  const from = index === 0 ? 0 : CHAPTERS[index - 1].until;
+  const frames = DRONE_TRACK.slice(from, chapter.until);
+  const avg = frames.reduce((sum, box) => sum + centerOf(box)[0], 0) / frames.length;
+  return avg > 0.5 ? "left" : "right";
+});
+
+/** Trayectoria del vuelo (del fotograma 120 en adelante) para el minimapa. */
+const FLIGHT_POINTS = DRONE_TRACK.slice(120).map(centerOf);
+const FLIGHT_PATH = FLIGHT_POINTS.map(([x, y]) => `${x.toFixed(4)},${y.toFixed(4)}`).join(" ");
+
+/** viewBox ajustado al recorrido real: si no, el trazo queda perdido en una esquina. */
+const FLIGHT_VIEWBOX = (() => {
+  const xs = FLIGHT_POINTS.map(([x]) => x);
+  const ys = FLIGHT_POINTS.map(([, y]) => y);
+  const pad = 0.04;
+  const x0 = Math.min(...xs) - pad;
+  const y0 = Math.min(...ys) - pad;
+  return `${x0} ${y0} ${Math.max(...xs) + pad - x0} ${Math.max(...ys) + pad - y0}`;
+})();
 
 const DroneShowcase = () => {
   const { t } = useTranslation();
-  const sectionRef = useRef(null);
-  const angleRef = useRef(null);
-  const ringRef = useRef(null);
   const reduceMotion = useReducedMotion();
 
+  const sectionRef = useRef(null);
+  const stageRef = useRef(null);
+  const reticleRef = useRef(null);
+  const leaderRef = useRef(null);
+  const angleRef = useRef(null);
+  const pathDotRef = useRef(null);
+
+  const layoutRef = useRef(null); // dónde queda dibujado el render dentro del canvas
+  const panelRef = useRef(null);
+  const sideRef = useRef(CHAPTER_SIDES[0]);
+  const stackedRef = useRef(false); // en móvil el panel va abajo, sin seguimiento
   const [isMobile, setIsMobile] = useState(false);
   const [chapter, setChapter] = useState(0);
   const [loaded, setLoaded] = useState(0);
 
   useEffect(() => {
     const query = window.matchMedia("(max-width: 767px)");
-    const sync = () => setIsMobile(query.matches);
+    const sync = () => {
+      stackedRef.current = query.matches;
+      setIsMobile(query.matches);
+    };
     sync();
     query.addEventListener("change", sync);
     return () => query.removeEventListener("change", sync);
@@ -55,27 +113,96 @@ const DroneShowcase = () => {
     offset: ["start start", "end end"],
   });
 
-  /*
-   * El grado y el anillo se escriben directo al DOM: pasarlos por estado
-   * dispararía un render de React en cada frame de scroll. El capítulo sí es
-   * estado, pero solo cambia cuatro veces en toda la sección.
+  /**
+   * Pone retícula y línea guía sobre el dron del fotograma pedido. Escribe
+   * directo al DOM: por estado sería un render de React por fotograma.
    */
+  const placeOverlay = useCallback((frame, panelSide) => {
+    const layout = layoutRef.current;
+    const stage = stageRef.current;
+    if (!layout || !stage) return;
+
+    const [l, top, r, bottom] = DRONE_TRACK[frame] ?? DRONE_TRACK[0];
+    const x = layout.x + l * layout.width;
+    const y = layout.y + top * layout.height;
+    const w = (r - l) * layout.width;
+    const h = (bottom - top) * layout.height;
+
+    const reticle = reticleRef.current;
+    if (reticle) {
+      reticle.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      reticle.style.width = `${w}px`;
+      reticle.style.height = `${h}px`;
+    }
+
+    const leader = leaderRef.current;
+    if (leader) {
+      // De la orilla de la retícula al borde del escenario donde vive el panel.
+      const fromX = panelSide === "right" ? x + w : x;
+      const toX = panelSide === "right" ? stage.clientWidth : 0;
+      leader.setAttribute("x1", fromX);
+      leader.setAttribute("y1", y + h / 2);
+      leader.setAttribute("x2", toX);
+      leader.setAttribute("y2", y + h / 2);
+    }
+
+    // El panel acompaña al dron en vertical, sin salirse del escenario. En
+    // móvil vive anclado abajo: moverlo ahí solo lo sacaría de cuadro.
+    const panel = panelRef.current;
+    if (panel) {
+      if (stackedRef.current) {
+        panel.style.transform = "";
+      } else {
+        const max = stage.clientHeight - panel.offsetHeight;
+        const top = Math.min(Math.max(y + h / 2 - panel.offsetHeight / 2, 0), Math.max(max, 0));
+        panel.style.transform = `translate3d(0, ${top}px, 0)`;
+      }
+    }
+  }, []);
+
+  /** Punto del minimapa. Vive en el mismo 0..1 del viewBox. */
+  const placeDot = useCallback((cx, cy) => {
+    if (!pathDotRef.current) return;
+    pathDotRef.current.setAttribute("cx", cx.toFixed(4));
+    pathDotRef.current.setAttribute("cy", cy.toFixed(4));
+  }, []);
+
+  const frameFromProgress = useCallback(
+    (value) => Math.min(TOTAL_FRAMES - 1, Math.floor(clamp01(value) * TOTAL_FRAMES)),
+    []
+  );
+
+  const handleLayout = useCallback(
+    (layout) => {
+      layoutRef.current = layout;
+      placeOverlay(frameFromProgress(scrollYProgress.get()), sideRef.current);
+    },
+    [frameFromProgress, placeOverlay, scrollYProgress]
+  );
+
   useMotionValueEvent(scrollYProgress, "change", (value) => {
-    const clamped = Math.min(Math.max(value, 0), 1);
+    const frame = frameFromProgress(value);
+    const [cx, cy] = centerOf(DRONE_TRACK[frame] ?? DRONE_TRACK[0]);
+    const next = chapterAt(frame);
+
+    sideRef.current = CHAPTER_SIDES[next];
+    placeOverlay(frame, sideRef.current);
 
     if (angleRef.current) {
-      angleRef.current.textContent = `${Math.round(clamped * 360)}°`;
+      // La vuelta completa se consume en los primeros 120 fotogramas.
+      angleRef.current.textContent = `${Math.round(Math.min(frame / 120, 1) * 360)}°`;
     }
-    if (ringRef.current && !reduceMotion) {
-      ringRef.current.style.transform = `rotate(${clamped * 360}deg)`;
-    }
+    placeDot(cx, cy);
 
-    const next = Math.min(
-      CHAPTERS.length - 1,
-      Math.floor(clamped * CHAPTERS.length)
-    );
     setChapter((current) => (current === next ? current : next));
   });
+
+  useEffect(() => {
+    const frame = frameFromProgress(scrollYProgress.get());
+    const [cx, cy] = centerOf(DRONE_TRACK[frame] ?? DRONE_TRACK[0]);
+    placeDot(cx, cy);
+    placeOverlay(frame, sideRef.current);
+  }, [chapter, frameFromProgress, placeDot, placeOverlay, scrollYProgress]);
 
   const frameCount = isMobile ? MOBILE_FRAMES : TOTAL_FRAMES;
 
@@ -87,156 +214,219 @@ const DroneShowcase = () => {
     [isMobile]
   );
 
-  /** Lleva el scroll al centro del capítulo pedido. */
+  /** Lleva el scroll al arranque del capítulo pedido. */
   const goToChapter = useCallback((index) => {
     const section = sectionRef.current;
     if (!section) return;
+    const from = index === 0 ? 0 : CHAPTERS[index - 1].until;
     const range = section.offsetHeight - window.innerHeight;
-    const target =
-      section.offsetTop + range * ((index + 0.5) / CHAPTERS.length);
-    window.scrollTo({ top: target, behavior: "smooth" });
+    window.scrollTo({
+      top: section.offsetTop + range * ((from + 4) / TOTAL_FRAMES),
+      behavior: "smooth",
+    });
   }, []);
 
   const active = CHAPTERS[chapter];
   const loading = loaded < 0.98 && !reduceMotion;
+  const panelSide = isMobile ? "bottom" : CHAPTER_SIDES[chapter];
+
+  const panelClasses = useMemo(() => {
+    if (panelSide === "bottom") return "inset-x-6 bottom-0";
+    const edge = panelSide === "right" ? "right-6 lg:right-[5%]" : "left-6 lg:left-[5%]";
+    return `top-0 w-[min(22rem,calc(100%-3rem))] ${edge}`;
+  }, [panelSide]);
 
   return (
     <section
       ref={sectionRef}
       data-ah-no-reveal
-      className="relative h-[400vh] bg-[#162A42] text-white"
+      className="relative h-[500vh] bg-[#162A42] text-white"
       aria-label={t("showcase.title")}
     >
       <div className="sticky top-0 h-screen overflow-hidden">
-        {/* Capas de fondo: la misma gramática visual del hero. */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(21,1,165,0.45),transparent_55%)]" />
         <div className="absolute inset-0 opacity-[0.35] [background:repeating-linear-gradient(0deg,transparent,transparent_46px,rgba(255,255,255,0.05)_47px),repeating-linear-gradient(90deg,transparent,transparent_46px,rgba(255,255,255,0.05)_47px)]" />
 
-        {/* El halo cambia de color con el capítulo: el alpha del render deja verlo pasar. */}
         <motion.div
           animate={{ backgroundColor: active.accent }}
           transition={{ duration: 0.9, ease: "easeInOut" }}
-          className="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-25 blur-[130px] lg:left-[63%]"
+          className="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-20 blur-[130px]"
         />
 
-        {/* Plataforma: base elíptica + anillo que gira con el dron. */}
-        <div className="pointer-events-none absolute left-1/2 top-[58%] -translate-x-1/2 lg:left-[64%]">
-          <div className="h-[110px] w-[440px] rounded-[50%] bg-[radial-gradient(ellipse,rgba(42,71,246,0.35),transparent_70%)] blur-xl sm:w-[620px]" />
-          <div
-            ref={ringRef}
-            className="absolute left-1/2 top-1/2 h-[90px] w-[380px] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-white/10 [background:conic-gradient(from_0deg,transparent_0deg,rgba(42,71,246,0.5)_40deg,transparent_90deg)] opacity-60 sm:w-[540px]"
-            style={{ willChange: "transform" }}
-          />
-        </div>
-
-        {/* El padding define el encuadre: el canvas ajusta el render a "contain",
-            así que dejar aire abajo evita que el tren de aterrizaje toque el borde
-            y libera la franja del indicador. En lg el dron se corre a la derecha
-            para dejarle la columna izquierda al texto. */}
-        <div className="absolute inset-0 pb-[40vh] pt-[84px] sm:pb-[30vh] lg:translate-x-[14%] lg:pb-[14vh]">
+        {/* Escenario: el canvas y todo lo que se le monta encima comparten el
+            mismo sistema de coordenadas. */}
+        <div
+          ref={stageRef}
+          className="absolute inset-x-0 bottom-[30vh] top-[84px] sm:bottom-[24vh] lg:bottom-[16vh]"
+        >
           <ScrollSequence
             progress={scrollYProgress}
             frameCount={frameCount}
             srcFor={srcFor}
             onLoadProgress={setLoaded}
+            onLayout={handleLayout}
             className="h-full w-full"
           />
-        </div>
 
-        {/* Contenido */}
-        <div className="ah-container relative flex h-full flex-col justify-between pb-10 pt-[84px]">
-          <header className="max-w-xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">
-              {t("showcase.kicker")}
-            </p>
-            <h2 className="mt-3 text-3xl font-semibold leading-tight sm:text-4xl lg:text-[2.75rem]">
-              {t("showcase.title")}
-            </h2>
-          </header>
+          {!reduceMotion && (
+            <>
+              <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible">
+                <line
+                  ref={leaderRef}
+                  stroke={active.accent}
+                  strokeWidth="1"
+                  strokeDasharray="3 5"
+                  opacity="0.6"
+                  className="transition-[stroke] duration-700"
+                />
+              </svg>
 
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-            {/* Capítulo activo */}
-            <div className="relative min-h-[210px] w-full max-w-md sm:min-h-[190px]">
-              <AnimatePresence initial={false}>
-                <motion.div
-                  key={active.key}
-                  initial={{ opacity: 0, y: 18 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -14 }}
-                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                  className="absolute inset-x-0 bottom-0 rounded-2xl border border-white/10 bg-white/[0.06] p-6 backdrop-blur-md"
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="h-8 w-8 shrink-0 rounded-full text-center text-sm font-semibold leading-8"
-                      style={{ backgroundColor: active.accent }}
-                    >
-                      {chapter + 1}
-                    </span>
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
-                      {t(`showcase.chapters.${active.key}.kicker`)}
-                    </p>
-                  </div>
-                  <h3 className="mt-4 text-xl font-semibold sm:text-2xl">
-                    {t(`showcase.chapters.${active.key}.title`)}
-                  </h3>
-                  <p className="mt-3 text-sm leading-relaxed text-white/70">
-                    {t(`showcase.chapters.${active.key}.text`)}
-                  </p>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-
-            {/* Indicador de giro + navegación por capítulo */}
-            <div className="flex items-center gap-6">
-              <div className="flex gap-2">
-                {CHAPTERS.map((item, index) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => goToChapter(index)}
-                    aria-label={t(`showcase.chapters.${item.key}.title`)}
-                    aria-current={index === chapter}
-                    className={`h-1.5 rounded-full transition-all duration-500 ${
-                      index === chapter
-                        ? "w-10 bg-white"
-                        : "w-5 bg-white/25 hover:bg-white/50"
-                    }`}
+              {/* Retícula: cuatro esquinas que encuadran al dron. */}
+              <div
+                ref={reticleRef}
+                className="pointer-events-none absolute left-0 top-0 opacity-90"
+                style={{ willChange: "transform, width, height" }}
+              >
+                {[
+                  "left-0 top-0 border-l border-t",
+                  "right-0 top-0 border-r border-t",
+                  "left-0 bottom-0 border-l border-b",
+                  "right-0 bottom-0 border-r border-b",
+                ].map((corner) => (
+                  <span
+                    key={corner}
+                    className={`absolute h-5 w-5 transition-[border-color] duration-700 ${corner}`}
+                    style={{ borderColor: active.accent }}
                   />
                 ))}
               </div>
+            </>
+          )}
 
-              <div className="text-right">
-                <span
-                  ref={angleRef}
-                  className="block font-mono text-2xl font-semibold tabular-nums"
-                >
-                  0°
-                </span>
-                <span className="text-[0.65rem] uppercase tracking-[0.2em] text-white/45">
-                  {t("showcase.rotation")}
-                </span>
-              </div>
-
-              <Link
-                to="/products"
-                className="hidden items-center gap-2 rounded-full bg-[#2A47F6] px-6 py-3 text-sm font-semibold shadow-[0_8px_24px_rgba(42,71,246,0.4)] transition duration-500 hover:bg-[#3d5aff] sm:inline-flex"
+          {/* Panel de texto: cambia de cuadrante según dónde esté el dron. */}
+          <div
+            ref={panelRef}
+            className={`absolute ${panelClasses}`}
+          >
+            <AnimatePresence initial={false} mode="wait">
+              <motion.div
+                key={active.key}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                className="rounded-2xl border border-white/10 bg-[#162A42]/70 p-6 backdrop-blur-md"
               >
-                {t("showcase.cta")}
-                <ArrowRight size={16} />
-              </Link>
-            </div>
+                <div className="flex items-center gap-3">
+                  <span
+                    className="font-mono text-xs font-semibold transition-colors duration-700"
+                    style={{ color: active.accent }}
+                  >
+                    {pad(chapter + 1).slice(2)}
+                  </span>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
+                    {t(`showcase.chapters.${active.key}.kicker`)}
+                  </p>
+                </div>
+                <h3 className="mt-3 text-xl font-semibold sm:text-2xl">
+                  {t(`showcase.chapters.${active.key}.title`)}
+                </h3>
+                <p className="mt-3 text-sm leading-relaxed text-white/70">
+                  {t(`showcase.chapters.${active.key}.text`)}
+                </p>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
 
-        {/* Pista de scroll: solo al principio. */}
+        {/* Encabezado */}
+        <div
+          className={`ah-container pointer-events-none relative pt-[84px] transition-opacity duration-700 ${
+            chapter === 0 ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">
+            {t("showcase.kicker")}
+          </p>
+          <h2 className="mt-3 max-w-lg text-3xl font-semibold leading-tight sm:text-4xl lg:text-[2.75rem]">
+            {t("showcase.title")}
+          </h2>
+        </div>
+
+        {/* Barra inferior: capítulos, lectura y salida */}
+        <div className="ah-container absolute inset-x-0 bottom-8 flex items-end justify-between gap-6">
+          <div className="flex flex-col gap-3">
+            <div className="flex gap-2">
+              {CHAPTERS.map((item, index) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => goToChapter(index)}
+                  aria-label={t(`showcase.chapters.${item.key}.title`)}
+                  aria-current={index === chapter}
+                  className={`h-1.5 rounded-full transition-all duration-500 ${
+                    index === chapter ? "w-10 bg-white" : "w-5 bg-white/25 hover:bg-white/50"
+                  }`}
+                />
+              ))}
+            </div>
+            <p className="text-[0.65rem] uppercase tracking-[0.2em] text-white/45">
+              {t(`showcase.chapters.${active.key}.phase`)}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-6">
+            {/* Una ranura, dos lecturas: grados mientras gira, trayectoria real
+                cuando se desplaza. */}
+            <div className="hidden text-right sm:block">
+              {active.readout === "degrees" ? (
+                <>
+                  <span
+                    ref={angleRef}
+                    className="block font-mono text-2xl font-semibold tabular-nums"
+                  >
+                    0°
+                  </span>
+                  <span className="text-[0.65rem] uppercase tracking-[0.2em] text-white/45">
+                    {t("showcase.rotation")}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <svg viewBox={FLIGHT_VIEWBOX} className="ml-auto h-12 w-20" aria-hidden="true">
+                    <polyline
+                      points={FLIGHT_PATH}
+                      fill="none"
+                      stroke="rgba(255,255,255,0.3)"
+                      strokeWidth="1.5"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                    <circle ref={pathDotRef} r="0.022" fill={active.accent} />
+                  </svg>
+                  <span className="text-[0.65rem] uppercase tracking-[0.2em] text-white/45">
+                    {t("showcase.trajectory")}
+                  </span>
+                </>
+              )}
+            </div>
+
+            <Link
+              to="/products"
+              className="hidden items-center gap-2 rounded-full bg-[#2A47F6] px-6 py-3 text-sm font-semibold shadow-[0_8px_24px_rgba(42,71,246,0.4)] transition duration-500 hover:bg-[#3d5aff] sm:inline-flex"
+            >
+              {t("showcase.cta")}
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+        </div>
+
         <AnimatePresence>
           {chapter === 0 && !reduceMotion && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="pointer-events-none absolute bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-2 text-[0.7rem] uppercase tracking-[0.2em] text-white/45"
+              className="pointer-events-none absolute bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-2 text-[0.7rem] uppercase tracking-[0.2em] text-white/45"
             >
               <MousePointer2 size={13} />
               {t("showcase.hint")}
@@ -244,13 +434,9 @@ const DroneShowcase = () => {
           )}
         </AnimatePresence>
 
-        {/* Precarga: barra fina arriba, sin bloquear nada. */}
         <AnimatePresence>
           {loading && (
-            <motion.div
-              exit={{ opacity: 0 }}
-              className="absolute inset-x-0 top-0 h-0.5 bg-white/10"
-            >
+            <motion.div exit={{ opacity: 0 }} className="absolute inset-x-0 top-0 h-0.5 bg-white/10">
               <div
                 className="h-full bg-[#2A47F6] transition-[width] duration-300"
                 style={{ width: `${Math.round(loaded * 100)}%` }}

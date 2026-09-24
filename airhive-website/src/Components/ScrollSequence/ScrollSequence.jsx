@@ -40,6 +40,7 @@ const ScrollSequence = ({
   height = 1080,
   className = "",
   onLoadProgress,
+  onLayout,
 }) => {
   const canvasRef = useRef(null);
   const framesRef = useRef([]);
@@ -53,8 +54,10 @@ const ScrollSequence = ({
   // props: una función inline del padre reiniciaría la carga en cada render.
   const srcForRef = useRef(srcFor);
   const onLoadProgressRef = useRef(onLoadProgress);
+  const onLayoutRef = useRef(onLayout);
   srcForRef.current = srcFor;
   onLoadProgressRef.current = onLoadProgress;
+  onLayoutRef.current = onLayout;
 
   /** Busca hacia afuera el frame cargado más cercano al pedido. */
   const nearestLoaded = useCallback(
@@ -112,13 +115,23 @@ const ScrollSequence = ({
       canvas.height = Math.round(rect.height * dpr);
       drawnRef.current = -1; // el buffer se limpió al redimensionar
       paint();
+
+      // "contain" deja franjas vacías: quien dibuje encima necesita saber dónde
+      // quedó el render de verdad, no dónde está el canvas.
+      const fit = Math.min(rect.width / width, rect.height / height);
+      onLayoutRef.current?.({
+        x: (rect.width - width * fit) / 2,
+        y: (rect.height - height * fit) / 2,
+        width: width * fit,
+        height: height * fit,
+      });
     };
 
     resize();
     const observer = new ResizeObserver(resize);
     observer.observe(canvas);
     return () => observer.disconnect();
-  }, [paint]);
+  }, [height, paint, width]);
 
   /* Precarga progresiva. */
   useEffect(() => {
