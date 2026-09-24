@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FaWhatsapp } from "react-icons/fa";
 import logo from "/logo sin fondo.png";
+import useAutoHideHeader from "./useAutoHideHeader";
 
 const productItems = [
   { key: "drone_inventory", to: "/products#drone-inventory" },
@@ -21,23 +22,29 @@ const Navbar = () => {
     setProductsOpen(false);
   }, [location.pathname, location.hash]);
 
-  /**
-   * El home es una sola sección oscura de punta a punta, así que ahí el header
-   * se queda translúcido con texto claro. Antes cambiaba a blanco al pasar los
-   * 18px de scroll: sobre este fondo ese estado deja texto navy sobre navy, y
-   * la transición del color-mix tarda lo suficiente como para dejarlo ilegible
-   * un buen rato. El resto del sitio conserva el header sólido.
-   */
-  const transparentHeader = isHome;
+  // Sin fondo propio: el header flota sobre el contenido. Lo único que cambia
+  // por ruta es el color del texto, porque el home es oscuro y el resto claro.
+  const onDark = isHome;
+
+  const visible = useAutoHideHeader({
+    pinned: isOpen || productsOpen,
+    resetKey: location.pathname,
+  });
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50">
+      {/* Al esconderse no solo sube: también se desvanece, porque el CTA lleva
+          una sombra azul larga que si no se queda asomando por el borde. */}
+      <header
+        className={`fixed inset-x-0 top-0 z-50 transition-[transform,opacity] duration-300 ease-out ${
+          visible
+            ? "translate-y-0 opacity-100"
+            : "pointer-events-none -translate-y-full opacity-0"
+        }`}
+      >
         <nav
-          className={`flex w-full items-center justify-between px-4 py-3 transition-all duration-500 sm:px-6 lg:px-10 ${
-            transparentHeader
-              ? "bg-white/8 text-white shadow-[0_10px_34px_rgba(0,0,0,0.18)] backdrop-blur-md"
-              : "bg-white/92 text-[#162A42] shadow-[0_18px_60px_rgba(22,42,66,0.14)] backdrop-blur-xl"
+          className={`flex w-full items-center justify-between px-4 py-3 sm:px-6 lg:px-10 ${
+            onDark ? "text-white" : "text-[#162A42]"
           }`}
         >
           <Link to="/" className="flex items-center gap-2">
@@ -117,7 +124,7 @@ const Navbar = () => {
           <button
             onClick={() => setIsOpen((prev) => !prev)}
             className={`rounded-lg border p-2 ${
-              transparentHeader ? "border-white/30 text-white" : "border-[#162A42]/15 text-[#162A42]"
+              onDark ? "border-white/30 text-white" : "border-[#162A42]/15 text-[#162A42]"
             }`}
             aria-label="Toggle menu"
           >
