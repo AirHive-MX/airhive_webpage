@@ -64,6 +64,14 @@ const CITY_FADE = 18; // fotogramas que tarda en irse, terminando en SCENE_FROM
  */
 /* La ciudad acompaña el giro; el almacén entra cuando empieza el escaneo. Se
    cruzan en la misma ventana de fotogramas, así que es un solo fundido. */
+/**
+ * El botón de salida del recorrido, oculto por ahora.
+ *
+ * Es ocultar, no quitar: la ruta /products sigue registrada y la página
+ * intacta. Para devolverlo, poner esto en true.
+ */
+const MOSTRAR_CTA = false;
+
 const SCENE_ZOOM = "120%";
 const SCENE_POS = "100%";
 
@@ -521,13 +529,15 @@ const DroneShowcase = () => {
               )}
             </div>
 
-            <Link
-              to="/products"
-              className="hidden items-center gap-2 rounded-full bg-[#2A47F6] px-6 py-3 text-sm font-semibold shadow-[0_8px_24px_rgba(42,71,246,0.4)] transition duration-500 hover:bg-[#3d5aff] sm:inline-flex"
-            >
-              {t("showcase.cta")}
-              <ArrowRight size={16} />
-            </Link>
+            {MOSTRAR_CTA && (
+              <Link
+                to="/products"
+                className="hidden items-center gap-2 rounded-full bg-[#2A47F6] px-6 py-3 text-sm font-semibold shadow-[0_8px_24px_rgba(42,71,246,0.4)] transition duration-500 hover:bg-[#3d5aff] sm:inline-flex"
+              >
+                {t("showcase.cta")}
+                <ArrowRight size={16} />
+              </Link>
+            )}
           </div>
         </div>
 

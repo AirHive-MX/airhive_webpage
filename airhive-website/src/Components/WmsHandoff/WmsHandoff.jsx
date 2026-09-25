@@ -63,7 +63,7 @@ const WmsHandoff = () => {
       <div className="sticky top-0 h-screen overflow-hidden">
         {/* La captura, desde justo debajo del header hasta abajo */}
         <div
-          className="absolute inset-x-0 bottom-0 top-16 bg-[url('/wms-panel.webp')] bg-cover bg-top"
+          className="absolute inset-x-0 bottom-0 top-14 bg-[url('/wms-panel.webp')] bg-cover bg-top"
           aria-label={t("wms.title")}
           role="img"
         />
