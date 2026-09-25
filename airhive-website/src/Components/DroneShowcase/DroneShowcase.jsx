@@ -35,8 +35,16 @@ const TOTAL_FRAMES = 240;
  * El almacén entra cuando el dron deja de girar y se pone a escanear: antes es
  * una pieza de hardware sobre fondo neutro, a partir de aquí está trabajando.
  */
-const SCENE_FROM = 120; // fotograma en que empieza a aparecer
-const SCENE_FADE = 22; // fotogramas que tarda en asentar
+const SCENE_FROM = 120; // fotograma en que empieza a aparecer el almacén
+const SCENE_FADE = 18; // fotogramas que tarda en asentar
+
+/**
+ * La ciudad se va ANTES de que entre el almacén, no a la vez. Cruzándolas se
+ * ven las dos fotos superpuestas a media opacidad y parece doble exposición;
+ * así, entre una y otra queda un instante del fondo oscuro de la sección, que
+ * se lee como corte y no como mezcla.
+ */
+const CITY_FADE = 18; // fotogramas que tarda en irse, terminando en SCENE_FROM
 
 /**
  * Encuadre del fondo, sacado a fuerza bruta y no a ojo.
@@ -54,6 +62,8 @@ const SCENE_FADE = 22; // fotogramas que tarda en asentar
  * Es aproximado, no exacto: durante el descenso del acto 3 el dron sí cruza una
  * viga. En las dos posiciones donde uno se detiene a leer, no.
  */
+/* La ciudad acompaña el giro; el almacén entra cuando empieza el escaneo. Se
+   cruzan en la misma ventana de fotogramas, así que es un solo fundido. */
 const SCENE_ZOOM = "120%";
 const SCENE_POS = "100%";
 
@@ -123,6 +133,7 @@ const DroneShowcase = () => {
   const angleRef = useRef(null);
   const pathDotRef = useRef(null);
   const sceneRef = useRef(null);
+  const cityRef = useRef(null);
 
   const layoutRef = useRef(null); // dónde queda dibujado el render dentro del canvas
   // Altura a la que reposa el dron, en píxeles del viewport. La caída de luz del
@@ -245,9 +256,10 @@ const DroneShowcase = () => {
     }
     placeDot(cx, cy);
 
-    if (sceneRef.current) {
-      const entrada = (frame - SCENE_FROM) / SCENE_FADE;
-      sceneRef.current.style.opacity = clamp01(entrada).toFixed(3);
+    const entrada = clamp01((frame - SCENE_FROM) / SCENE_FADE);
+    if (sceneRef.current) sceneRef.current.style.opacity = entrada.toFixed(3);
+    if (cityRef.current) {
+      cityRef.current.style.opacity = clamp01((SCENE_FROM - frame) / CITY_FADE).toFixed(3);
     }
 
     setChapter((current) => (current === next ? current : next));
@@ -258,9 +270,10 @@ const DroneShowcase = () => {
     const [cx, cy] = centerOf(DRONE_TRACK[frame] ?? DRONE_TRACK[0]);
     placeDot(cx, cy);
 
-    if (sceneRef.current) {
-      const entrada = (frame - SCENE_FROM) / SCENE_FADE;
-      sceneRef.current.style.opacity = clamp01(entrada).toFixed(3);
+    const entrada = clamp01((frame - SCENE_FROM) / SCENE_FADE);
+    if (sceneRef.current) sceneRef.current.style.opacity = entrada.toFixed(3);
+    if (cityRef.current) {
+      cityRef.current.style.opacity = clamp01((SCENE_FROM - frame) / CITY_FADE).toFixed(3);
     }
     placeOverlay(frame, sideRef.current);
   }, [chapter, frameFromProgress, placeDot, placeOverlay, scrollYProgress]);
@@ -305,31 +318,37 @@ const DroneShowcase = () => {
       aria-label={t("showcase.title")}
     >
       <div className="sticky top-0 h-screen overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(21,1,165,0.45),transparent_55%)]" />
+        {/* La ciudad, durante el giro. Lleva su propio degradado vertical: el
+            cielo es la parte más clara de la foto y es justo donde caen el
+            kicker y el titular, que van en blanco. */}
+        <div ref={cityRef} aria-hidden="true" className="absolute inset-0" style={{ opacity: 1 }}>
+          <div className="absolute inset-0 bg-[url('/fondo-ciudad.webp')] bg-cover bg-center" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,17,28,0.78)_0%,rgba(10,17,28,0.34)_34%,rgba(10,17,28,0.24)_62%,rgba(10,17,28,0.58)_100%)]" />
+        </div>
 
-        <motion.div
-          animate={{ backgroundColor: active.accent }}
-          transition={{ duration: 0.9, ease: "easeInOut" }}
-          className="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-20 blur-[130px]"
-        />
-
-        {/* El almacén. La foto entra sin retoque; el contraste con el dron lo
-            da la capa oscura de abajo, que se ajusta sin tocar el archivo. */}
+        {/* El almacén, durante el escaneo. Entra según se va la ciudad. */}
         <div ref={sceneRef} aria-hidden="true" className="absolute inset-0" style={{ opacity: 0 }}>
           <div
             className="absolute inset-0 bg-[url('/fondo-racks.webp')] bg-repeat-x"
             style={{ backgroundSize: `auto ${SCENE_ZOOM}`, backgroundPosition: `center ${SCENE_POS}` }}
           />
-          {/* Caída justo detrás del dron: sin esto el chasis blanco se pierde
-              entre el cartón. Va localizada para no apagar la foto entera. */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: `radial-gradient(ellipse 48% 40% at 50% ${horizonte}px, rgba(5,9,15,0.60) 0%, rgba(5,9,15,0.26) 46%, transparent 72%)`,
-            }}
-          />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_46%,rgba(7,12,20,0.6)_100%)]" />
         </div>
+
+        {/* Aquí vivían un degradado índigo y un halo del color del capítulo.
+            Sobre fondo liso funcionaban, pero encima de una foto se leen como
+            una mancha azul en el centro. El acento del capítulo se sigue viendo
+            donde toca: retícula, línea guía, número del panel y minimapa. */}
+
+        {/* Caída detrás del dron y viñeta: comunes a las dos fotos, porque el
+            chasis es blanco y se pierde igual sobre el cartón que sobre el
+            cielo. Localizadas, para no apagar la imagen entera. */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: `radial-gradient(ellipse 48% 40% at 50% ${horizonte}px, rgba(5,9,15,0.58) 0%, rgba(5,9,15,0.24) 46%, transparent 72%)`,
+          }}
+        />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_46%,rgba(7,12,20,0.6)_100%)]" />
 
         <div className="absolute inset-0 opacity-[0.35] [background:repeating-linear-gradient(0deg,transparent,transparent_46px,rgba(255,255,255,0.05)_47px),repeating-linear-gradient(90deg,transparent,transparent_46px,rgba(255,255,255,0.05)_47px)]" />
 

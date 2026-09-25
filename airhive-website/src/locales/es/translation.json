@@ -535,5 +535,32 @@
                 "text": "Gana altura, pasa a la siguiente ubicación y no se detiene. Cada conteo entra al WMS Air Hive en tiempo real."
             }
         }
+    },
+    "wms": {
+        "kicker": "DEL VUELO AL SISTEMA",
+        "title": "Todo lo que leyó el dron ya está en el WMS.",
+        "cta": "Ver productos",
+        "steps": {
+            "ingesta": {
+                "kicker": "Ingesta",
+                "title": "Cada lectura entra sola",
+                "text": "En cuanto el dron lee una posición, el bin, la etiqueta y la foto aparecen en el sistema. Nadie captura nada a mano."
+            },
+            "contraste": {
+                "kicker": "Contraste",
+                "title": "Compara contra lo que debería haber",
+                "text": "El WMS cruza lo leído con lo que tiene registrado y marca cada bin como coincidente o con diferencia."
+            },
+            "cobertura": {
+                "kicker": "Cobertura",
+                "title": "Sabes qué se contó y qué falta",
+                "text": "El vuelo reporta posiciones leídas, etiquetas por revisar y las que quedaron sin ubicar. El avance se ve en vivo."
+            },
+            "evidencia": {
+                "kicker": "Evidencia",
+                "title": "Cada bin queda con su foto",
+                "text": "Si un conteo no cuadra, se revisa la imagen desde el escritorio en vez de volver al pasillo a verificarlo."
+            }
+        }
     }
 }
