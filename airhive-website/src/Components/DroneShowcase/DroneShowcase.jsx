@@ -30,6 +30,39 @@ import DRONE_TRACK from "./droneTrack";
  */
 
 const TOTAL_FRAMES = 240;
+
+/**
+ * El almacén entra cuando el dron deja de girar y se pone a escanear: antes es
+ * una pieza de hardware sobre fondo neutro, a partir de aquí está trabajando.
+ */
+const SCENE_FROM = 120; // fotograma en que empieza a aparecer
+const SCENE_FADE = 22; // fotogramas que tarda en asentar
+
+/**
+ * Encuadre del fondo, sacado a fuerza bruta y no a ojo.
+ *
+ * La foto tiene cajas en las franjas 0.125-0.325, 0.425-0.650 y 0.725-0.925 de
+ * su altura; el resto son vigas. El dron descansa a 0.502 del render mientras
+ * gira y a 0.736 mientras escanea. Se probaron todas las combinaciones de
+ * tamaño y posición sobre siete resoluciones, buscando la que deja esos dos
+ * reposos (y medio cuerpo del dron alrededor) lo más lejos posible de una viga.
+ *
+ * SCENE_ZOOM se dejó fijo en 160% por escala, no por alineación: subiéndolo
+ * mejora el margen pero las cajas acaban del doble del dron. A 160% una caja y
+ * el dron miden parecido, que es la proporción creíble.
+ *
+ * Es aproximado, no exacto: durante el descenso del acto 3 el dron sí cruza una
+ * viga. En las dos posiciones donde uno se detiene a leer, no.
+ */
+const SCENE_ZOOM = "120%";
+const SCENE_POS = "100%";
+
+/**
+ * El dron se dibuja un 28% más grande que el escenario, para que domine sobre
+ * la mercancía. 1.28 es el tope: por encima, en su punto más bajo se sale por
+ * abajo de la pantalla en las resoluciones cortas.
+ */
+const DRONE_SCALE = 1.28;
 const MOBILE_FRAMES = 120; // Un fotograma de cada dos: la mitad de bytes en móvil.
 
 /**
@@ -84,12 +117,17 @@ const DroneShowcase = () => {
 
   const sectionRef = useRef(null);
   const stageRef = useRef(null);
+  const fieldRef = useRef(null); // el canvas ampliado, mayor que el escenario
   const reticleRef = useRef(null);
   const leaderRef = useRef(null);
   const angleRef = useRef(null);
   const pathDotRef = useRef(null);
+  const sceneRef = useRef(null);
 
   const layoutRef = useRef(null); // dónde queda dibujado el render dentro del canvas
+  // Altura a la que reposa el dron, en píxeles del viewport. La caída de luz del
+  // fondo se centra ahí, así que hace falta en el render y por eso vive en estado.
+  const [horizonte, setHorizonte] = useState(0);
   const panelRef = useRef(null);
   const sideRef = useRef(CHAPTER_SIDES[0]);
   const stackedRef = useRef(false); // en móvil el panel va abajo, sin seguimiento
@@ -120,7 +158,12 @@ const DroneShowcase = () => {
   const placeOverlay = useCallback((frame, panelSide) => {
     const layout = layoutRef.current;
     const stage = stageRef.current;
-    if (!layout || !stage) return;
+    const field = fieldRef.current;
+    if (!layout || !stage || !field) return;
+    // El canvas es más grande que el escenario y está centrado en él: lo que se
+    // dibuja dentro del canvas hay que correrlo por esa diferencia para
+    // colocarlo en coordenadas del escenario.
+    const desfase = (stage.clientHeight - field.clientHeight) / 2;
 
     const [l, top, r, bottom] = DRONE_TRACK[frame] ?? DRONE_TRACK[0];
     const x = layout.x + l * layout.width;
@@ -139,7 +182,7 @@ const DroneShowcase = () => {
     if (leader) {
       // De la orilla de la retícula al borde del escenario donde vive el panel.
       const fromX = panelSide === "right" ? x + w : x;
-      const toX = panelSide === "right" ? stage.clientWidth : 0;
+      const toX = panelSide === "right" ? field.clientWidth : 0;
       leader.setAttribute("x1", fromX);
       leader.setAttribute("y1", y + h / 2);
       leader.setAttribute("x2", toX);
@@ -154,7 +197,8 @@ const DroneShowcase = () => {
         panel.style.transform = "";
       } else {
         const max = stage.clientHeight - panel.offsetHeight;
-        const top = Math.min(Math.max(y + h / 2 - panel.offsetHeight / 2, 0), Math.max(max, 0));
+        const centro = desfase + y + h / 2 - panel.offsetHeight / 2;
+        const top = Math.min(Math.max(centro, 0), Math.max(max, 0));
         panel.style.transform = `translate3d(0, ${top}px, 0)`;
       }
     }
@@ -175,6 +219,13 @@ const DroneShowcase = () => {
   const handleLayout = useCallback(
     (layout) => {
       layoutRef.current = layout;
+      const stage = stageRef.current;
+      const field = fieldRef.current;
+      if (stage && field) {
+        const desfase = (stage.clientHeight - field.clientHeight) / 2;
+        const y = (stage.offsetTop ?? 84) + desfase + layout.y + 0.502 * layout.height;
+        setHorizonte((prev) => (Math.abs(prev - y) < 0.5 ? prev : y));
+      }
       placeOverlay(frameFromProgress(scrollYProgress.get()), sideRef.current);
     },
     [frameFromProgress, placeOverlay, scrollYProgress]
@@ -194,6 +245,11 @@ const DroneShowcase = () => {
     }
     placeDot(cx, cy);
 
+    if (sceneRef.current) {
+      const entrada = (frame - SCENE_FROM) / SCENE_FADE;
+      sceneRef.current.style.opacity = clamp01(entrada).toFixed(3);
+    }
+
     setChapter((current) => (current === next ? current : next));
   });
 
@@ -201,6 +257,11 @@ const DroneShowcase = () => {
     const frame = frameFromProgress(scrollYProgress.get());
     const [cx, cy] = centerOf(DRONE_TRACK[frame] ?? DRONE_TRACK[0]);
     placeDot(cx, cy);
+
+    if (sceneRef.current) {
+      const entrada = (frame - SCENE_FROM) / SCENE_FADE;
+      sceneRef.current.style.opacity = clamp01(entrada).toFixed(3);
+    }
     placeOverlay(frame, sideRef.current);
   }, [chapter, frameFromProgress, placeDot, placeOverlay, scrollYProgress]);
 
@@ -245,13 +306,32 @@ const DroneShowcase = () => {
     >
       <div className="sticky top-0 h-screen overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(21,1,165,0.45),transparent_55%)]" />
-        <div className="absolute inset-0 opacity-[0.35] [background:repeating-linear-gradient(0deg,transparent,transparent_46px,rgba(255,255,255,0.05)_47px),repeating-linear-gradient(90deg,transparent,transparent_46px,rgba(255,255,255,0.05)_47px)]" />
 
         <motion.div
           animate={{ backgroundColor: active.accent }}
           transition={{ duration: 0.9, ease: "easeInOut" }}
           className="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-20 blur-[130px]"
         />
+
+        {/* El almacén. La foto entra sin retoque; el contraste con el dron lo
+            da la capa oscura de abajo, que se ajusta sin tocar el archivo. */}
+        <div ref={sceneRef} aria-hidden="true" className="absolute inset-0" style={{ opacity: 0 }}>
+          <div
+            className="absolute inset-0 bg-[url('/fondo-racks.webp')] bg-repeat-x"
+            style={{ backgroundSize: `auto ${SCENE_ZOOM}`, backgroundPosition: `center ${SCENE_POS}` }}
+          />
+          {/* Caída justo detrás del dron: sin esto el chasis blanco se pierde
+              entre el cartón. Va localizada para no apagar la foto entera. */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `radial-gradient(ellipse 48% 40% at 50% ${horizonte}px, rgba(5,9,15,0.60) 0%, rgba(5,9,15,0.26) 46%, transparent 72%)`,
+            }}
+          />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_46%,rgba(7,12,20,0.6)_100%)]" />
+        </div>
+
+        <div className="absolute inset-0 opacity-[0.35] [background:repeating-linear-gradient(0deg,transparent,transparent_46px,rgba(255,255,255,0.05)_47px),repeating-linear-gradient(90deg,transparent,transparent_46px,rgba(255,255,255,0.05)_47px)]" />
 
         {/* Encabezado. Va antes del escenario para que el h1 quede por delante
             del h3 del panel en el orden del documento; el z-10 conserva el
@@ -275,49 +355,59 @@ const DroneShowcase = () => {
           ref={stageRef}
           className="absolute inset-x-0 bottom-[30vh] top-[84px] sm:bottom-[24vh] lg:bottom-[16vh]"
         >
-          <ScrollSequence
-            progress={scrollYProgress}
-            frameCount={frameCount}
-            srcFor={srcFor}
-            onLoadProgress={setLoaded}
-            onLayout={handleLayout}
-            className="h-full w-full"
-          />
+          {/* El canvas va más grande que el escenario y centrado en él, para
+              que el dron gane presencia frente a la mercancía. La retícula y la
+              línea guía viven aquí dentro, en el mismo sistema de coordenadas
+              que el render; el panel se queda fuera, atado al viewport. */}
+          <div
+            ref={fieldRef}
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+            style={{ width: `${DRONE_SCALE * 100}%`, height: `${DRONE_SCALE * 100}%` }}
+          >
+            <ScrollSequence
+              progress={scrollYProgress}
+              frameCount={frameCount}
+              srcFor={srcFor}
+              onLoadProgress={setLoaded}
+              onLayout={handleLayout}
+              className="h-full w-full"
+            />
 
-          {!reduceMotion && (
-            <>
-              <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible">
-                <line
-                  ref={leaderRef}
-                  stroke={active.accent}
-                  strokeWidth="1"
-                  strokeDasharray="3 5"
-                  opacity="0.6"
-                  className="transition-[stroke] duration-700"
-                />
-              </svg>
-
-              {/* Retícula: cuatro esquinas que encuadran al dron. */}
-              <div
-                ref={reticleRef}
-                className="pointer-events-none absolute left-0 top-0 opacity-90"
-                style={{ willChange: "transform, width, height" }}
-              >
-                {[
-                  "left-0 top-0 border-l border-t",
-                  "right-0 top-0 border-r border-t",
-                  "left-0 bottom-0 border-l border-b",
-                  "right-0 bottom-0 border-r border-b",
-                ].map((corner) => (
-                  <span
-                    key={corner}
-                    className={`absolute h-5 w-5 transition-[border-color] duration-700 ${corner}`}
-                    style={{ borderColor: active.accent }}
+            {!reduceMotion && (
+              <>
+                <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible">
+                  <line
+                    ref={leaderRef}
+                    stroke={active.accent}
+                    strokeWidth="1"
+                    strokeDasharray="3 5"
+                    opacity="0.6"
+                    className="transition-[stroke] duration-700"
                   />
-                ))}
-              </div>
-            </>
-          )}
+                </svg>
+
+                {/* Retícula: cuatro esquinas que encuadran al dron. */}
+                <div
+                  ref={reticleRef}
+                  className="pointer-events-none absolute left-0 top-0 opacity-90"
+                  style={{ willChange: "transform, width, height" }}
+                >
+                  {[
+                    "left-0 top-0 border-l border-t",
+                    "right-0 top-0 border-r border-t",
+                    "left-0 bottom-0 border-l border-b",
+                    "right-0 bottom-0 border-r border-b",
+                  ].map((corner) => (
+                    <span
+                      key={corner}
+                      className={`absolute h-5 w-5 transition-[border-color] duration-700 ${corner}`}
+                      style={{ borderColor: active.accent }}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
 
           {/* Panel de texto: cambia de cuadrante según dónde esté el dron. */}
           <div
