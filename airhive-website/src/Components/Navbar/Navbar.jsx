@@ -7,6 +7,15 @@ import useAutoHideHeader from "./useAutoHideHeader";
 
 const NAV_H = 64; // alto aproximado del header, para la franja que vigila
 
+/**
+ * Enlaces que no se muestran por ahora.
+ *
+ * Es ocultar, no quitar: las rutas siguen registradas en MainLayout y las
+ * páginas intactas, porque se van a volver a usar. Para devolver uno al menú
+ * basta con sacar su clave de esta lista; no hay que tocar el JSX.
+ */
+const OCULTOS = new Set(["products", "how_we_work"]);
+
 const productItems = [
   { key: "drone_inventory", to: "/products#drone-inventory" },
 ];
@@ -77,7 +86,7 @@ const Navbar = () => {
             <img
               src={logo}
               alt="Air Hive"
-              className={`h-9 w-auto transition duration-300 ${onDark ? "brightness-0 invert" : ""}`}
+              className={`h-7 w-auto transition duration-300 ${onDark ? "brightness-0 invert" : ""}`}
             />
           </Link>
 
@@ -88,6 +97,7 @@ const Navbar = () => {
               </Link>
             </li>
 
+            {!OCULTOS.has("products") && (
             <li
               className="relative"
               onMouseEnter={() => setProductsOpen(true)}
@@ -117,12 +127,15 @@ const Navbar = () => {
                 ))}
               </div>
             </li>
+            )}
 
+            {!OCULTOS.has("how_we_work") && (
             <li>
               <Link to="/services#como-trabajamos" className="transition duration-300 hover:-translate-y-0.5 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">
                 {t("navbar.how_we_work")}
               </Link>
             </li>
+            )}
             <li>
               <Link to="/about" className="transition duration-300 hover:-translate-y-0.5 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">
                 {t("navbar.about")}
@@ -169,6 +182,7 @@ const Navbar = () => {
                   {t("navbar.home_short")}
                 </Link>
               </li>
+              {!OCULTOS.has("products") && (
               <li className="rounded-lg border border-[#162A42]/10 px-3 py-2">
                 <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#162A42]/65">{t("navbar.cases")}</p>
                 <div className="space-y-1">
@@ -179,11 +193,14 @@ const Navbar = () => {
                   ))}
                 </div>
               </li>
+              )}
+              {!OCULTOS.has("how_we_work") && (
               <li>
                 <Link to="/services#como-trabajamos" className="block rounded-lg px-3 py-2 hover:bg-[#162A42]/5">
                   {t("navbar.how_we_work")}
                 </Link>
               </li>
+              )}
               <li>
                 <Link to="/about" className="block rounded-lg px-3 py-2 hover:bg-[#162A42]/5">
                   {t("navbar.about")}
