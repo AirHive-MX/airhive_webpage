@@ -535,5 +535,32 @@
                 "text": "Gains altitude, moves to the next location and keeps going. Every count lands in the Air Hive WMS in real time."
             }
         }
+    },
+    "wms": {
+        "kicker": "FROM FLIGHT TO SYSTEM",
+        "title": "Everything the drone read is already in the WMS.",
+        "cta": "See products",
+        "steps": {
+            "ingesta": {
+                "kicker": "Ingest",
+                "title": "Every read lands on its own",
+                "text": "The moment the drone reads a location, the bin, the label and the photo show up in the system. Nobody keys anything in."
+            },
+            "contraste": {
+                "kicker": "Reconcile",
+                "title": "Checked against what should be there",
+                "text": "The WMS matches each read against its own record and flags every bin as a match or a discrepancy."
+            },
+            "cobertura": {
+                "kicker": "Coverage",
+                "title": "You know what was counted and what's left",
+                "text": "The flight reports positions read, labels to review and anything left unplaced. Progress updates live."
+            },
+            "evidencia": {
+                "kicker": "Evidence",
+                "title": "Every bin keeps its photo",
+                "text": "When a count doesn't add up, you check the image from your desk instead of walking back to the aisle."
+            }
+        }
     }
 }

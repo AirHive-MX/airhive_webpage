@@ -5,6 +5,8 @@ import { FaWhatsapp } from "react-icons/fa";
 import logo from "/ah-monograma.png";
 import useAutoHideHeader from "./useAutoHideHeader";
 
+const NAV_H = 64; // alto aproximado del header, para la franja que vigila
+
 const productItems = [
   { key: "drone_inventory", to: "/products#drone-inventory" },
 ];
@@ -13,6 +15,7 @@ const productItems = [
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [productsOpen, setProductsOpen] = useState(false);
+  const [onLight, setOnLight] = useState(false);
   const location = useLocation();
   const { t } = useTranslation();
   const isHome = location.pathname === "/";
@@ -22,9 +25,29 @@ const Navbar = () => {
     setProductsOpen(false);
   }, [location.pathname, location.hash]);
 
+  /*
+   * El home es oscuro salvo la sección del WMS, que enseña una captura sobre
+   * fondo claro. En vez de codificar aquí qué sección es cuál, el header vigila
+   * una franja de su propia altura y se entera de si lo que tiene debajo lleva
+   * data-nav-light. Cualquier sección clara que se añada después funciona sola.
+   */
+  useEffect(() => {
+    const claro = document.querySelector("[data-nav-light]");
+    if (!claro) {
+      setOnLight(false);
+      return undefined;
+    }
+    const observer = new IntersectionObserver(
+      ([entrada]) => setOnLight(entrada.isIntersecting),
+      { rootMargin: `0px 0px -${Math.max(window.innerHeight - NAV_H, 0)}px 0px` }
+    );
+    observer.observe(claro);
+    return () => observer.disconnect();
+  }, [location.pathname]);
+
   // Sin fondo propio: el header flota sobre el contenido. Lo único que cambia
-  // por ruta es el color del texto, porque el home es oscuro y el resto claro.
-  const onDark = isHome;
+  // es el color del texto, según lo que tenga debajo en ese momento.
+  const onDark = isHome && !onLight;
 
   const visible = useAutoHideHeader({
     pinned: isOpen || productsOpen,
@@ -43,7 +66,7 @@ const Navbar = () => {
         }`}
       >
         <nav
-          className={`flex w-full items-center justify-between px-4 py-3 sm:px-6 lg:px-10 ${
+          className={`flex w-full items-center justify-between px-4 py-3 transition-colors duration-300 sm:px-6 lg:px-10 ${
             onDark ? "text-white" : "text-[#162A42]"
           }`}
         >
@@ -54,7 +77,7 @@ const Navbar = () => {
             <img
               src={logo}
               alt="Air Hive"
-              className={`h-9 w-auto transition duration-500 ${onDark ? "brightness-0 invert" : ""}`}
+              className={`h-9 w-auto transition duration-300 ${onDark ? "brightness-0 invert" : ""}`}
             />
           </Link>
 
