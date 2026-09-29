@@ -1,14 +1,128 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <!-- icon -->
     <link rel="icon" type="image/png" href="/AH DEFINITIVO.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#060D96" />
     <title>Air Hive</title>
+
+    <!--
+      Estos dos no se pedían hasta que React montaba. Adelantándolos aquí bajan
+      en paralelo con el bundle, así que la espera se acorta de verdad, no solo
+      se tapa.
+    -->
+    <link rel="preload" as="image" href="/renders/drone/desktop/0001.webp" />
+    <link rel="preload" as="image" href="/fondo-ciudad.webp" />
+
+    <!--
+      La pantalla de carga vive aquí y no en React a propósito: como componente
+      solo aparecería DESPUÉS de descargar y montar el bundle, que es justo el
+      tramo en que la página está en blanco. Escrita en el HTML, pinta en el
+      primer fotograma del navegador.
+
+      El logo va incrustado en base64 por lo mismo: una petición aparte llegaría
+      después del fondo y se vería aparecer en dos tiempos.
+    -->
+    <style>
+      #ah-carga {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
+        background: #060d96;
+        transition: opacity 500ms ease;
+      }
+      #ah-carga.se-va {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #ah-carga img {
+        width: 132px;
+        height: auto;
+        /* El monograma es azul de marca; aquí se necesita blanco. */
+        filter: brightness(0) invert(1);
+        animation: ah-latido 1.6s ease-in-out infinite;
+      }
+      #ah-carga p {
+        margin: 0;
+        font:
+          500 0.7rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+        letter-spacing: 0.18em;
+        color: rgb(255 255 255 / 55%);
+        font-variant-numeric: tabular-nums;
+      }
+      @keyframes ah-latido {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.62;
+          transform: scale(0.965);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #ah-carga img {
+          animation: none;
+        }
+      }
+    </style>
   </head>
   <body>
+    <div id="ah-carga" role="status" aria-label="Cargando Air Hive">
+      <img src="data:image/png;base64,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" alt="" />
+      <p id="ah-carga-pct">0%</p>
+    </div>
+
     <div id="root"></div>
+
+    <script>
+      /*
+       * Puente mínimo para que la app avise. Dos guardas:
+       * - un mínimo, para que con caché caliente no dé un parpadeo;
+       * - un máximo, para que una conexión mala o un fallo de JS no deje a
+       *   nadie atrapado mirando el logo.
+       */
+      (function () {
+        var capa = document.getElementById("ah-carga");
+        var texto = document.getElementById("ah-carga-pct");
+        var nacio = Date.now();
+        var MINIMO = 500;
+        var MAXIMO = 5000;
+        var cerrada = false;
+
+        function cerrar() {
+          if (cerrada) return;
+          cerrada = true;
+          var espera = Math.max(0, MINIMO - (Date.now() - nacio));
+          setTimeout(function () {
+            texto.textContent = "100%";
+            capa.classList.add("se-va");
+            setTimeout(function () {
+              capa.remove();
+            }, 520);
+          }, espera);
+        }
+
+        window.__ahCarga = {
+          progreso: function (f) {
+            if (cerrada) return;
+            texto.textContent = Math.round(Math.min(Math.max(f, 0), 1) * 100) + "%";
+          },
+          cerrar: cerrar,
+        };
+
+        setTimeout(cerrar, MAXIMO);
+      })();
+    </script>
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
