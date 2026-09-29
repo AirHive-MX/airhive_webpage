@@ -79,6 +79,49 @@ const CITY_FADE = 18; // fotogramas que tarda en irse, terminando en SCENE_FROM
 const MOSTRAR_CTA = false;
 
 /**
+ * Superficie común de los globos de texto: los cuatro de los actos y los dos
+ * del epílogo. Vive en una constante para que no se separen con el tiempo.
+ *
+ * Antes era el cristal esmerilado de siempre: muy translúcido, esquinas muy
+ * redondas y un borde de 1px dando la vuelta entera. Sobre el cartón del fondo
+ * el texto se lavaba y el conjunto se leía blando. Ahora el fondo es casi
+ * opaco (90%) y bastante más oscuro que el azul de marca, para que el blanco
+ * tenga contra qué apoyarse; el borde se cambió por un ring interior al 7%,
+ * que marca el canto sin dibujar una caja; el radio baja de 16 a 14 px, que a
+ * este tamaño se lee construido y no burbuja; y la sombra es larga y muy
+ * difusa, para que el globo se despegue de la foto sin mancharla.
+ *
+ * El color no va en el fondo ni en el borde: va en un filo de 3px a la
+ * izquierda. Es lo único que cambia de un acto a otro y basta para
+ * identificarlo, sin teñir el texto ni encerrarlo.
+ */
+const GLOBO =
+  "relative overflow-hidden rounded-[14px] shadow-[0_26px_70px_-28px_rgba(0,0,0,0.85)] ring-1 backdrop-blur-xl transition-colors duration-700";
+
+/**
+ * La superficie cambia con el fondo que hay detrás.
+ *
+ * Medida sobre las propias fotos: la ciudad promedia un gris frío (#697173) y
+ * el almacén un cálido (#836E60), porque es cartón. El azul muy oscuro se
+ * apoya bien en el primero, pero sobre el segundo se lee como un recorte de
+ * la escena anterior pegado encima: es el color complementario justo del
+ * fondo. Del acto 2 en adelante la superficie pasa a un grafito cálido, que
+ * es lo que se pone en impresión sobre una imagen cálida. Sigue siendo casi
+ * negro, pero pertenece a la foto en vez de discutir con ella.
+ *
+ * El cambio cae en el fotograma 120, que es donde entra el almacén y donde el
+ * panel cambia de texto de todas formas: se releva junto con el contenido, no
+ * como un recoloreado a media frase.
+ */
+const SUPERFICIE = {
+  ciudad: "bg-[#0A1322]/90 ring-white/[0.07]",
+  almacen: "bg-[#17130F]/92 ring-white/[0.10]",
+};
+
+/** Los globos del epílogo no pertenecen a ningún acto: llevan el azul de marca. */
+const ACENTO_EPILOGO = "#2A47F6";
+
+/**
  * Lo que la pantalla de carga espera antes de retirarse.
  *
  * No basta el primer fotograma: se iría al instante y el porcentaje saltaría de
@@ -239,9 +282,40 @@ const EPILOGO_FROM = 240;
 const TARJETA_TOP = 76; // desde dónde cuelga el panel del WMS
 const TARJETA_MARGEN = 88; // aire que se le deja abajo, sobre la barra inferior
 
+/*
+ * `nota` es el globo de arriba a la derecha: qué es lo que se está viendo. Va
+ * suelto del componente de la tarjeta a propósito, porque no es parte de la
+ * interfaz del WMS sino de la web que la enseña.
+ *
+ * Son pasos y no un párrafo. En prosa las tres ideas se leían amontonadas y
+ * había que desenredarlas; numeradas y separadas por un filete se ve de un
+ * vistazo que son tres cosas y en qué orden pasan. Tampoco llevan título: el
+ * nombre ya está en la tarjeta de al lado, a cuerpo grande, y repetirlo era
+ * ruido.
+ */
 const EPILOGO_TARJETAS = [
-  { desde: 248, Componente: TarjetaConteo },
-  { desde: 308, Componente: TarjetaLecturas },
+  {
+    desde: 248,
+    Componente: TarjetaConteo,
+    nota: {
+      pasos: [
+        "Cada vuelo recuenta unos racks, no el almacén entero.",
+        "La ronda va rotando por las zonas hasta cubrirlo todo.",
+        "Nunca hay que parar la operación ni cerrar por conteo anual.",
+      ],
+    },
+  },
+  {
+    desde: 308,
+    Componente: TarjetaLecturas,
+    nota: {
+      pasos: [
+        "El dron lee etiqueta, código y foto en cada ubicación.",
+        "Cada lectura se compara contra lo que dice el WMS.",
+        "Lo que no cuadra queda marcado para revisar.",
+      ],
+    },
+  },
 ];
 
 const tarjetaEpilogo = (frame) => {
@@ -556,6 +630,9 @@ const DroneShowcase = () => {
     return `top-0 w-[min(22rem,calc(100%-3rem))] ${edge}`;
   }, [panelSide]);
 
+  /* El acto 1 transcurre sobre la ciudad; del 2 en adelante, sobre el almacén. */
+  const superficie = epilogo || chapter > 0 ? SUPERFICIE.almacen : SUPERFICIE.ciudad;
+
   return (
     <section
       ref={sectionRef}
@@ -691,23 +768,37 @@ const DroneShowcase = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="rounded-2xl border border-white/10 bg-[#162A42]/70 p-6 backdrop-blur-md"
+                className={`${GLOBO} ${superficie} px-6 py-5`}
               >
-                <div className="flex items-center gap-3">
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-y-0 left-0 w-[3px] transition-colors duration-700"
+                  style={{ backgroundColor: active.accent }}
+                />
+
+                {/* Número y rótulo en una sola línea, separados por un filete.
+                    El número iba en negrita y al mismo cuerpo que el rótulo, y
+                    competía con el titular; aquí queda como referencia, no
+                    como dato. */}
+                <div className="flex items-center gap-2.5">
                   <span
-                    className="font-mono text-xs font-semibold transition-colors duration-700"
+                    className="font-mono text-[0.68rem] font-medium tabular-nums transition-colors duration-700"
                     style={{ color: active.accent }}
                   >
                     {pad(chapter + 1).slice(2)}
                   </span>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
+                  <span aria-hidden="true" className="h-3 w-px bg-white/15" />
+                  <p className="text-[0.62rem] font-medium uppercase tracking-[0.22em] text-white/45">
                     {t(`showcase.chapters.${active.key}.kicker`)}
                   </p>
                 </div>
-                <h3 className="mt-3 text-xl font-semibold sm:text-2xl">
+
+                {/* Interletraje negativo y menos interlínea: a este cuerpo el
+                    titular por defecto queda suelto y se lee genérico. */}
+                <h3 className="mt-3 text-[1.3rem] font-semibold leading-[1.18] tracking-[-0.015em] sm:text-[1.45rem]">
                   {t(`showcase.chapters.${active.key}.title`)}
                 </h3>
-                <p className="mt-3 text-sm leading-relaxed text-white/70">
+                <p className="mt-2.5 text-[0.85rem] leading-[1.65] text-white/60">
                   {t(`showcase.chapters.${active.key}.text`)}
                 </p>
               </motion.div>
@@ -719,7 +810,7 @@ const DroneShowcase = () => {
         {/* Los paneles del WMS. Van fuera del escenario y con su propio
             contenedor porque son bastante más altos que las tarjetas de los
             actos, y necesitan toda la altura del sticky. */}
-        <div className="ah-container pointer-events-none absolute inset-x-0 z-10"
+        <div className="ah-container pointer-events-none absolute inset-x-0 z-10 flex items-start justify-between gap-6"
           style={{ top: TARJETA_TOP }}>
           <AnimatePresence mode="wait">
             {tarjeta && (
@@ -740,6 +831,46 @@ const DroneShowcase = () => {
                   <tarjeta.Componente />
                 </div>
               </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Qué es lo que se está viendo, en una frase. Va arriba a la
+              derecha, el único cuadrante que queda libre en el epílogo: la
+              tarjeta ocupa la izquierda y el dron el centro. Debajo de md no
+              hay tal cuadrante (la tarjeta ya es todo el ancho), así que no
+              se enseña en vez de apilarse encima. */}
+          <AnimatePresence mode="wait">
+            {tarjeta?.nota && (
+              <motion.aside
+                key={`nota-${tarjeta.desde}`}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -14 }}
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                className={`${GLOBO} ${SUPERFICIE.almacen} hidden w-[17rem] shrink-0 px-5 py-4 md:block`}
+              >
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-y-0 left-0 w-[3px]"
+                  style={{ backgroundColor: ACENTO_EPILOGO }}
+                />
+                {/* El filete entre pasos hace el trabajo que hacían los
+                    puntos y aparte, y ocupa menos. El número va en monoespacio
+                    y cifras tabulares para que los tres queden en columna. */}
+                <ol className="divide-y divide-white/[0.07]">
+                  {tarjeta.nota.pasos.map((paso, i) => (
+                    <li key={paso} className="flex gap-3 py-2.5 first:pt-0 last:pb-0">
+                      <span
+                        className="mt-px shrink-0 font-mono text-[0.62rem] tabular-nums"
+                        style={{ color: ACENTO_EPILOGO }}
+                      >
+                        {pad(i + 1).slice(2)}
+                      </span>
+                      <p className="text-[0.8rem] leading-[1.5] text-white/70">{paso}</p>
+                    </li>
+                  ))}
+                </ol>
+              </motion.aside>
             )}
           </AnimatePresence>
         </div>
