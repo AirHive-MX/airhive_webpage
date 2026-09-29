@@ -5,6 +5,7 @@ import {
   useMotionValueEvent,
   useReducedMotion,
   useScroll,
+  useTransform,
 } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -124,6 +125,83 @@ const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
 const centerOf = ([l, t, r, b]) => [(l + r) / 2, (t + b) / 2];
 
 /**
+ * Alto de la sección. Es el mando del ritmo general: todo el recorrido se
+ * consume entre que su borde superior toca el alto de la pantalla y que lo
+ * toca su borde inferior, o sea en ALTO_VH - 100 pantallas de scroll.
+ */
+const ALTO_VH = 1700;
+
+/**
+ * Ritmo del recorrido: cuánto scroll cuesta cada tramo.
+ *
+ * Con el reparto lineal anterior, cada muesca de rueda se llevaba siete u ocho
+ * fotogramas y los momentos que hay que mirar pasaban antes de que diera
+ * tiempo a frenar. Aquí cada tramo declara lo que pesa respecto a los demás:
+ * peso 1 es el paso normal y todo lo que sube de ahí es "aquí hay que poder
+ * detenerse". Los pesos son relativos, así que tocar uno no descuadra el
+ * resto: solo le quita o le da sitio dentro del mismo alto total.
+ *
+ * `hasta` es el fotograma donde termina el tramo.
+ */
+const RITMO = [
+  { hasta: 12, peso: 1.8 }, // el titular, antes de que empiece a girar
+  { hasta: 108, peso: 1.0 }, // la vuelta de 360°
+  { hasta: 132, peso: 1.7 }, // se va la ciudad y entra el almacén
+  /*
+   * Los actos 2, 3 y 4 duran 58, 36 y 26 fotogramas contra los 120 del
+   * primero, y cada uno trae un texto distinto en el panel. Repartiendo el
+   * scroll a peso parejo, el acto 4 se despachaba en seis muescas de rueda:
+   * el texto aparecía y se iba sin que diera tiempo a leerlo. El peso sube
+   * según el acto se acorta, para que los tres duren más o menos lo mismo en
+   * scroll aunque no duren lo mismo en fotogramas. No hay descanso aparte al
+   * principio de cada uno: el acto entero es el descanso.
+   */
+  { hasta: 178, peso: 2.2 }, // acto 2 · despegue
+  { hasta: 214, peso: 2.8 }, // acto 3 · conteo
+  { hasta: 240, peso: 3.4 }, // acto 4 · ruta
+  { hasta: 248, peso: 1.0 },
+  { hasta: 276, peso: 2.4 }, // entra la tarjeta del conteo: hay que leerla
+  { hasta: 308, peso: 1.0 },
+  { hasta: 336, peso: 2.4 }, // entra la tarjeta de lecturas: hay que leerla
+  { hasta: TOTAL_FRAMES, peso: 1.1 },
+];
+
+/** Tramos con su coste acumulado, para poder ir del scroll al fotograma. */
+const RITMO_TRAMOS = (() => {
+  const tramos = [];
+  let desde = 0;
+  let acumulado = 0;
+  for (const { hasta, peso } of RITMO) {
+    const coste = (hasta - desde) * peso;
+    tramos.push({ desde, hasta, antes: acumulado, coste });
+    acumulado += coste;
+    desde = hasta;
+  }
+  return { tramos, total: acumulado };
+})();
+
+/**
+ * Scroll 0..1 -> avance del recorrido 0..1.
+ *
+ * Es la inversa del reparto de arriba: se busca en qué tramo cae el coste
+ * consumido y se interpola dentro de él. Sale una curva continua, sin saltos
+ * en las costuras, porque los extremos de cada tramo coinciden por
+ * construcción con los del siguiente.
+ */
+const avanceDelScroll = (p) => {
+  const coste = clamp01(p) * RITMO_TRAMOS.total;
+  const { tramos } = RITMO_TRAMOS;
+  for (let i = 0; i < tramos.length; i += 1) {
+    const tr = tramos[i];
+    if (coste <= tr.antes + tr.coste || i === tramos.length - 1) {
+      const dentro = tr.coste > 0 ? clamp01((coste - tr.antes) / tr.coste) : 0;
+      return (tr.desde + dentro * (tr.hasta - tr.desde)) / TOTAL_FRAMES;
+    }
+  }
+  return 1;
+};
+
+/**
  * Lado en que vive el panel durante cada capítulo: el contrario al que ocupa el
  * dron en promedio. Se decide por capítulo y no cuadro a cuadro para que el
  * salto coincida con el cambio de texto, en vez de brincar a media maniobra.
@@ -241,6 +319,14 @@ const DroneShowcase = () => {
     offset: ["start start", "end end"],
   });
 
+  /*
+   * El recorrido no consume el scroll a ritmo constante: RITMO le da más sitio
+   * a los momentos que hay que mirar. De aquí en adelante manda `avance`, no
+   * `scrollYProgress`, para que la secuencia, la retícula, los fondos y las
+   * tarjetas vayan todos por la misma curva.
+   */
+  const avance = useTransform(scrollYProgress, avanceDelScroll);
+
   /**
    * Pone retícula y línea guía sobre el dron del fotograma pedido. Escribe
    * directo al DOM: por estado sería un render de React por fotograma.
@@ -318,13 +404,13 @@ const DroneShowcase = () => {
         const y = (stage.offsetTop ?? 84) + desfase + layout.y + 0.502 * layout.height;
         setHorizonte((prev) => (Math.abs(prev - y) < 0.5 ? prev : y));
       }
-      placeOverlay(frameFromProgress(scrollYProgress.get()), sideRef.current);
-      colocarPanel(chapterAt(frameFromProgress(scrollYProgress.get())));
+      placeOverlay(frameFromProgress(avance.get()), sideRef.current);
+      colocarPanel(chapterAt(frameFromProgress(avance.get())));
     },
-    [colocarPanel, frameFromProgress, placeOverlay, scrollYProgress]
+    [colocarPanel, frameFromProgress, placeOverlay, avance]
   );
 
-  useMotionValueEvent(scrollYProgress, "change", (value) => {
+  useMotionValueEvent(avance, "change", (value) => {
     const frame = frameFromProgress(value);
     const [cx, cy] = centerOf(DRONE_TRACK[frame] ?? DRONE_TRACK[0]);
     const next = chapterAt(frame);
@@ -352,7 +438,7 @@ const DroneShowcase = () => {
   });
 
   useEffect(() => {
-    const frame = frameFromProgress(scrollYProgress.get());
+    const frame = frameFromProgress(avance.get());
     const [cx, cy] = centerOf(DRONE_TRACK[frame] ?? DRONE_TRACK[0]);
     placeDot(cx, cy);
 
@@ -366,7 +452,7 @@ const DroneShowcase = () => {
     // fotograma. Siguiendo al dron cuadro a cuadro copiaba su oscilación y
     // parecía que rebotaba.
     colocarPanel(chapter);
-  }, [chapter, colocarPanel, frameFromProgress, placeDot, placeOverlay, scrollYProgress]);
+  }, [chapter, colocarPanel, frameFromProgress, placeDot, placeOverlay, avance]);
 
   /** Reporta a la pantalla de carga y la retira cuando el conjunto está listo. */
   const avisarCarga = useCallback((fraccionFrames) => {
@@ -474,7 +560,8 @@ const DroneShowcase = () => {
     <section
       ref={sectionRef}
       data-ah-no-reveal
-      className="relative h-[700vh] bg-[#162A42] text-white"
+      className="relative bg-[#162A42] text-white"
+      style={{ height: `${ALTO_VH}vh` }}
       aria-label={t("showcase.title")}
     >
       <div className="sticky top-0 h-screen overflow-hidden">
@@ -544,7 +631,7 @@ const DroneShowcase = () => {
             style={{ width: `${DRONE_SCALE * 100}%`, height: `${DRONE_SCALE * 100}%` }}
           >
             <ScrollSequence
-              progress={scrollYProgress}
+              progress={avance}
               frameCount={frameCount}
               srcFor={srcFor}
               onLoadProgress={(f) => {
