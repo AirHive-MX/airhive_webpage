@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowRight, MousePointer2 } from "lucide-react";
 import ScrollSequence from "../ScrollSequence/ScrollSequence";
 import DRONE_TRACK from "./droneTrack";
+import { TarjetaConteo, TarjetaLecturas } from "./WmsCards";
 
 /**
  * Recorrido del dron Air Hive controlado por el scroll.
@@ -29,7 +30,7 @@ import DRONE_TRACK from "./droneTrack";
  * el encuadre se reacomoda solo.
  */
 
-const TOTAL_FRAMES = 240;
+const TOTAL_FRAMES = 360;
 
 /**
  * El almacén entra cuando el dron deja de girar y se pone a escanear: antes es
@@ -59,8 +60,12 @@ const CITY_FADE = 18; // fotogramas que tarda en irse, terminando en SCENE_FROM
  * mejora el margen pero las cajas acaban del doble del dron. A 160% una caja y
  * el dron miden parecido, que es la proporción creíble.
  *
- * Es aproximado, no exacto: durante el descenso del acto 3 el dron sí cruza una
- * viga. En las dos posiciones donde uno se detiene a leer, no.
+ * Al llegar los fotogramas 241-360 apareció una tercera posición de reposo, y
+ * con el encuadre anterior el dron pasaba esos 120 fotogramas delante de una
+ * viga. Se rehizo la búsqueda sobre los 360, pidiendo esta vez que el centro
+ * del dron caiga en cajas en el mayor número de fotogramas posible y no solo en
+ * los reposos: con 120% y posición 33% se cumple en los 360, en las siete
+ * resoluciones. El rango válido va de 29.4% a 36.9%; se toma el centro.
  */
 /* La ciudad acompaña el giro; el almacén entra cuando empieza el escaneo. Se
    cruzan en la misma ventana de fotogramas, así que es un solo fundido. */
@@ -72,8 +77,23 @@ const CITY_FADE = 18; // fotogramas que tarda en irse, terminando en SCENE_FROM
  */
 const MOSTRAR_CTA = false;
 
+/**
+ * Lo que la pantalla de carga espera antes de retirarse.
+ *
+ * No basta el primer fotograma: se iría al instante y el porcentaje saltaría de
+ * 0 a 100. Y esperar los 240 serían 8.4 MB. El punto medio es la primera pasada
+ * del precargador (un fotograma de cada 16, que cubre el giro entero) más la
+ * foto de la ciudad: al levantarse ya se puede hacer scroll sin tirones.
+ *
+ * Los pesos son proporcionales a lo que ocupa cada parte, para que el número
+ * suba parejo en vez de a saltos.
+ */
+const CARGA_FRAMES = 15;
+const CARGA_PESO_FRAMES = 0.67; // ~540 KB
+const CARGA_PESO_CIUDAD = 0.33; // ~260 KB
+
 const SCENE_ZOOM = "120%";
-const SCENE_POS = "100%";
+const SCENE_POS = "33%";
 
 /**
  * El dron se dibuja un 28% más grande que el escenario, para que domine sobre
@@ -81,7 +101,7 @@ const SCENE_POS = "100%";
  * abajo de la pantalla en las resoluciones cortas.
  */
 const DRONE_SCALE = 1.28;
-const MOBILE_FRAMES = 120; // Un fotograma de cada dos: la mitad de bytes en móvil.
+const MOBILE_FRAMES = 180; // Un fotograma de cada dos: la mitad de bytes en móvil.
 
 /**
  * Capítulos alineados a la coreografía real, no repartidos en cuartos iguales.
@@ -113,6 +133,51 @@ const CHAPTER_SIDES = CHAPTERS.map((chapter, index) => {
   const frames = DRONE_TRACK.slice(from, chapter.until);
   const avg = frames.reduce((sum, box) => sum + centerOf(box)[0], 0) / frames.length;
   return avg > 0.5 ? "left" : "right";
+});
+
+/**
+ * Altura a la que se ancla el panel en cada capítulo.
+ *
+ * Antes seguía al dron fotograma a fotograma, y como durante el giro el dron
+ * oscila unos 11 px, el panel copiaba ese vaivén y parecía que rebotaba. Ahora
+ * se fija una vez por acto: se mueve cuando cambia el capítulo, que es cuando
+ * tiene sentido, y el resto del tiempo se queda quieto.
+ *
+ * Se usa la mediana y no el promedio: en los actos en que el dron desciende,
+ * la mediana cae donde de verdad se detiene, no a mitad del recorrido.
+ */
+/**
+ * A partir de aquí el recorrido continúa pero todavía no tiene texto asignado.
+ * Se ocultan el panel, su línea guía y el rótulo del acto: dejarlos mostraría
+ * el último acto durante 120 fotogramas en los que ya no está pasando eso.
+ */
+const EPILOGO_FROM = 240;
+
+/**
+ * Los dos paneles del WMS, repartidos por el epílogo. El orden es indistinto:
+ * son dos vistas del mismo vuelo, no una secuencia. Se sostiene cada una la
+ * mitad del tramo para que dé tiempo a leerlas.
+ */
+const TARJETA_TOP = 76; // desde dónde cuelga el panel del WMS
+const TARJETA_MARGEN = 88; // aire que se le deja abajo, sobre la barra inferior
+
+const EPILOGO_TARJETAS = [
+  { desde: 248, Componente: TarjetaConteo },
+  { desde: 308, Componente: TarjetaLecturas },
+];
+
+const tarjetaEpilogo = (frame) => {
+  let elegida = null;
+  for (const t of EPILOGO_TARJETAS) if (frame >= t.desde) elegida = t;
+  return elegida;
+};
+
+const CHAPTER_ANCHORS = CHAPTERS.map((chapter, index) => {
+  const from = index === 0 ? 0 : CHAPTERS[index - 1].until;
+  const centros = DRONE_TRACK.slice(from, chapter.until)
+    .map((box) => centerOf(box)[1])
+    .sort((a, b) => a - b);
+  return centros[Math.floor(centros.length / 2)];
 });
 
 /** Trayectoria del vuelo (del fotograma 120 en adelante) para el minimapa. */
@@ -152,7 +217,13 @@ const DroneShowcase = () => {
   const stackedRef = useRef(false); // en móvil el panel va abajo, sin seguimiento
   const [isMobile, setIsMobile] = useState(false);
   const [chapter, setChapter] = useState(0);
-  const [loaded, setLoaded] = useState(0);
+  const [epilogo, setEpilogo] = useState(false);
+  const [tarjeta, setTarjeta] = useState(null);
+  const tarjetaRef = useRef(null);
+  const [escalaTarjeta, setEscalaTarjeta] = useState(1);
+  const ciudadListaRef = useRef(0);
+  const loadedRef = useRef(0);
+  const cerradaRef = useRef(false);
 
   useEffect(() => {
     const query = window.matchMedia("(max-width: 767px)");
@@ -179,10 +250,6 @@ const DroneShowcase = () => {
     const stage = stageRef.current;
     const field = fieldRef.current;
     if (!layout || !stage || !field) return;
-    // El canvas es más grande que el escenario y está centrado en él: lo que se
-    // dibuja dentro del canvas hay que correrlo por esa diferencia para
-    // colocarlo en coordenadas del escenario.
-    const desfase = (stage.clientHeight - field.clientHeight) / 2;
 
     const [l, top, r, bottom] = DRONE_TRACK[frame] ?? DRONE_TRACK[0];
     const x = layout.x + l * layout.width;
@@ -199,6 +266,7 @@ const DroneShowcase = () => {
 
     const leader = leaderRef.current;
     if (leader) {
+      leader.setAttribute("opacity", frame >= EPILOGO_FROM ? "0" : "0.6");
       // De la orilla de la retícula al borde del escenario donde vive el panel.
       const fromX = panelSide === "right" ? x + w : x;
       const toX = panelSide === "right" ? field.clientWidth : 0;
@@ -207,20 +275,6 @@ const DroneShowcase = () => {
       leader.setAttribute("x2", toX);
       leader.setAttribute("y2", y + h / 2);
     }
-
-    // El panel acompaña al dron en vertical, sin salirse del escenario. En
-    // móvil vive anclado abajo: moverlo ahí solo lo sacaría de cuadro.
-    const panel = panelRef.current;
-    if (panel) {
-      if (stackedRef.current) {
-        panel.style.transform = "";
-      } else {
-        const max = stage.clientHeight - panel.offsetHeight;
-        const centro = desfase + y + h / 2 - panel.offsetHeight / 2;
-        const top = Math.min(Math.max(centro, 0), Math.max(max, 0));
-        panel.style.transform = `translate3d(0, ${top}px, 0)`;
-      }
-    }
   }, []);
 
   /** Punto del minimapa. Vive en el mismo 0..1 del viewBox. */
@@ -228,6 +282,25 @@ const DroneShowcase = () => {
     if (!pathDotRef.current) return;
     pathDotRef.current.setAttribute("cx", cx.toFixed(4));
     pathDotRef.current.setAttribute("cy", cy.toFixed(4));
+  }, []);
+
+  /** Fija el panel a la altura del capítulo. Solo cambia al cambiar de acto. */
+  const colocarPanel = useCallback((indice) => {
+    const panel = panelRef.current;
+    const stage = stageRef.current;
+    const field = fieldRef.current;
+    const layout = layoutRef.current;
+    if (!panel || !stage || !field || !layout) return;
+
+    if (stackedRef.current) {
+      panel.style.transform = ""; // en móvil vive anclado abajo
+      return;
+    }
+    const desfase = (stage.clientHeight - field.clientHeight) / 2;
+    const centro =
+      desfase + layout.y + CHAPTER_ANCHORS[indice] * layout.height - panel.offsetHeight / 2;
+    const max = stage.clientHeight - panel.offsetHeight;
+    panel.style.transform = `translate3d(0, ${Math.min(Math.max(centro, 0), Math.max(max, 0))}px, 0)`;
   }, []);
 
   const frameFromProgress = useCallback(
@@ -246,8 +319,9 @@ const DroneShowcase = () => {
         setHorizonte((prev) => (Math.abs(prev - y) < 0.5 ? prev : y));
       }
       placeOverlay(frameFromProgress(scrollYProgress.get()), sideRef.current);
+      colocarPanel(chapterAt(frameFromProgress(scrollYProgress.get())));
     },
-    [frameFromProgress, placeOverlay, scrollYProgress]
+    [colocarPanel, frameFromProgress, placeOverlay, scrollYProgress]
   );
 
   useMotionValueEvent(scrollYProgress, "change", (value) => {
@@ -271,6 +345,10 @@ const DroneShowcase = () => {
     }
 
     setChapter((current) => (current === next ? current : next));
+    const enEpilogo = frame >= EPILOGO_FROM;
+    setEpilogo((current) => (current === enEpilogo ? current : enEpilogo));
+    const t = enEpilogo ? tarjetaEpilogo(frame) : null;
+    setTarjeta((current) => (current === t ? current : t));
   });
 
   useEffect(() => {
@@ -284,7 +362,82 @@ const DroneShowcase = () => {
       cityRef.current.style.opacity = clamp01((SCENE_FROM - frame) / CITY_FADE).toFixed(3);
     }
     placeOverlay(frame, sideRef.current);
-  }, [chapter, frameFromProgress, placeDot, placeOverlay, scrollYProgress]);
+    // El panel se recoloca aquí y no en placeOverlay: una vez por acto, no por
+    // fotograma. Siguiendo al dron cuadro a cuadro copiaba su oscilación y
+    // parecía que rebotaba.
+    colocarPanel(chapter);
+  }, [chapter, colocarPanel, frameFromProgress, placeDot, placeOverlay, scrollYProgress]);
+
+  /** Reporta a la pantalla de carga y la retira cuando el conjunto está listo. */
+  const avisarCarga = useCallback((fraccionFrames) => {
+    const carga = window.__ahCarga;
+    if (!carga || cerradaRef.current) return;
+    const total =
+      fraccionFrames * CARGA_PESO_FRAMES + ciudadListaRef.current * CARGA_PESO_CIUDAD;
+    carga.progreso(total);
+    if (total >= 0.999) {
+      cerradaRef.current = true;
+      carga.cerrar();
+    }
+  }, []);
+
+  /* La ciudad es un fondo de CSS y no dispara evento de carga, así que se pide
+     aparte solo para saber cuándo terminó. El navegador reusa la descarga. */
+  useEffect(() => {
+    const img = new Image();
+    const marcar = () => {
+      ciudadListaRef.current = 1;
+      avisarCarga(Math.min(loadedRef.current / CARGA_FRAMES, 1));
+    };
+    img.onload = marcar;
+    img.onerror = marcar; // si falla, no vale la pena retener la pantalla
+    img.src = "/fondo-ciudad.webp";
+  }, [avisarCarga]);
+
+  /*
+   * Los paneles del WMS son fieles al original y eso los hace altos: el de
+   * lecturas mide más que una pantalla corta. En vez de recortarles contenido
+   * se miden y se escalan hasta que quepan, así se conservan enteros y se
+   * adaptan solos a cualquier alto de viewport.
+   *
+   * Se mide con un ref de callback y un ResizeObserver, no con un efecto sobre
+   * `tarjeta`. Dos motivos:
+   *
+   * - AnimatePresence va en modo "wait": un efecto correría mientras la tarjeta
+   *   anterior sigue montada, y mediría la que se va.
+   * - La foto del bin llega por red. Midiendo una sola vez al montar, la
+   *   tarjeta crece después y se sale de pantalla en la primera visita. El
+   *   observador reacciona también a eso, y a las fuentes y al viewport.
+   */
+  const observadorRef = useRef(null);
+
+  const medir = useCallback((el) => {
+    if (!el) return;
+    const disponible = window.innerHeight - TARJETA_TOP - TARJETA_MARGEN;
+    const alto = el.scrollHeight;
+    setEscalaTarjeta(alto > disponible ? Math.max(disponible / alto, 0.62) : 1);
+  }, []);
+
+  const medirTarjeta = useCallback(
+    (el) => {
+      observadorRef.current?.disconnect();
+      tarjetaRef.current = el;
+      if (!el) return;
+      medir(el);
+      observadorRef.current = new ResizeObserver(() => medir(el));
+      observadorRef.current.observe(el);
+    },
+    [medir]
+  );
+
+  useEffect(() => {
+    const alRedimensionar = () => medir(tarjetaRef.current);
+    window.addEventListener("resize", alRedimensionar);
+    return () => {
+      window.removeEventListener("resize", alRedimensionar);
+      observadorRef.current?.disconnect();
+    };
+  }, [medir]);
 
   const frameCount = isMobile ? MOBILE_FRAMES : TOTAL_FRAMES;
 
@@ -309,7 +462,6 @@ const DroneShowcase = () => {
   }, []);
 
   const active = CHAPTERS[chapter];
-  const loading = loaded < 0.98 && !reduceMotion;
   const panelSide = isMobile ? "bottom" : CHAPTER_SIDES[chapter];
 
   const panelClasses = useMemo(() => {
@@ -322,7 +474,7 @@ const DroneShowcase = () => {
     <section
       ref={sectionRef}
       data-ah-no-reveal
-      className="relative h-[500vh] bg-[#162A42] text-white"
+      className="relative h-[700vh] bg-[#162A42] text-white"
       aria-label={t("showcase.title")}
     >
       <div className="sticky top-0 h-screen overflow-hidden">
@@ -395,7 +547,10 @@ const DroneShowcase = () => {
               progress={scrollYProgress}
               frameCount={frameCount}
               srcFor={srcFor}
-              onLoadProgress={setLoaded}
+              onLoadProgress={(f) => {
+              loadedRef.current = f * (isMobile ? MOBILE_FRAMES : TOTAL_FRAMES);
+              avisarCarga(Math.min(loadedRef.current / CARGA_FRAMES, 1));
+            }}
               onLayout={handleLayout}
               className="h-full w-full"
             />
@@ -439,9 +594,10 @@ const DroneShowcase = () => {
           {/* Panel de texto: cambia de cuadrante según dónde esté el dron. */}
           <div
             ref={panelRef}
-            className={`absolute ${panelClasses}`}
+            className={`absolute transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${panelClasses}`}
           >
             <AnimatePresence initial={false} mode="wait">
+              {!epilogo && (
               <motion.div
                 key={active.key}
                 initial={{ opacity: 0, y: 16 }}
@@ -468,8 +624,37 @@ const DroneShowcase = () => {
                   {t(`showcase.chapters.${active.key}.text`)}
                 </p>
               </motion.div>
+              )}
             </AnimatePresence>
           </div>
+        </div>
+
+        {/* Los paneles del WMS. Van fuera del escenario y con su propio
+            contenedor porque son bastante más altos que las tarjetas de los
+            actos, y necesitan toda la altura del sticky. */}
+        <div className="ah-container pointer-events-none absolute inset-x-0 z-10"
+          style={{ top: TARJETA_TOP }}>
+          <AnimatePresence mode="wait">
+            {tarjeta && (
+              <motion.div
+                key={tarjeta.desde}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -14 }}
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {/* El escalado va en un hijo: motion.div ya gobierna el
+                    transform para la animación de entrada y se pisarían. */}
+                <div
+                  ref={medirTarjeta}
+                  className="origin-top-left"
+                  style={{ transform: `scale(${escalaTarjeta})` }}
+                >
+                  <tarjeta.Componente />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Barra inferior: capítulos, lectura y salida */}
@@ -490,7 +675,7 @@ const DroneShowcase = () => {
               ))}
             </div>
             <p className="text-[0.65rem] uppercase tracking-[0.2em] text-white/45">
-              {t(`showcase.chapters.${active.key}.phase`)}
+              {epilogo ? "" : t(`showcase.chapters.${active.key}.phase`)}
             </p>
           </div>
 
@@ -555,16 +740,6 @@ const DroneShowcase = () => {
           )}
         </AnimatePresence>
 
-        <AnimatePresence>
-          {loading && (
-            <motion.div exit={{ opacity: 0 }} className="absolute inset-x-0 top-0 h-0.5 bg-white/10">
-              <div
-                className="h-full bg-[#2A47F6] transition-[width] duration-300"
-                style={{ width: `${Math.round(loaded * 100)}%` }}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </section>
   );

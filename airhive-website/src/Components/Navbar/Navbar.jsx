@@ -14,7 +14,7 @@ const NAV_H = 64; // alto aproximado del header, para la franja que vigila
  * páginas intactas, porque se van a volver a usar. Para devolver uno al menú
  * basta con sacar su clave de esta lista; no hay que tocar el JSX.
  */
-const OCULTOS = new Set(["products", "how_we_work"]);
+const OCULTOS = new Set(["products", "how_we_work", "schedule_diagnostic"]);
 
 const productItems = [
   { key: "drone_inventory", to: "/products#drone-inventory" },
@@ -146,6 +146,7 @@ const Navbar = () => {
                 {t("navbar.free_diagnostic")}
               </Link>
             </li>
+            {!OCULTOS.has("schedule_diagnostic") && (
             <li>
               <a
                 href="https://wa.me/528116070330"
@@ -156,6 +157,7 @@ const Navbar = () => {
                 {t("navbar.schedule_diagnostic")}
               </a>
             </li>
+            )}
           </ul>
 
 
@@ -211,6 +213,7 @@ const Navbar = () => {
                   {t("navbar.free_diagnostic")}
                 </Link>
               </li>
+              {!OCULTOS.has("schedule_diagnostic") && (
               <li>
                 <Link
                   to="/contact"
@@ -219,6 +222,7 @@ const Navbar = () => {
                   {t("navbar.schedule_diagnostic")}
                 </Link>
               </li>
+              )}
               <li>
                 <a
                   href="https://wa.me/528116070330"
