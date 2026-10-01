@@ -327,14 +327,35 @@ const GLOBOS = [
     desde: index === 0 ? 0 : CHAPTERS[index - 1].until,
     hasta: chapter.until,
   })),
-  { key: "wms-0", tipo: "tarjeta", indice: 0, desde: 244, hasta: 306 },
-  { key: "nota-0", tipo: "nota", indice: 0, desde: 250, hasta: 306 },
-  { key: "wms-1", tipo: "tarjeta", indice: 1, desde: 306, hasta: TOTAL_FRAMES },
-  { key: "nota-1", tipo: "nota", indice: 1, desde: 312, hasta: TOTAL_FRAMES },
+  /*
+   * En el epílogo la tarjeta y su nota van en paralelo, una a cada lado. En
+   * móvil no hay dos lados: todo cae en el mismo carril, así que ahí pasan una
+   * detrás de otra. `movil` es ese segundo reparto; los globos que no lo
+   * declaran usan el mismo tramo en las dos.
+   */
+  { key: "wms-0", tipo: "tarjeta", indice: 0, desde: 244, hasta: 306, movil: [244, 282] },
+  { key: "nota-0", tipo: "nota", indice: 0, desde: 250, hasta: 306, movil: [282, 306] },
+  { key: "wms-1", tipo: "tarjeta", indice: 1, desde: 306, hasta: TOTAL_FRAMES, movil: [306, 338] },
+  { key: "nota-1", tipo: "nota", indice: 1, desde: 312, hasta: TOTAL_FRAMES, movil: [338, TOTAL_FRAMES] },
 ];
+
+/** Tramo de un globo, que no es el mismo en escritorio que en móvil. */
+const tramoDe = (globo, enMovil) =>
+  enMovil && globo.movil ? globo.movil : [globo.desde, globo.hasta];
 
 /** Aire de más allá de los bordes, para que ninguno asome a medias. */
 const MARGEN_CREDITO = 32;
+
+/**
+ * Fotograma en que el titular de portada se va, en móvil.
+ *
+ * En escritorio dura todo el acto 1 y no estorba: el globo vive en la columna
+ * de la derecha y el titular en la izquierda. En móvil comparten la única
+ * columna que hay, y el primer globo le subía por encima. Aquí se retira justo
+ * antes de que asome, que además es lo que hace que el globo se lea como lo que
+ * viene después y no como algo encimado.
+ */
+const TITULO_HASTA_MOVIL = 14;
 
 /**
  * Parte del recorrido que se usa para entrar y para salir. Los créditos de
@@ -363,7 +384,7 @@ const recorrido = (p) => p + (FRENO * Math.sin(2 * Math.PI * p)) / (2 * Math.PI)
 
 /** Dónde cruza cada globo: el carril es fijo, solo cambia la altura. */
 const carrilDe = (globo, enMovil) => {
-  if (enMovil) return "inset-x-6";
+  if (enMovil) return "inset-x-6";  // un solo carril: no hay sitio para dos
   if (globo.tipo === "tarjeta") return "left-6 lg:left-[5%]";
   if (globo.tipo === "nota") return "right-6 w-[17rem] lg:right-[5%]";
   const lado = CHAPTER_SIDES[globo.indice] === "right" ? "right-6 lg:right-[5%]" : "left-6 lg:left-[5%]";
@@ -472,6 +493,8 @@ const DroneShowcase = () => {
   const [horizonte, setHorizonte] = useState(0);
   const sideRef = useRef(CHAPTER_SIDES[0]);
   const [isMobile, setIsMobile] = useState(false);
+  const movilRef = useRef(false); // el mismo dato, para los callbacks
+  const [portada, setPortada] = useState(true);
   const [chapter, setChapter] = useState(0);
   const [epilogo, setEpilogo] = useState(false);
 
@@ -489,7 +512,10 @@ const DroneShowcase = () => {
 
   useEffect(() => {
     const query = window.matchMedia("(max-width: 767px)");
-    const sync = () => setIsMobile(query.matches);
+    const sync = () => {
+      movilRef.current = query.matches;
+      setIsMobile(query.matches);
+    };
     sync();
     query.addEventListener("change", sync);
     return () => query.removeEventListener("change", sync);
@@ -571,7 +597,8 @@ const DroneShowcase = () => {
       const el = globosRef.current[globo.key];
       if (!el) continue;
 
-      const p = (frame - globo.desde) / (globo.hasta - globo.desde);
+      const [desde, hasta] = tramoDe(globo, movilRef.current);
+      const p = (frame - desde) / (hasta - desde);
       if (p < 0 || p > 1) {
         if (el.style.visibility !== "hidden") el.style.visibility = "hidden";
         continue;
@@ -631,6 +658,8 @@ const DroneShowcase = () => {
     }
 
     setChapter((current) => (current === next ? current : next));
+    const enPortada = movilRef.current ? frame < TITULO_HASTA_MOVIL : next === 0;
+    setPortada((current) => (current === enPortada ? current : enPortada));
     const enEpilogo = frame >= EPILOGO_FROM;
     setEpilogo((current) => (current === enEpilogo ? current : enEpilogo));
   });
@@ -703,29 +732,50 @@ const DroneShowcase = () => {
    */
   useEffect(() => {
     const revisar = () => {
-      for (const [clave, el] of Object.entries(globosRef.current)) {
-        altosRef.current[clave] = el.offsetHeight;
-      }
-
       /*
-       * Las tarjetas no se escalan a lo que quepa, sino al 72% del alto de la
+       * Las tarjetas no se escalan a lo que quepa de alto, sino al 72% de la
        * pantalla. Una que ocupa casi todo cabe entera durante un palmo del
        * recorrido y pasa sin dejarse leer; dejándole aire a los lados del
        * trayecto, la de lecturas se ve completa el doble de scroll a cambio de
        * un 15% de tamaño, que no se nota.
+       *
+       * De ancho se mide contra el carril, que es lo que cambia entre
+       * escritorio y móvil: en escritorio el carril lo marca la propia tarjeta
+       * y la proporción sale 1, así que esto solo actúa en pantallas estrechas,
+       * donde si no se saldría por la derecha.
        */
-      const disponible = window.innerHeight * 0.72;
+      const dispAlto = window.innerHeight * 0.72;
+      const nuevas = {};
+      for (const [i, el] of Object.entries(tarjetasRef.current)) {
+        const dispAncho = el.parentElement?.clientWidth ?? el.scrollWidth;
+        nuevas[i] = Math.max(
+          Math.min(1, dispAlto / el.scrollHeight, dispAncho / el.scrollWidth),
+          0.62
+        );
+      }
+
       setEscalas((previas) => {
         let siguientes = previas;
-        for (const [i, el] of Object.entries(tarjetasRef.current)) {
-          const alto = el.scrollHeight;
-          const escala = alto > disponible ? Math.max(disponible / alto, 0.62) : 1;
+        for (const [i, escala] of Object.entries(nuevas)) {
           if (Math.abs((previas[i] ?? 1) - escala) > 0.005) {
             siguientes = { ...siguientes, [i]: escala };
           }
         }
         return siguientes;
       });
+
+      /*
+       * El alto que se cachea es el que se ve, no el de maquetación: la escala
+       * va en un hijo y un transform no encoge la caja del padre, así que sin
+       * esto una tarjeta reducida se daría por más alta de lo que es y saldría
+       * de pantalla antes de tiempo.
+       */
+      for (const globo of GLOBOS) {
+        const el = globosRef.current[globo.key];
+        if (!el) continue;
+        const escala = globo.tipo === "tarjeta" ? nuevas[globo.indice] ?? 1 : 1;
+        altosRef.current[globo.key] = el.offsetHeight * escala;
+      }
 
       colocarGlobos(frameRef.current);
     };
@@ -814,7 +864,7 @@ const DroneShowcase = () => {
             apilamiento que tenía cuando estaba después. */}
         <div
           className={`ah-container pointer-events-none relative z-10 pt-[84px] transition-opacity duration-700 ${
-            chapter === 0 ? "opacity-100" : "opacity-0"
+            portada ? "opacity-100" : "opacity-0"
           }`}
         >
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">
@@ -906,9 +956,7 @@ const DroneShowcase = () => {
               key={globo.key}
               ref={registrarGlobo}
               data-globo={globo.key}
-              className={`absolute top-0 ${carrilDe(globo, isMobile)} ${
-                globo.tipo === "nota" ? "hidden md:block" : ""
-              }`}
+              className={`absolute top-0 ${carrilDe(globo, isMobile)}`}
               style={{ visibility: "hidden", willChange: "transform, opacity" }}
             >
               {globo.tipo === "acto" && <GloboActo indice={globo.indice} t={t} />}
@@ -919,7 +967,7 @@ const DroneShowcase = () => {
                 <div
                   ref={registrarTarjeta}
                   data-tarjeta={globo.indice}
-                  className="origin-top-left"
+                  className={isMobile ? "origin-top" : "origin-top-left"}
                   style={{ transform: `scale(${escalas[globo.indice] ?? 1})` }}
                 >
                   {globo.indice === 0 ? <TarjetaConteo /> : <TarjetaLecturas />}
@@ -933,8 +981,9 @@ const DroneShowcase = () => {
           ))}
         </div>
 
-        {/* Barra inferior: capítulos, lectura y salida */}
-        <div className="ah-container absolute inset-x-0 bottom-8 z-10 flex items-end justify-between gap-6">
+        {/* Barra inferior: capítulos, lectura y salida. En móvil sube, porque
+            abajo del todo va la pista de scroll y se encimaban. */}
+        <div className="ah-container absolute inset-x-0 bottom-16 z-10 flex items-end justify-between gap-6 sm:bottom-8">
           <div className="flex flex-col gap-3">
             <div className="flex gap-2">
               {CHAPTERS.map((item, index) => (
@@ -1003,12 +1052,14 @@ const DroneShowcase = () => {
         </div>
 
         <AnimatePresence>
-          {chapter === 0 && !reduceMotion && (
+          {portada && !reduceMotion && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="pointer-events-none absolute bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-2 text-[0.7rem] uppercase tracking-[0.2em] text-white/45"
+              /* nowrap: con left-1/2 el ancho disponible es media pantalla, y
+                 en móvil el texto partía en dos líneas antes de centrarse. */
+              className="pointer-events-none absolute bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap text-[0.7rem] uppercase tracking-[0.2em] text-white/45"
             >
               <MousePointer2 size={13} />
               {t("showcase.hint")}
