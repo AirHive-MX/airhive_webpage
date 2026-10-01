@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AnimatePresence,
   motion,
@@ -257,17 +257,6 @@ const CHAPTER_SIDES = CHAPTERS.map((chapter, index) => {
 });
 
 /**
- * Altura a la que se ancla el panel en cada capítulo.
- *
- * Antes seguía al dron fotograma a fotograma, y como durante el giro el dron
- * oscila unos 11 px, el panel copiaba ese vaivén y parecía que rebotaba. Ahora
- * se fija una vez por acto: se mueve cuando cambia el capítulo, que es cuando
- * tiene sentido, y el resto del tiempo se queda quieto.
- *
- * Se usa la mediana y no el promedio: en los actos en que el dron desciende,
- * la mediana cae donde de verdad se detiene, no a mitad del recorrido.
- */
-/**
  * A partir de aquí el recorrido continúa pero todavía no tiene texto asignado.
  * Se ocultan el panel, su línea guía y el rótulo del acto: dejarlos mostraría
  * el último acto durante 120 fotogramas en los que ya no está pasando eso.
@@ -279,9 +268,6 @@ const EPILOGO_FROM = 240;
  * son dos vistas del mismo vuelo, no una secuencia. Se sostiene cada una la
  * mitad del tramo para que dé tiempo a leerlas.
  */
-const TARJETA_TOP = 76; // desde dónde cuelga el panel del WMS
-const TARJETA_MARGEN = 88; // aire que se le deja abajo, sobre la barra inferior
-
 /*
  * `nota` es el globo de arriba a la derecha: qué es lo que se está viendo. Va
  * suelto del componente de la tarjeta a propósito, porque no es parte de la
@@ -318,19 +304,110 @@ const EPILOGO_TARJETAS = [
   },
 ];
 
-const tarjetaEpilogo = (frame) => {
-  let elegida = null;
-  for (const t of EPILOGO_TARJETAS) if (frame >= t.desde) elegida = t;
-  return elegida;
+/**
+ * Los globos no entran y salen en el sitio: suben como los créditos de una
+ * película. Cada uno asoma por abajo del escenario, lo cruza entero mientras
+ * se hace scroll y se va por arriba, sin pararse.
+ *
+ * De ahí que estén todos montados a la vez y que lo único que cambie sea su
+ * transform: no hay AnimatePresence ni montaje y desmontaje, porque un globo
+ * ya no "aparece", está siempre y lo que cambia es dónde. El recorrido se
+ * calcula del fotograma, no del tiempo, así que si se para el scroll el globo
+ * se queda clavado donde estaba y si se sube, baja.
+ *
+ * `desde` y `hasta` son el tramo de fotogramas en que cada uno cruza. Los de
+ * los actos se pegan al siguiente a propósito: uno se va por arriba justo
+ * cuando el siguiente asoma por abajo, que es como se encadenan los créditos.
+ */
+const GLOBOS = [
+  ...CHAPTERS.map((chapter, index) => ({
+    key: `acto-${index}`,
+    tipo: "acto",
+    indice: index,
+    desde: index === 0 ? 0 : CHAPTERS[index - 1].until,
+    hasta: chapter.until,
+  })),
+  /*
+   * En el epílogo la tarjeta y su nota van en paralelo, una a cada lado. En
+   * móvil no hay dos lados: todo cae en el mismo carril, así que ahí pasan una
+   * detrás de otra. `movil` es ese segundo reparto; los globos que no lo
+   * declaran usan el mismo tramo en las dos.
+   */
+  { key: "wms-0", tipo: "tarjeta", indice: 0, desde: 244, hasta: 306, movil: [244, 282] },
+  { key: "nota-0", tipo: "nota", indice: 0, desde: 250, hasta: 306, movil: [282, 306] },
+  { key: "wms-1", tipo: "tarjeta", indice: 1, desde: 306, hasta: TOTAL_FRAMES, movil: [306, 338] },
+  { key: "nota-1", tipo: "nota", indice: 1, desde: 312, hasta: TOTAL_FRAMES, movil: [338, TOTAL_FRAMES] },
+];
+
+/** Tramo de un globo, que no es el mismo en escritorio que en móvil. */
+const tramoDe = (globo, enMovil) =>
+  enMovil && globo.movil ? globo.movil : [globo.desde, globo.hasta];
+
+/** Aire de más allá de los bordes, para que ninguno asome a medias. */
+const MARGEN_CREDITO = 32;
+
+/**
+ * Fotograma en que el titular de portada se va, en móvil.
+ *
+ * En escritorio dura todo el acto 1 y no estorba: el globo vive en la columna
+ * de la derecha y el titular en la izquierda. En móvil comparten la única
+ * columna que hay, y el primer globo le subía por encima. Aquí se retira justo
+ * antes de que asome, que además es lo que hace que el globo se lea como lo que
+ * viene después y no como algo encimado.
+ */
+const TITULO_HASTA_MOVIL = 14;
+
+/**
+ * Parte del recorrido que se usa para entrar y para salir. Los créditos de
+ * verdad no se funden, pero aquí el escenario no tiene un borde duro: arriba
+ * está la barra de navegación, transparente, y abajo la de los actos. Sin este
+ * fundido los globos se cortarían a mitad de palabra contra nada.
+ */
+const FUNDIDO = 0.12;
+
+/**
+ * Parte del recorrido que el globo pasa completamente quieto en el centro.
+ *
+ * Antes solo frenaba, y frenar no obliga a leer: el ojo sigue al que se mueve.
+ * Ahora cada globo sube, se planta en mitad de la pantalla y ahí se queda
+ * mientras se sigue haciendo scroll, hasta que ha consumido su cupo; recién
+ * entonces se va por arriba. El dron no se entera: la secuencia va por
+ * `avance` y esta curva solo gobierna a los globos, así que durante la parada
+ * el vuelo continúa detrás.
+ *
+ * 0.34 son entre 6 y 9 muescas de rueda según el globo. Suficiente para leer
+ * tres líneas sin que llegue a sentirse atascado.
+ */
+const PAUSA = 0.34;
+
+/**
+ * Scroll dentro del tramo -> posición en el trayecto, los dos de 0 a 1.
+ *
+ * Las dos mitades que sí se mueven llevan su propia curva para que la parada
+ * no se note como un frenazo: la de subida llega al centro con velocidad cero
+ * y la de salida arranca desde cero. En las costuras de la pausa, entonces,
+ * la velocidad es cero por los dos lados y no hay tirón; el acelerón queda en
+ * los extremos, que es donde el globo está fuera de pantalla o fundiéndose.
+ */
+const recorrido = (p) => {
+  const tramo = (1 - PAUSA) / 2;
+  if (p <= tramo) {
+    const x = p / tramo;
+    return 0.5 * (1 - (1 - x) * (1 - x)); // llega al centro y se detiene
+  }
+  if (p < tramo + PAUSA) return 0.5; // quieto en mitad de la pantalla
+  const x = (p - tramo - PAUSA) / tramo;
+  return 0.5 + 0.5 * x * x; // arranca desde parado y se va
 };
 
-const CHAPTER_ANCHORS = CHAPTERS.map((chapter, index) => {
-  const from = index === 0 ? 0 : CHAPTERS[index - 1].until;
-  const centros = DRONE_TRACK.slice(from, chapter.until)
-    .map((box) => centerOf(box)[1])
-    .sort((a, b) => a - b);
-  return centros[Math.floor(centros.length / 2)];
-});
+/** Dónde cruza cada globo: el carril es fijo, solo cambia la altura. */
+const carrilDe = (globo, enMovil) => {
+  if (enMovil) return "inset-x-6";  // un solo carril: no hay sitio para dos
+  if (globo.tipo === "tarjeta") return "left-6 lg:left-[5%]";
+  if (globo.tipo === "nota") return "right-6 w-[17rem] lg:right-[5%]";
+  const lado = CHAPTER_SIDES[globo.indice] === "right" ? "right-6 lg:right-[5%]" : "left-6 lg:left-[5%]";
+  return `${lado} w-[min(22rem,calc(100%-3rem))]`;
+};
 
 /** Trayectoria del vuelo (del fotograma 120 en adelante) para el minimapa. */
 const FLIGHT_POINTS = DRONE_TRACK.slice(120).map(centerOf);
@@ -345,6 +422,74 @@ const FLIGHT_VIEWBOX = (() => {
   const y0 = Math.min(...ys) - pad;
   return `${x0} ${y0} ${Math.max(...xs) + pad - x0} ${Math.max(...ys) + pad - y0}`;
 })();
+
+/** El globo de un acto. Su superficie y su acento no cambian: son del acto. */
+const GloboActo = ({ indice, t }) => {
+  const acto = CHAPTERS[indice];
+  return (
+    <div
+      className={`${GLOBO} ${indice === 0 ? SUPERFICIE.ciudad : SUPERFICIE.almacen} px-6 py-5`}
+    >
+      <span
+        aria-hidden="true"
+        className="absolute inset-y-0 left-0 w-[3px]"
+        style={{ backgroundColor: acto.accent }}
+      />
+
+      {/* Número y rótulo en una sola línea, separados por un filete. El número
+          iba en negrita y al mismo cuerpo que el rótulo, y competía con el
+          titular; aquí queda como referencia, no como dato. */}
+      <div className="flex items-center gap-2.5">
+        <span
+          className="font-mono text-[0.68rem] font-medium tabular-nums"
+          style={{ color: acto.accent }}
+        >
+          {pad(indice + 1).slice(2)}
+        </span>
+        <span aria-hidden="true" className="h-3 w-px bg-white/15" />
+        <p className="text-[0.62rem] font-medium uppercase tracking-[0.22em] text-white/45">
+          {t(`showcase.chapters.${acto.key}.kicker`)}
+        </p>
+      </div>
+
+      {/* Interletraje negativo y menos interlínea: a este cuerpo el titular por
+          defecto queda suelto y se lee genérico. */}
+      <h3 className="mt-3 text-[1.3rem] font-semibold leading-[1.18] tracking-[-0.015em] sm:text-[1.45rem]">
+        {t(`showcase.chapters.${acto.key}.title`)}
+      </h3>
+      <p className="mt-2.5 text-[0.85rem] leading-[1.65] text-white/60">
+        {t(`showcase.chapters.${acto.key}.text`)}
+      </p>
+    </div>
+  );
+};
+
+/** El globo del epílogo: qué es lo que enseña la tarjeta de al lado. */
+const GloboNota = ({ pasos }) => (
+  <div className={`${GLOBO} ${SUPERFICIE.almacen} px-5 py-4`}>
+    <span
+      aria-hidden="true"
+      className="absolute inset-y-0 left-0 w-[3px]"
+      style={{ backgroundColor: ACENTO_EPILOGO }}
+    />
+    {/* El filete entre pasos hace el trabajo que hacían los puntos y aparte, y
+        ocupa menos. El número va en monoespacio y cifras tabulares para que los
+        tres queden en columna. */}
+    <ol className="divide-y divide-white/[0.07]">
+      {pasos.map((paso, i) => (
+        <li key={paso} className="flex gap-3 py-2.5 first:pt-0 last:pb-0">
+          <span
+            className="mt-px shrink-0 font-mono text-[0.62rem] tabular-nums"
+            style={{ color: ACENTO_EPILOGO }}
+          >
+            {pad(i + 1).slice(2)}
+          </span>
+          <p className="text-[0.8rem] leading-[1.5] text-white/70">{paso}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+);
 
 const DroneShowcase = () => {
   const { t } = useTranslation();
@@ -364,15 +509,21 @@ const DroneShowcase = () => {
   // Altura a la que reposa el dron, en píxeles del viewport. La caída de luz del
   // fondo se centra ahí, así que hace falta en el render y por eso vive en estado.
   const [horizonte, setHorizonte] = useState(0);
-  const panelRef = useRef(null);
   const sideRef = useRef(CHAPTER_SIDES[0]);
-  const stackedRef = useRef(false); // en móvil el panel va abajo, sin seguimiento
   const [isMobile, setIsMobile] = useState(false);
+  const movilRef = useRef(false); // el mismo dato, para los callbacks
+  const [portada, setPortada] = useState(true);
   const [chapter, setChapter] = useState(0);
   const [epilogo, setEpilogo] = useState(false);
-  const [tarjeta, setTarjeta] = useState(null);
-  const tarjetaRef = useRef(null);
-  const [escalaTarjeta, setEscalaTarjeta] = useState(1);
+
+  /* La capa de créditos y cada globo dentro de ella. */
+  const capaRef = useRef(null);
+  const globosRef = useRef({});
+  const altosRef = useRef({}); // alto de cada globo, cacheado
+  const frameRef = useRef(0); // último fotograma pintado, para recolocar al redimensionar
+
+  const tarjetasRef = useRef({});
+  const [escalas, setEscalas] = useState({ 0: 1, 1: 1 });
   const ciudadListaRef = useRef(0);
   const loadedRef = useRef(0);
   const cerradaRef = useRef(false);
@@ -380,7 +531,7 @@ const DroneShowcase = () => {
   useEffect(() => {
     const query = window.matchMedia("(max-width: 767px)");
     const sync = () => {
-      stackedRef.current = query.matches;
+      movilRef.current = query.matches;
       setIsMobile(query.matches);
     };
     sync();
@@ -444,23 +595,42 @@ const DroneShowcase = () => {
     pathDotRef.current.setAttribute("cy", cy.toFixed(4));
   }, []);
 
-  /** Fija el panel a la altura del capítulo. Solo cambia al cambiar de acto. */
-  const colocarPanel = useCallback((indice) => {
-    const panel = panelRef.current;
-    const stage = stageRef.current;
-    const field = fieldRef.current;
-    const layout = layoutRef.current;
-    if (!panel || !stage || !field || !layout) return;
+  /**
+   * Sube los globos como créditos: de debajo del escenario a encima de él.
+   *
+   * El alto de cada uno sale de la caché y no de `offsetHeight`, porque leerlo
+   * aquí obligaría al navegador a recalcular la maquetación en cada fotograma,
+   * justo entre las escrituras de transform de los demás. El ResizeObserver de
+   * más abajo mantiene la caché al día.
+   *
+   * Los que están fuera de su tramo se marcan `hidden`: así el navegador ni
+   * los compone, en vez de dejarlos a opacidad 0 encima de la escena.
+   */
+  const colocarGlobos = useCallback((frame) => {
+    const capa = capaRef.current;
+    if (!capa) return;
+    const alto = capa.clientHeight;
 
-    if (stackedRef.current) {
-      panel.style.transform = ""; // en móvil vive anclado abajo
-      return;
+    for (const globo of GLOBOS) {
+      const el = globosRef.current[globo.key];
+      if (!el) continue;
+
+      const [desde, hasta] = tramoDe(globo, movilRef.current);
+      const p = (frame - desde) / (hasta - desde);
+      if (p < 0 || p > 1) {
+        if (el.style.visibility !== "hidden") el.style.visibility = "hidden";
+        continue;
+      }
+
+      const h = altosRef.current[globo.key] ?? el.offsetHeight;
+      const q = recorrido(p);
+      // q = 0 justo debajo del escenario; q = 1 justo encima.
+      const y = (1 - q) * (alto + MARGEN_CREDITO) - q * (h + MARGEN_CREDITO);
+
+      if (el.style.visibility === "hidden") el.style.visibility = "visible";
+      el.style.transform = `translate3d(0, ${y.toFixed(1)}px, 0)`;
+      el.style.opacity = Math.min(q / FUNDIDO, (1 - q) / FUNDIDO, 1).toFixed(3);
     }
-    const desfase = (stage.clientHeight - field.clientHeight) / 2;
-    const centro =
-      desfase + layout.y + CHAPTER_ANCHORS[indice] * layout.height - panel.offsetHeight / 2;
-    const max = stage.clientHeight - panel.offsetHeight;
-    panel.style.transform = `translate3d(0, ${Math.min(Math.max(centro, 0), Math.max(max, 0))}px, 0)`;
   }, []);
 
   const frameFromProgress = useCallback(
@@ -479,9 +649,8 @@ const DroneShowcase = () => {
         setHorizonte((prev) => (Math.abs(prev - y) < 0.5 ? prev : y));
       }
       placeOverlay(frameFromProgress(avance.get()), sideRef.current);
-      colocarPanel(chapterAt(frameFromProgress(avance.get())));
     },
-    [colocarPanel, frameFromProgress, placeOverlay, avance]
+    [frameFromProgress, placeOverlay, avance]
   );
 
   useMotionValueEvent(avance, "change", (value) => {
@@ -489,8 +658,10 @@ const DroneShowcase = () => {
     const [cx, cy] = centerOf(DRONE_TRACK[frame] ?? DRONE_TRACK[0]);
     const next = chapterAt(frame);
 
+    frameRef.current = frame;
     sideRef.current = CHAPTER_SIDES[next];
     placeOverlay(frame, sideRef.current);
+    colocarGlobos(frame);
 
     if (angleRef.current) {
       // La vuelta completa se consume en los primeros 120 fotogramas.
@@ -505,10 +676,10 @@ const DroneShowcase = () => {
     }
 
     setChapter((current) => (current === next ? current : next));
+    const enPortada = movilRef.current ? frame < TITULO_HASTA_MOVIL : next === 0;
+    setPortada((current) => (current === enPortada ? current : enPortada));
     const enEpilogo = frame >= EPILOGO_FROM;
     setEpilogo((current) => (current === enEpilogo ? current : enEpilogo));
-    const t = enEpilogo ? tarjetaEpilogo(frame) : null;
-    setTarjeta((current) => (current === t ? current : t));
   });
 
   useEffect(() => {
@@ -522,11 +693,9 @@ const DroneShowcase = () => {
       cityRef.current.style.opacity = clamp01((SCENE_FROM - frame) / CITY_FADE).toFixed(3);
     }
     placeOverlay(frame, sideRef.current);
-    // El panel se recoloca aquí y no en placeOverlay: una vez por acto, no por
-    // fotograma. Siguiendo al dron cuadro a cuadro copiaba su oscilación y
-    // parecía que rebotaba.
-    colocarPanel(chapter);
-  }, [chapter, colocarPanel, frameFromProgress, placeDot, placeOverlay, avance]);
+    frameRef.current = frame;
+    colocarGlobos(frame);
+  }, [colocarGlobos, frameFromProgress, placeDot, placeOverlay, avance]);
 
   /** Reporta a la pantalla de carga y la retira cuando el conjunto está listo. */
   const avisarCarga = useCallback((fraccionFrames) => {
@@ -554,50 +723,92 @@ const DroneShowcase = () => {
     img.src = "/fondo-ciudad.webp";
   }, [avisarCarga]);
 
-  /*
-   * Los paneles del WMS son fieles al original y eso los hace altos: el de
-   * lecturas mide más que una pantalla corta. En vez de recortarles contenido
-   * se miden y se escalan hasta que quepan, así se conservan enteros y se
-   * adaptan solos a cualquier alto de viewport.
-   *
-   * Se mide con un ref de callback y un ResizeObserver, no con un efecto sobre
-   * `tarjeta`. Dos motivos:
-   *
-   * - AnimatePresence va en modo "wait": un efecto correría mientras la tarjeta
-   *   anterior sigue montada, y mediría la que se va.
-   * - La foto del bin llega por red. Midiendo una sola vez al montar, la
-   *   tarjeta crece después y se sale de pantalla en la primera visita. El
-   *   observador reacciona también a eso, y a las fuentes y al viewport.
-   */
-  const observadorRef = useRef(null);
-
-  const medir = useCallback((el) => {
+  /* Guarda el elemento de cada globo y el de cada tarjeta, por su clave. */
+  const registrarGlobo = useCallback((el) => {
     if (!el) return;
-    const disponible = window.innerHeight - TARJETA_TOP - TARJETA_MARGEN;
-    const alto = el.scrollHeight;
-    setEscalaTarjeta(alto > disponible ? Math.max(disponible / alto, 0.62) : 1);
+    globosRef.current[el.dataset.globo] = el;
   }, []);
 
-  const medirTarjeta = useCallback(
-    (el) => {
-      observadorRef.current?.disconnect();
-      tarjetaRef.current = el;
-      if (!el) return;
-      medir(el);
-      observadorRef.current = new ResizeObserver(() => medir(el));
-      observadorRef.current.observe(el);
-    },
-    [medir]
-  );
+  const registrarTarjeta = useCallback((el) => {
+    if (!el) return;
+    tarjetasRef.current[el.dataset.tarjeta] = el;
+  }, []);
 
+  /*
+   * Un solo observador para los dos trabajos que dependen del alto.
+   *
+   * 1. La caché de altos que usa colocarGlobos, para no leer del DOM por
+   *    fotograma.
+   * 2. La escala de las tarjetas del WMS. Son fieles al original y eso las
+   *    hace altas: la de lecturas mide más que una pantalla corta. En vez de
+   *    recortarles contenido se escalan hasta que quepan, así se conservan
+   *    enteras y se adaptan solas a cualquier viewport.
+   *
+   * Hace falta un observador y no una medida al montar porque la foto del bin
+   * llega por red: midiendo una sola vez, la tarjeta crece después y se sale
+   * de pantalla en la primera visita. También reacciona a las fuentes.
+   */
   useEffect(() => {
-    const alRedimensionar = () => medir(tarjetaRef.current);
-    window.addEventListener("resize", alRedimensionar);
-    return () => {
-      window.removeEventListener("resize", alRedimensionar);
-      observadorRef.current?.disconnect();
+    const revisar = () => {
+      /*
+       * Las tarjetas no se escalan a lo que quepa de alto, sino al 72% de la
+       * pantalla. Una que ocupa casi todo cabe entera durante un palmo del
+       * recorrido y pasa sin dejarse leer; dejándole aire a los lados del
+       * trayecto, la de lecturas se ve completa el doble de scroll a cambio de
+       * un 15% de tamaño, que no se nota.
+       *
+       * De ancho se mide contra el carril, que es lo que cambia entre
+       * escritorio y móvil: en escritorio el carril lo marca la propia tarjeta
+       * y la proporción sale 1, así que esto solo actúa en pantallas estrechas,
+       * donde si no se saldría por la derecha.
+       */
+      const dispAlto = window.innerHeight * 0.72;
+      const nuevas = {};
+      for (const [i, el] of Object.entries(tarjetasRef.current)) {
+        const dispAncho = el.parentElement?.clientWidth ?? el.scrollWidth;
+        nuevas[i] = Math.max(
+          Math.min(1, dispAlto / el.scrollHeight, dispAncho / el.scrollWidth),
+          0.62
+        );
+      }
+
+      setEscalas((previas) => {
+        let siguientes = previas;
+        for (const [i, escala] of Object.entries(nuevas)) {
+          if (Math.abs((previas[i] ?? 1) - escala) > 0.005) {
+            siguientes = { ...siguientes, [i]: escala };
+          }
+        }
+        return siguientes;
+      });
+
+      /*
+       * El alto que se cachea es el que se ve, no el de maquetación: la escala
+       * va en un hijo y un transform no encoge la caja del padre, así que sin
+       * esto una tarjeta reducida se daría por más alta de lo que es y saldría
+       * de pantalla antes de tiempo.
+       */
+      for (const globo of GLOBOS) {
+        const el = globosRef.current[globo.key];
+        if (!el) continue;
+        const escala = globo.tipo === "tarjeta" ? nuevas[globo.indice] ?? 1 : 1;
+        altosRef.current[globo.key] = el.offsetHeight * escala;
+      }
+
+      colocarGlobos(frameRef.current);
     };
-  }, [medir]);
+
+    const observador = new ResizeObserver(revisar);
+    Object.values(globosRef.current).forEach((el) => observador.observe(el));
+    Object.values(tarjetasRef.current).forEach((el) => observador.observe(el));
+    revisar();
+
+    window.addEventListener("resize", revisar);
+    return () => {
+      observador.disconnect();
+      window.removeEventListener("resize", revisar);
+    };
+  }, [colocarGlobos]);
 
   const frameCount = isMobile ? MOBILE_FRAMES : TOTAL_FRAMES;
 
@@ -622,16 +833,6 @@ const DroneShowcase = () => {
   }, []);
 
   const active = CHAPTERS[chapter];
-  const panelSide = isMobile ? "bottom" : CHAPTER_SIDES[chapter];
-
-  const panelClasses = useMemo(() => {
-    if (panelSide === "bottom") return "inset-x-6 bottom-0";
-    const edge = panelSide === "right" ? "right-6 lg:right-[5%]" : "left-6 lg:left-[5%]";
-    return `top-0 w-[min(22rem,calc(100%-3rem))] ${edge}`;
-  }, [panelSide]);
-
-  /* El acto 1 transcurre sobre la ciudad; del 2 en adelante, sobre el almacén. */
-  const superficie = epilogo || chapter > 0 ? SUPERFICIE.almacen : SUPERFICIE.ciudad;
 
   return (
     <section
@@ -681,7 +882,7 @@ const DroneShowcase = () => {
             apilamiento que tenía cuando estaba después. */}
         <div
           className={`ah-container pointer-events-none relative z-10 pt-[84px] transition-opacity duration-700 ${
-            chapter === 0 ? "opacity-100" : "opacity-0"
+            portada ? "opacity-100" : "opacity-0"
           }`}
         >
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">
@@ -755,128 +956,52 @@ const DroneShowcase = () => {
             )}
           </div>
 
-          {/* Panel de texto: cambia de cuadrante según dónde esté el dron. */}
-          <div
-            ref={panelRef}
-            className={`absolute transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${panelClasses}`}
-          >
-            <AnimatePresence initial={false} mode="wait">
-              {!epilogo && (
-              <motion.div
-                key={active.key}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className={`${GLOBO} ${superficie} px-6 py-5`}
-              >
-                <span
-                  aria-hidden="true"
-                  className="absolute inset-y-0 left-0 w-[3px] transition-colors duration-700"
-                  style={{ backgroundColor: active.accent }}
-                />
-
-                {/* Número y rótulo en una sola línea, separados por un filete.
-                    El número iba en negrita y al mismo cuerpo que el rótulo, y
-                    competía con el titular; aquí queda como referencia, no
-                    como dato. */}
-                <div className="flex items-center gap-2.5">
-                  <span
-                    className="font-mono text-[0.68rem] font-medium tabular-nums transition-colors duration-700"
-                    style={{ color: active.accent }}
-                  >
-                    {pad(chapter + 1).slice(2)}
-                  </span>
-                  <span aria-hidden="true" className="h-3 w-px bg-white/15" />
-                  <p className="text-[0.62rem] font-medium uppercase tracking-[0.22em] text-white/45">
-                    {t(`showcase.chapters.${active.key}.kicker`)}
-                  </p>
-                </div>
-
-                {/* Interletraje negativo y menos interlínea: a este cuerpo el
-                    titular por defecto queda suelto y se lee genérico. */}
-                <h3 className="mt-3 text-[1.3rem] font-semibold leading-[1.18] tracking-[-0.015em] sm:text-[1.45rem]">
-                  {t(`showcase.chapters.${active.key}.title`)}
-                </h3>
-                <p className="mt-2.5 text-[0.85rem] leading-[1.65] text-white/60">
-                  {t(`showcase.chapters.${active.key}.text`)}
-                </p>
-              </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
         </div>
 
-        {/* Los paneles del WMS. Van fuera del escenario y con su propio
-            contenedor porque son bastante más altos que las tarjetas de los
-            actos, y necesitan toda la altura del sticky. */}
-        <div className="ah-container pointer-events-none absolute inset-x-0 z-10 flex items-start justify-between gap-6"
-          style={{ top: TARJETA_TOP }}>
-          <AnimatePresence mode="wait">
-            {tarjeta && (
-              <motion.div
-                key={tarjeta.desde}
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -14 }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              >
-                {/* El escalado va en un hijo: motion.div ya gobierna el
-                    transform para la animación de entrada y se pisarían. */}
+        {/*
+          La capa de créditos. Cuelga del contenedor pegajoso y no del
+          escenario, para que los globos crucen la pantalla entera y no solo el
+          recuadro del dron; el overflow-hidden de arriba es el que los recorta
+          al entrar y al salir.
+
+          Están los seis montados siempre. Lo que los mueve es colocarGlobos,
+          escribiendo transform y opacidad directo al DOM: por estado sería un
+          render de React por fotograma.
+        */}
+        <div ref={capaRef} className="pointer-events-none absolute inset-0 z-10">
+          {GLOBOS.map((globo) => (
+            <div
+              key={globo.key}
+              ref={registrarGlobo}
+              data-globo={globo.key}
+              className={`absolute top-0 ${carrilDe(globo, isMobile)}`}
+              style={{ visibility: "hidden", willChange: "transform, opacity" }}
+            >
+              {globo.tipo === "acto" && <GloboActo indice={globo.indice} t={t} />}
+
+              {globo.tipo === "tarjeta" && (
+                /* El escalado va en un hijo porque el padre ya gobierna el
+                   transform del recorrido y se pisarían. */
                 <div
-                  ref={medirTarjeta}
-                  className="origin-top-left"
-                  style={{ transform: `scale(${escalaTarjeta})` }}
+                  ref={registrarTarjeta}
+                  data-tarjeta={globo.indice}
+                  className={isMobile ? "origin-top" : "origin-top-left"}
+                  style={{ transform: `scale(${escalas[globo.indice] ?? 1})` }}
                 >
-                  <tarjeta.Componente />
+                  {globo.indice === 0 ? <TarjetaConteo /> : <TarjetaLecturas />}
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              )}
 
-          {/* Qué es lo que se está viendo, en una frase. Va arriba a la
-              derecha, el único cuadrante que queda libre en el epílogo: la
-              tarjeta ocupa la izquierda y el dron el centro. Debajo de md no
-              hay tal cuadrante (la tarjeta ya es todo el ancho), así que no
-              se enseña en vez de apilarse encima. */}
-          <AnimatePresence mode="wait">
-            {tarjeta?.nota && (
-              <motion.aside
-                key={`nota-${tarjeta.desde}`}
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -14 }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className={`${GLOBO} ${SUPERFICIE.almacen} hidden w-[17rem] shrink-0 px-5 py-4 md:block`}
-              >
-                <span
-                  aria-hidden="true"
-                  className="absolute inset-y-0 left-0 w-[3px]"
-                  style={{ backgroundColor: ACENTO_EPILOGO }}
-                />
-                {/* El filete entre pasos hace el trabajo que hacían los
-                    puntos y aparte, y ocupa menos. El número va en monoespacio
-                    y cifras tabulares para que los tres queden en columna. */}
-                <ol className="divide-y divide-white/[0.07]">
-                  {tarjeta.nota.pasos.map((paso, i) => (
-                    <li key={paso} className="flex gap-3 py-2.5 first:pt-0 last:pb-0">
-                      <span
-                        className="mt-px shrink-0 font-mono text-[0.62rem] tabular-nums"
-                        style={{ color: ACENTO_EPILOGO }}
-                      >
-                        {pad(i + 1).slice(2)}
-                      </span>
-                      <p className="text-[0.8rem] leading-[1.5] text-white/70">{paso}</p>
-                    </li>
-                  ))}
-                </ol>
-              </motion.aside>
-            )}
-          </AnimatePresence>
+              {globo.tipo === "nota" && (
+                <GloboNota pasos={EPILOGO_TARJETAS[globo.indice].nota.pasos} />
+              )}
+            </div>
+          ))}
         </div>
 
-        {/* Barra inferior: capítulos, lectura y salida */}
-        <div className="ah-container absolute inset-x-0 bottom-8 z-10 flex items-end justify-between gap-6">
+        {/* Barra inferior: capítulos, lectura y salida. En móvil sube, porque
+            abajo del todo va la pista de scroll y se encimaban. */}
+        <div className="ah-container absolute inset-x-0 bottom-16 z-10 flex items-end justify-between gap-6 sm:bottom-8">
           <div className="flex flex-col gap-3">
             <div className="flex gap-2">
               {CHAPTERS.map((item, index) => (
@@ -945,12 +1070,14 @@ const DroneShowcase = () => {
         </div>
 
         <AnimatePresence>
-          {chapter === 0 && !reduceMotion && (
+          {portada && !reduceMotion && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="pointer-events-none absolute bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-2 text-[0.7rem] uppercase tracking-[0.2em] text-white/45"
+              /* nowrap: con left-1/2 el ancho disponible es media pantalla, y
+                 en móvil el texto partía en dos líneas antes de centrarse. */
+              className="pointer-events-none absolute bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap text-[0.7rem] uppercase tracking-[0.2em] text-white/45"
             >
               <MousePointer2 size={13} />
               {t("showcase.hint")}
