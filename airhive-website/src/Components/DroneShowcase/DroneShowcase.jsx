@@ -41,12 +41,12 @@ const SCENE_FROM = 120; // fotograma en que empieza a aparecer el almacén
 const SCENE_FADE = 18; // fotogramas que tarda en asentar
 
 /**
- * La ciudad se va ANTES de que entre el almacén, no a la vez. Cruzándolas se
+ * La nave se va ANTES de que entren los racks, no a la vez. Cruzándolas se
  * ven las dos fotos superpuestas a media opacidad y parece doble exposición;
  * así, entre una y otra queda un instante del fondo oscuro de la sección, que
  * se lee como corte y no como mezcla.
  */
-const CITY_FADE = 18; // fotogramas que tarda en irse, terminando en SCENE_FROM
+const NAVE_FADE = 18; // fotogramas que tarda en irse, terminando en SCENE_FROM
 
 /**
  * Encuadre del fondo, sacado a fuerza bruta y no a ojo.
@@ -68,7 +68,7 @@ const CITY_FADE = 18; // fotogramas que tarda en irse, terminando en SCENE_FROM
  * los reposos: con 120% y posición 33% se cumple en los 360, en las siete
  * resoluciones. El rango válido va de 29.4% a 36.9%; se toma el centro.
  */
-/* La ciudad acompaña el giro; el almacén entra cuando empieza el escaneo. Se
+/* La nave acompaña el giro; los racks entran cuando empieza el escaneo. Se
    cruzan en la misma ventana de fotogramas, así que es un solo fundido. */
 /**
  * El botón de salida del recorrido, oculto por ahora.
@@ -101,20 +101,20 @@ const GLOBO =
 /**
  * La superficie cambia con el fondo que hay detrás.
  *
- * Medida sobre las propias fotos: la ciudad promedia un gris frío (#697173) y
- * el almacén un cálido (#836E60), porque es cartón. El azul muy oscuro se
- * apoya bien en el primero, pero sobre el segundo se lee como un recorte de
- * la escena anterior pegado encima: es el color complementario justo del
- * fondo. Del acto 2 en adelante la superficie pasa a un grafito cálido, que
- * es lo que se pone en impresión sobre una imagen cálida. Sigue siendo casi
- * negro, pero pertenece a la foto en vez de discutir con ella.
+ * Medida sobre las propias fotos: la nave de carga promedia un gris frío
+ * (#50626E) y los racks uno cálido (#836E60), porque son cartón. El azul muy
+ * oscuro se apoya bien en el primero, pero sobre el segundo se lee como un
+ * recorte de la escena anterior pegado encima: es el color complementario
+ * justo del fondo. Del acto 2 en adelante la superficie pasa a un grafito
+ * cálido, que es lo que se pone en impresión sobre una imagen cálida. Sigue
+ * siendo casi negro, pero pertenece a la foto en vez de discutir con ella.
  *
  * El cambio cae en el fotograma 120, que es donde entra el almacén y donde el
  * panel cambia de texto de todas formas: se releva junto con el contenido, no
  * como un recoloreado a media frase.
  */
 const SUPERFICIE = {
-  ciudad: "bg-[#0A1322]/90 ring-white/[0.07]",
+  nave: "bg-[#0A1322]/90 ring-white/[0.07]",
   almacen: "bg-[#17130F]/92 ring-white/[0.10]",
 };
 
@@ -122,19 +122,24 @@ const SUPERFICIE = {
 const ACENTO_EPILOGO = "#2A47F6";
 
 /**
- * Lo que la pantalla de carga espera antes de retirarse.
+ * Lo que la pantalla de carga espera antes de retirarse: todo.
  *
- * No basta el primer fotograma: se iría al instante y el porcentaje saltaría de
- * 0 a 100. Y esperar los 240 serían 8.4 MB. El punto medio es la primera pasada
- * del precargador (un fotograma de cada 16, que cubre el giro entero) más la
- * foto de la ciudad: al levantarse ya se puede hacer scroll sin tirones.
+ * Antes se iba con la primera pasada del precargador, un fotograma de cada 16.
+ * Con eso ya se podía hacer scroll, pero los 12 MB restantes seguían entrando
+ * por detrás: se enseñaba el 100% y la página seguía cargando, que es justo lo
+ * que hace que el número no signifique nada.
  *
- * Los pesos son proporcionales a lo que ocupa cada parte, para que el número
+ * Ahora la cuenta es la de verdad: los 360 fotogramas y las dos fotos de
+ * fondo. Son 13.4 MB, entre 1 y 4 segundos en una conexión normal, y en las
+ * visitas siguientes casi nada porque ya están en caché —los encabezados que
+ * lo permiten van en vercel.json; sin ellos Vercel revalida los 360 archivos
+ * en cada visita, que era la otra mitad del problema—. En móvil son 5.1 MB.
+ *
+ * Los pesos salen de lo que ocupa cada parte, no a ojo, para que el número
  * suba parejo en vez de a saltos.
  */
-const CARGA_FRAMES = 15;
-const CARGA_PESO_FRAMES = 0.67; // ~540 KB
-const CARGA_PESO_CIUDAD = 0.33; // ~260 KB
+const CARGA_PESO_FRAMES = 0.96; // 12.9 MB de 13.4
+const CARGA_PESO_FONDOS = 0.04; // 0.47 MB entre las dos fotos
 
 const SCENE_ZOOM = "120%";
 const SCENE_POS = "33%";
@@ -189,7 +194,7 @@ const ALTO_VH = 1700;
 const RITMO = [
   { hasta: 12, peso: 1.8 }, // el titular, antes de que empiece a girar
   { hasta: 108, peso: 1.0 }, // la vuelta de 360°
-  { hasta: 132, peso: 1.7 }, // se va la ciudad y entra el almacén
+  { hasta: 132, peso: 1.7 }, // se va la nave y entran los racks
   /*
    * Los actos 2, 3 y 4 duran 58, 36 y 26 fotogramas contra los 120 del
    * primero, y cada uno trae un texto distinto en el panel. Repartiendo el
@@ -249,11 +254,24 @@ const avanceDelScroll = (p) => {
  * dron en promedio. Se decide por capítulo y no cuadro a cuadro para que el
  * salto coincida con el cambio de texto, en vez de brincar a media maniobra.
  */
+/**
+ * Actos en que el globo va donde está el dron, no enfrente.
+ *
+ * La regla de abajo lo manda al cuadrante contrario para que no se tapen. En
+ * el acto 4 interesa justo lo contrario: el dron gana altura por la derecha, y
+ * dejándole el globo en mitad de la subida el texto pasa a ser el obstáculo.
+ * Se queda parado el rato de lectura y, en cuanto puede, se quita porque el
+ * dron se le echa encima.
+ */
+const EN_EL_PASO = new Set([3]);
+
 const CHAPTER_SIDES = CHAPTERS.map((chapter, index) => {
   const from = index === 0 ? 0 : CHAPTERS[index - 1].until;
   const frames = DRONE_TRACK.slice(from, chapter.until);
   const avg = frames.reduce((sum, box) => sum + centerOf(box)[0], 0) / frames.length;
-  return avg > 0.5 ? "left" : "right";
+  const dondeVaElDron = avg > 0.5 ? "right" : "left";
+  const enfrente = avg > 0.5 ? "left" : "right";
+  return EN_EL_PASO.has(index) ? dondeVaElDron : enfrente;
 });
 
 /**
@@ -347,6 +365,26 @@ const tramoDe = (globo, enMovil) =>
 const MARGEN_CREDITO = 32;
 
 /**
+ * Lo que se le reserva a un globo que aparca fuera del centro: abajo la barra
+ * de los actos, arriba la franja de la navegación.
+ */
+const SUELO_CREDITO = 100;
+const TECHO_CREDITO = 84;
+
+/**
+ * Dónde se planta cada globo mientras se lee. Si no está aquí, en el centro.
+ *
+ * Los que comparten carril con el dron no pueden quedarse en medio, porque ahí
+ * los tapa. Medido sobre la trayectoria: en el acto 4 el dron ocupa de y 228 a
+ * 596 de 729, y en el epílogo de 331 a 605, así que un globo centrado queda
+ * dentro de su caja en los dos casos. Apartándolos al borde que el dron deja
+ * libre quedan holguras de 45 px arriba en el epílogo y el roce de las patas
+ * abajo en el acto 4: se siguen rozando, que es lo que se busca, pero ya no se
+ * tapan.
+ */
+const REPOSO = { "acto-3": "abajo", "nota-0": "arriba", "nota-1": "arriba" };
+
+/**
  * Fotograma en que el titular de portada se va, en móvil.
  *
  * En escritorio dura todo el acto 1 y no estorba: el globo vive en la columna
@@ -381,23 +419,56 @@ const FUNDIDO = 0.12;
 const PAUSA = 0.34;
 
 /**
+ * A qué distancia, en píxeles entre las dos cajas, el globo da por hecho que
+ * el dron se le viene encima. Medido sobre la trayectoria real: en el acto 1
+ * el dron pasa a 116 px del globo de la derecha y en el epílogo las notas se
+ * solapan con él directamente, así que 130 recoge los roces de verdad y deja
+ * fuera los acercamientos que no se leerían como tales.
+ */
+const ROCE = 130;
+
+/** Lo mínimo que sube antes de poder huir: ningún globo entra y sale de golpe. */
+const SUBIDA_MIN = 0.18;
+
+/**
+ * Parte lineal de la salida cuando huye, o sea la velocidad con la que sale.
+ *
+ * Es lo único que distingue irse porque toca de quitarse de en medio: con 0 la
+ * salida arranca desde parado y el globo se despega despacio; con 0.6 sale ya
+ * lanzado desde el primer píxel. Sube recto y nada más — se probó ladearlo y
+ * apartarlo hacia un lado para marcar de dónde venía el empujón, y lo que se
+ * leía era un globo torcido, no un globo esquivando.
+ */
+const ARRANQUE = 0.6;
+
+/** Dónde termina la pausa si al globo no lo espanta nadie. */
+const SALIDA_POR_RELOJ = (1 + PAUSA) / 2;
+
+/**
  * Scroll dentro del tramo -> posición en el trayecto, los dos de 0 a 1.
  *
- * Las dos mitades que sí se mueven llevan su propia curva para que la parada
- * no se note como un frenazo: la de subida llega al centro con velocidad cero
- * y la de salida arranca desde cero. En las costuras de la pausa, entonces,
- * la velocidad es cero por los dos lados y no hay tirón; el acelerón queda en
- * los extremos, que es donde el globo está fuera de pantalla o fundiéndose.
+ * `salida` es el punto en que se acaba la pausa, y es lo que permite que un
+ * globo se quite justo cuando el dron le llega encima en vez de a su hora. La
+ * pausa mide siempre PAUSA, así que mover la salida cambia cuándo se lee, no
+ * cuánto: lo que se reparte distinto es el trecho de subida y el de bajada.
+ *
+ * Las dos mitades que se mueven llevan su propia curva para que la parada no
+ * se note como un frenazo: la de subida llega al centro con velocidad cero y
+ * la de salida arranca desde cero, así que en las costuras de la pausa no hay
+ * tirón... salvo cuando `arranque` es mayor que cero. Eso añade un término
+ * lineal a la salida, o sea velocidad inicial, o sea un respingo: es la
+ * diferencia entre irse porque toca e irse porque casi te dan.
  */
-const recorrido = (p) => {
-  const tramo = (1 - PAUSA) / 2;
-  if (p <= tramo) {
-    const x = p / tramo;
+const recorrido = (p, salida = SALIDA_POR_RELOJ, arranque = 0) => {
+  const subida = salida - PAUSA;
+  const bajada = 1 - salida;
+  if (p <= subida) {
+    const x = subida > 0 ? p / subida : 1;
     return 0.5 * (1 - (1 - x) * (1 - x)); // llega al centro y se detiene
   }
-  if (p < tramo + PAUSA) return 0.5; // quieto en mitad de la pantalla
-  const x = (p - tramo - PAUSA) / tramo;
-  return 0.5 + 0.5 * x * x; // arranca desde parado y se va
+  if (p < salida) return 0.5; // quieto en mitad de la pantalla
+  const x = bajada > 0 ? (p - salida) / bajada : 1;
+  return 0.5 + 0.5 * (arranque * x + (1 - arranque) * x * x);
 };
 
 /** Dónde cruza cada globo: el carril es fijo, solo cambia la altura. */
@@ -406,7 +477,14 @@ const carrilDe = (globo, enMovil) => {
   if (globo.tipo === "tarjeta") return "left-6 lg:left-[5%]";
   if (globo.tipo === "nota") return "right-6 w-[17rem] lg:right-[5%]";
   const lado = CHAPTER_SIDES[globo.indice] === "right" ? "right-6 lg:right-[5%]" : "left-6 lg:left-[5%]";
-  return `${lado} w-[min(22rem,calc(100%-3rem))]`;
+  /* Los que van en el paso del dron son más estrechos: a 22rem el carril
+     empieza donde el dron todavía tiene brazo, y a 17rem lo libera. Las dos
+     clases van escritas enteras porque Tailwind lee el código fuente: una
+     interpolación aquí dentro no le genera nada. */
+  const ancho = EN_EL_PASO.has(globo.indice)
+    ? "w-[min(17rem,calc(100%-3rem))]"
+    : "w-[min(22rem,calc(100%-3rem))]";
+  return `${lado} ${ancho}`;
 };
 
 /** Trayectoria del vuelo (del fotograma 120 en adelante) para el minimapa. */
@@ -428,7 +506,7 @@ const GloboActo = ({ indice, t }) => {
   const acto = CHAPTERS[indice];
   return (
     <div
-      className={`${GLOBO} ${indice === 0 ? SUPERFICIE.ciudad : SUPERFICIE.almacen} px-6 py-5`}
+      className={`${GLOBO} ${indice === 0 ? SUPERFICIE.nave : SUPERFICIE.almacen} px-6 py-5`}
     >
       <span
         aria-hidden="true"
@@ -503,7 +581,7 @@ const DroneShowcase = () => {
   const angleRef = useRef(null);
   const pathDotRef = useRef(null);
   const sceneRef = useRef(null);
-  const cityRef = useRef(null);
+  const naveRef = useRef(null);
 
   const layoutRef = useRef(null); // dónde queda dibujado el render dentro del canvas
   // Altura a la que reposa el dron, en píxeles del viewport. La caída de luz del
@@ -520,12 +598,15 @@ const DroneShowcase = () => {
   const capaRef = useRef(null);
   const globosRef = useRef({});
   const altosRef = useRef({}); // alto de cada globo, cacheado
+  const salidasRef = useRef({}); // dónde se le acaba la pausa a cada globo
+  const recalculoRef = useRef(0); // rAF pendiente del recálculo de salidas
+  const firmaRef = useRef(""); // encuadre con el que se calcularon
   const frameRef = useRef(0); // último fotograma pintado, para recolocar al redimensionar
 
   const tarjetasRef = useRef({});
   const [escalas, setEscalas] = useState({ 0: 1, 1: 1 });
-  const ciudadListaRef = useRef(0);
-  const loadedRef = useRef(0);
+  const fondosRef = useRef(0); // fotos de fondo ya descargadas, de 2
+  const fraccionRef = useRef(0); // parte de los fotogramas ya descargada
   const cerradaRef = useRef(false);
 
   useEffect(() => {
@@ -596,6 +677,113 @@ const DroneShowcase = () => {
   }, []);
 
   /**
+   * Esquina del render dibujado, en coordenadas de la capa de créditos.
+   *
+   * Se calcula una vez y no por fotograma. Leer offsetLeft o clientWidth
+   * obliga al navegador a recalcular la maquetación, y hacerlo dentro de un
+   * bucle de 360 iteraciones por ocho globos, justo después de haber escrito
+   * transforms, bloqueaba el hilo principal. Con el origen fuera, dentro del
+   * bucle solo queda aritmética.
+   */
+  const origenDron = useCallback(() => {
+    const layout = layoutRef.current;
+    const stage = stageRef.current;
+    const field = fieldRef.current;
+    if (!layout || !stage || !field) return null;
+    return {
+      x: stage.offsetLeft + (stage.clientWidth - field.clientWidth) / 2 + layout.x,
+      y: stage.offsetTop + (stage.clientHeight - field.clientHeight) / 2 + layout.y,
+      w: layout.width,
+      h: layout.height,
+    };
+  }, []);
+
+  /**
+   * Decide, para cada globo, en qué punto de su tramo se le acaba la pausa.
+   *
+   * La idea es que el texto haga de obstáculo: se queda parado hasta que el
+   * dron se le echa encima y entonces se quita. Así que se recorre su tramo
+   * buscando el primer fotograma en que el dron le pasa a menos de ROCE, y ese
+   * es el punto de salida. Si el dron nunca se le acerca, se va a su hora.
+   *
+   * Se compara contra la caja del globo APARCADO, no contra dónde esté en ese
+   * momento. Si se midiera la posición real, al apartarse dejaría de haber
+   * roce, volvería a bajar, y entraría en bucle.
+   *
+   * Depende del encuadre, así que se recalcula cuando cambia la maquetación y
+   * no una vez al montar.
+   */
+  const calcularSalidas = useCallback(() => {
+    const capa = capaRef.current;
+    const origen = origenDron();
+    if (!capa || !origen) return;
+    const alto = capa.clientHeight;
+
+    /* Los roces solo cambian si cambia el encuadre. Sin esta firma se repetía
+       el barrido de 360 fotogramas por globo en cada aviso del observador. */
+    const firma = [alto, origen.x, origen.y, origen.w, origen.h, movilRef.current].join("|");
+    if (firma === firmaRef.current) return;
+
+    /* Todas las lecturas del DOM, de golpe y antes de los bucles. */
+    const cajas = GLOBOS.map((globo) => {
+      const el = globosRef.current[globo.key];
+      const h = altosRef.current[globo.key];
+      if (!el || !h) return null;
+      return { x0: el.offsetLeft, x1: el.offsetLeft + el.offsetWidth, alto: h };
+    });
+
+    /*
+     * La firma solo se da por buena si salieron todos. En la primera pasada
+     * puede faltar el alto de alguno —la foto del bin llega por red—, y
+     * guardándola igualmente ese globo se quedaba sin calcular para siempre:
+     * las llamadas siguientes se salían por el atajo antes de volver a verlo.
+     */
+    if (cajas.every(Boolean)) firmaRef.current = firma;
+
+    GLOBOS.forEach((globo, i) => {
+      const caja = cajas[i];
+      if (!caja) return;
+      const { x0: gx0, x1: gx1 } = caja;
+      const centro = (alto - caja.alto) / 2;
+      const sitio = REPOSO[globo.key];
+      const reposo =
+        sitio === "abajo"
+          ? Math.max(alto - caja.alto - SUELO_CREDITO, centro)
+          : sitio === "arriba"
+            ? Math.min(TECHO_CREDITO, centro)
+            : centro;
+      const gy0 = reposo;
+      const gy1 = reposo + caja.alto;
+
+      const [desde, hasta] = tramoDe(globo, movilRef.current);
+      let salida = SALIDA_POR_RELOJ;
+      let arranque = 0;
+
+      for (let f = desde; f < hasta; f += 1) {
+        const p = (f - desde) / (hasta - desde);
+        if (p < PAUSA + SUBIDA_MIN) continue; // todavía está subiendo
+        if (p > 0.9) break; // tan tarde que ya no se leería como huida
+
+        const [l, t, r, b] = DRONE_TRACK[f] ?? DRONE_TRACK[0];
+        const dx0 = origen.x + l * origen.w;
+        const dx1 = origen.x + r * origen.w;
+        const dy0 = origen.y + t * origen.h;
+        const dy1 = origen.y + b * origen.h;
+
+        const hueco =
+          Math.max(gx0 - dx1, dx0 - gx1, 0) + Math.max(gy0 - dy1, dy0 - gy1, 0);
+        if (hueco <= ROCE) {
+          salida = p;
+          arranque = ARRANQUE;
+          break;
+        }
+      }
+
+      salidasRef.current[globo.key] = { salida, arranque, reposo };
+    });
+  }, [origenDron]);
+
+  /**
    * Sube los globos como créditos: de debajo del escenario a encima de él.
    *
    * El alto de cada uno sale de la caché y no de `offsetHeight`, porque leerlo
@@ -623,15 +811,47 @@ const DroneShowcase = () => {
       }
 
       const h = altosRef.current[globo.key] ?? el.offsetHeight;
-      const q = recorrido(p);
-      // q = 0 justo debajo del escenario; q = 1 justo encima.
-      const y = (1 - q) * (alto + MARGEN_CREDITO) - q * (h + MARGEN_CREDITO);
+      const { salida = SALIDA_POR_RELOJ, arranque = 0, reposo } =
+        salidasRef.current[globo.key] ?? {};
+      const q = recorrido(p, salida, arranque);
+
+      /*
+       * q = 0 justo debajo del escenario, q = 0.5 aparcado, q = 1 justo
+       * encima. El punto de aparcado no es siempre el centro, así que el
+       * trayecto son dos rectas y no una: de abajo al reposo y del reposo a
+       * arriba.
+       */
+      const parada = reposo ?? (alto - h) / 2;
+      const abajo = alto + MARGEN_CREDITO;
+      const arriba = -(h + MARGEN_CREDITO);
+      const y = q <= 0.5 ? abajo + (parada - abajo) * (q / 0.5) : parada + (arriba - parada) * ((q - 0.5) / 0.5);
 
       if (el.style.visibility === "hidden") el.style.visibility = "visible";
       el.style.transform = `translate3d(0, ${y.toFixed(1)}px, 0)`;
       el.style.opacity = Math.min(q / FUNDIDO, (1 - q) / FUNDIDO, 1).toFixed(3);
     }
   }, []);
+
+  /**
+   * Pide un recálculo para el siguiente fotograma de pintado.
+   *
+   * calcularSalidas lee del DOM, y quien lo manda llamar son un ResizeObserver
+   * y el onLayout del canvas, que son sitios donde justo se acaba de escribir.
+   * Leer ahí mismo obliga a recalcular la maquetación en medio del callback, y
+   * con el observador vigilando esos mismos elementos se realimenta hasta
+   * colgar la pestaña. Aplazándolo a un rAF se lee una vez, ya asentado, y de
+   * paso se agrupan los avisos que lleguen a la vez.
+   */
+  const recalcularSalidas = useCallback(() => {
+    if (recalculoRef.current) return;
+    recalculoRef.current = requestAnimationFrame(() => {
+      recalculoRef.current = 0;
+      calcularSalidas();
+      colocarGlobos(frameRef.current);
+    });
+  }, [calcularSalidas, colocarGlobos]);
+
+  useEffect(() => () => cancelAnimationFrame(recalculoRef.current), []);
 
   const frameFromProgress = useCallback(
     (value) => Math.min(TOTAL_FRAMES - 1, Math.floor(clamp01(value) * TOTAL_FRAMES)),
@@ -649,8 +869,10 @@ const DroneShowcase = () => {
         setHorizonte((prev) => (Math.abs(prev - y) < 0.5 ? prev : y));
       }
       placeOverlay(frameFromProgress(avance.get()), sideRef.current);
+      // El encuadre acaba de cambiar: con él cambian los roces.
+      recalcularSalidas();
     },
-    [frameFromProgress, placeOverlay, avance]
+    [recalcularSalidas, frameFromProgress, placeOverlay, avance]
   );
 
   useMotionValueEvent(avance, "change", (value) => {
@@ -671,8 +893,8 @@ const DroneShowcase = () => {
 
     const entrada = clamp01((frame - SCENE_FROM) / SCENE_FADE);
     if (sceneRef.current) sceneRef.current.style.opacity = entrada.toFixed(3);
-    if (cityRef.current) {
-      cityRef.current.style.opacity = clamp01((SCENE_FROM - frame) / CITY_FADE).toFixed(3);
+    if (naveRef.current) {
+      naveRef.current.style.opacity = clamp01((SCENE_FROM - frame) / NAVE_FADE).toFixed(3);
     }
 
     setChapter((current) => (current === next ? current : next));
@@ -689,20 +911,21 @@ const DroneShowcase = () => {
 
     const entrada = clamp01((frame - SCENE_FROM) / SCENE_FADE);
     if (sceneRef.current) sceneRef.current.style.opacity = entrada.toFixed(3);
-    if (cityRef.current) {
-      cityRef.current.style.opacity = clamp01((SCENE_FROM - frame) / CITY_FADE).toFixed(3);
+    if (naveRef.current) {
+      naveRef.current.style.opacity = clamp01((SCENE_FROM - frame) / NAVE_FADE).toFixed(3);
     }
     placeOverlay(frame, sideRef.current);
     frameRef.current = frame;
     colocarGlobos(frame);
   }, [colocarGlobos, frameFromProgress, placeDot, placeOverlay, avance]);
 
-  /** Reporta a la pantalla de carga y la retira cuando el conjunto está listo. */
-  const avisarCarga = useCallback((fraccionFrames) => {
+  /** Reporta a la pantalla de carga y la retira cuando está todo. */
+  const avisarCarga = useCallback(() => {
     const carga = window.__ahCarga;
     if (!carga || cerradaRef.current) return;
     const total =
-      fraccionFrames * CARGA_PESO_FRAMES + ciudadListaRef.current * CARGA_PESO_CIUDAD;
+      fraccionRef.current * CARGA_PESO_FRAMES +
+      (fondosRef.current / 2) * CARGA_PESO_FONDOS;
     carga.progreso(total);
     if (total >= 0.999) {
       cerradaRef.current = true;
@@ -710,17 +933,22 @@ const DroneShowcase = () => {
     }
   }, []);
 
-  /* La ciudad es un fondo de CSS y no dispara evento de carga, así que se pide
-     aparte solo para saber cuándo terminó. El navegador reusa la descarga. */
+  /* Los fondos son imágenes de CSS y no disparan evento de carga, así que se
+     piden aparte solo para saber cuándo terminaron. El navegador reusa la
+     descarga: no se baja nada dos veces. */
   useEffect(() => {
-    const img = new Image();
-    const marcar = () => {
-      ciudadListaRef.current = 1;
-      avisarCarga(Math.min(loadedRef.current / CARGA_FRAMES, 1));
+    const pedir = (src) => {
+      const img = new Image();
+      const marcar = () => {
+        fondosRef.current += 1;
+        avisarCarga();
+      };
+      img.onload = marcar;
+      img.onerror = marcar; // si falla, no vale la pena retener la pantalla
+      img.src = src;
     };
-    img.onload = marcar;
-    img.onerror = marcar; // si falla, no vale la pena retener la pantalla
-    img.src = "/fondo-ciudad.webp";
+    pedir("/fondo-nave.webp");
+    pedir("/fondo-racks.webp");
   }, [avisarCarga]);
 
   /* Guarda el elemento de cada globo y el de cada tarjeta, por su clave. */
@@ -795,7 +1023,7 @@ const DroneShowcase = () => {
         altosRef.current[globo.key] = el.offsetHeight * escala;
       }
 
-      colocarGlobos(frameRef.current);
+      recalcularSalidas();
     };
 
     const observador = new ResizeObserver(revisar);
@@ -808,7 +1036,7 @@ const DroneShowcase = () => {
       observador.disconnect();
       window.removeEventListener("resize", revisar);
     };
-  }, [colocarGlobos]);
+  }, [recalcularSalidas]);
 
   const frameCount = isMobile ? MOBILE_FRAMES : TOTAL_FRAMES;
 
@@ -843,15 +1071,20 @@ const DroneShowcase = () => {
       aria-label={t("showcase.title")}
     >
       <div className="sticky top-0 h-screen overflow-hidden">
-        {/* La ciudad, durante el giro. Lleva su propio degradado vertical: el
-            cielo es la parte más clara de la foto y es justo donde caen el
-            kicker y el titular, que van en blanco. */}
-        <div ref={cityRef} aria-hidden="true" className="absolute inset-0" style={{ opacity: 1 }}>
-          <div className="absolute inset-0 bg-[url('/fondo-ciudad.webp')] bg-cover bg-center" />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,17,28,0.78)_0%,rgba(10,17,28,0.34)_34%,rgba(10,17,28,0.24)_62%,rgba(10,17,28,0.58)_100%)]" />
+        {/* La nave de carga, durante el giro.
+
+            El degradado vertical no es decorativo: lo marca la foto. Medida
+            por bandas, la parte alta (techo y cerchas) baja hasta luminancia
+            56 y el suelo sube a 120, al revés que la foto de ciudad que había
+            antes. Así que arriba basta con poco oscurecido para el titular, y
+            abajo hace falta bastante más para que la barra de los actos no se
+            pierda sobre el hormigón. */}
+        <div ref={naveRef} aria-hidden="true" className="absolute inset-0" style={{ opacity: 1 }}>
+          <div className="absolute inset-0 bg-[url('/fondo-nave.webp')] bg-cover bg-center" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,17,28,0.55)_0%,rgba(10,17,28,0.30)_30%,rgba(10,17,28,0.34)_58%,rgba(10,17,28,0.74)_100%)]" />
         </div>
 
-        {/* El almacén, durante el escaneo. Entra según se va la ciudad. */}
+        {/* Los racks, durante el escaneo. Entran según se va la nave. */}
         <div ref={sceneRef} aria-hidden="true" className="absolute inset-0" style={{ opacity: 0 }}>
           <div
             className="absolute inset-0 bg-[url('/fondo-racks.webp')] bg-repeat-x"
@@ -913,9 +1146,9 @@ const DroneShowcase = () => {
               frameCount={frameCount}
               srcFor={srcFor}
               onLoadProgress={(f) => {
-              loadedRef.current = f * (isMobile ? MOBILE_FRAMES : TOTAL_FRAMES);
-              avisarCarga(Math.min(loadedRef.current / CARGA_FRAMES, 1));
-            }}
+                fraccionRef.current = f;
+                avisarCarga();
+              }}
               onLayout={handleLayout}
               className="h-full w-full"
             />
