@@ -366,21 +366,39 @@ const TITULO_HASTA_MOVIL = 14;
 const FUNDIDO = 0.12;
 
 /**
- * El recorrido no es lineal del todo: frena por el centro de la pantalla y
- * corre por los extremos.
+ * Parte del recorrido que el globo pasa completamente quieto en el centro.
  *
- * Con velocidad constante un globo alto se ve entero durante muy poco. La
- * tarjeta de lecturas mide 625 px en una pantalla de 742: solo cabe del todo
- * mientras su borde superior va entre 0 y 117, o sea un 8% del trayecto, y
- * pasaba sin que diera tiempo a leerla. Esta curva reparte el mismo camino
- * dando más scroll al centro. Sigue sin pararse nunca —son créditos, no un
- * pase de diapositivas— pero por el medio va a menos de la mitad de velocidad.
+ * Antes solo frenaba, y frenar no obliga a leer: el ojo sigue al que se mueve.
+ * Ahora cada globo sube, se planta en mitad de la pantalla y ahí se queda
+ * mientras se sigue haciendo scroll, hasta que ha consumido su cupo; recién
+ * entonces se va por arriba. El dron no se entera: la secuencia va por
+ * `avance` y esta curva solo gobierna a los globos, así que durante la parada
+ * el vuelo continúa detrás.
  *
- * p' = p + A·sen(2πp)/2π. Pasa por 0 y por 1, y su derivada es 1 + A·cos(2πp):
- * 1+A en los bordes y 1−A en el centro. Con A < 1 nunca retrocede.
+ * 0.34 son entre 6 y 9 muescas de rueda según el globo. Suficiente para leer
+ * tres líneas sin que llegue a sentirse atascado.
  */
-const FRENO = 0.55;
-const recorrido = (p) => p + (FRENO * Math.sin(2 * Math.PI * p)) / (2 * Math.PI);
+const PAUSA = 0.34;
+
+/**
+ * Scroll dentro del tramo -> posición en el trayecto, los dos de 0 a 1.
+ *
+ * Las dos mitades que sí se mueven llevan su propia curva para que la parada
+ * no se note como un frenazo: la de subida llega al centro con velocidad cero
+ * y la de salida arranca desde cero. En las costuras de la pausa, entonces,
+ * la velocidad es cero por los dos lados y no hay tirón; el acelerón queda en
+ * los extremos, que es donde el globo está fuera de pantalla o fundiéndose.
+ */
+const recorrido = (p) => {
+  const tramo = (1 - PAUSA) / 2;
+  if (p <= tramo) {
+    const x = p / tramo;
+    return 0.5 * (1 - (1 - x) * (1 - x)); // llega al centro y se detiene
+  }
+  if (p < tramo + PAUSA) return 0.5; // quieto en mitad de la pantalla
+  const x = (p - tramo - PAUSA) / tramo;
+  return 0.5 + 0.5 * x * x; // arranca desde parado y se va
+};
 
 /** Dónde cruza cada globo: el carril es fijo, solo cambia la altura. */
 const carrilDe = (globo, enMovil) => {
