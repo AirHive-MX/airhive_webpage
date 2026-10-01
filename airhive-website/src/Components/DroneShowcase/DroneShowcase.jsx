@@ -5,6 +5,7 @@ import {
   useMotionValueEvent,
   useReducedMotion,
   useScroll,
+  useSpring,
   useTransform,
 } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -631,7 +632,33 @@ const DroneShowcase = () => {
    * `scrollYProgress`, para que la secuencia, la retícula, los fondos y las
    * tarjetas vayan todos por la misma curva.
    */
-  const avance = useTransform(scrollYProgress, avanceDelScroll);
+  const avanceCrudo = useTransform(scrollYProgress, avanceDelScroll);
+
+  /*
+   * Y de ahí a un muelle, que es lo que hace que el vuelo se vea fluido.
+   *
+   * El scroll no llega continuo: una muesca de rueda es un salto instantáneo
+   * de 100 px, o sea cinco fotogramas de golpe, y el dron daba el tirón entero
+   * en una sola pintada. El muelle persigue ese destino en vez de saltar a él,
+   * así que los cinco fotogramas se reparten entre las pintadas siguientes.
+   *
+   * Está justo por encima del amortiguamiento crítico (ζ≈1.05): se asienta en
+   * unos 120 ms y, sobre todo, no rebota. Un muelle con rebote aquí haría que
+   * el dron se pasara de fotograma y volviera, que es peor que el tirón.
+   *
+   * Lo gobierna todo, no solo la secuencia: la retícula, los globos y los
+   * fondos cuelgan del mismo valor, así que suavizan a la vez y nada se
+   * desincroniza.
+   */
+  const avanceSuave = useSpring(avanceCrudo, {
+    stiffness: 300,
+    damping: 20,
+    mass: 0.3,
+    restDelta: 0.0002, // muy por debajo de un fotograma (1/360 = 0.0028)
+  });
+
+  // Con movimiento reducido no se interpola nada: el scroll manda directo.
+  const avance = reduceMotion ? avanceCrudo : avanceSuave;
 
   /**
    * Pone retícula y línea guía sobre el dron del fotograma pedido. Escribe
@@ -795,6 +822,8 @@ const DroneShowcase = () => {
    * los compone, en vez de dejarlos a opacidad 0 encima de la escena.
    */
   const colocarGlobos = useCallback((frame) => {
+    // `frame` llega sin redondear: de eso depende que los globos no vayan a
+    // saltos de fotograma entero.
     const capa = capaRef.current;
     if (!capa) return;
     const alto = capa.clientHeight;
@@ -827,7 +856,7 @@ const DroneShowcase = () => {
       const y = q <= 0.5 ? abajo + (parada - abajo) * (q / 0.5) : parada + (arriba - parada) * ((q - 0.5) / 0.5);
 
       if (el.style.visibility === "hidden") el.style.visibility = "visible";
-      el.style.transform = `translate3d(0, ${y.toFixed(1)}px, 0)`;
+      el.style.transform = `translate3d(0, ${y.toFixed(2)}px, 0)`;
       el.style.opacity = Math.min(q / FUNDIDO, (1 - q) / FUNDIDO, 1).toFixed(3);
     }
   }, []);
@@ -858,6 +887,18 @@ const DroneShowcase = () => {
     []
   );
 
+  /**
+   * El mismo punto del recorrido pero sin redondear.
+   *
+   * El dron tiene que ir a fotograma entero: es una secuencia de imágenes y no
+   * existe nada entre la 100 y la 101. Pero los globos y los fundidos de fondo
+   * son CSS, y redondearlos los ataba a esos 360 escalones sin motivo: un globo
+   * que cruza 1400 px en 120 fotogramas se movía a saltos de 12 px, y un
+   * fundido de 18 fotogramas subía la opacidad de 5 en 5 por ciento, que se ve
+   * como bandas. Con el valor exacto se mueven todo lo fino que dé la pantalla.
+   */
+  const exactoDeProgreso = useCallback((value) => clamp01(value) * TOTAL_FRAMES, []);
+
   const handleLayout = useCallback(
     (layout) => {
       layoutRef.current = layout;
@@ -877,13 +918,15 @@ const DroneShowcase = () => {
 
   useMotionValueEvent(avance, "change", (value) => {
     const frame = frameFromProgress(value);
+    const exacto = exactoDeProgreso(value);
     const [cx, cy] = centerOf(DRONE_TRACK[frame] ?? DRONE_TRACK[0]);
     const next = chapterAt(frame);
 
-    frameRef.current = frame;
+    frameRef.current = exacto;
     sideRef.current = CHAPTER_SIDES[next];
+    // La retícula va con el dron, así que comparte su redondeo; los globos no.
     placeOverlay(frame, sideRef.current);
-    colocarGlobos(frame);
+    colocarGlobos(exacto);
 
     if (angleRef.current) {
       // La vuelta completa se consume en los primeros 120 fotogramas.
@@ -891,10 +934,10 @@ const DroneShowcase = () => {
     }
     placeDot(cx, cy);
 
-    const entrada = clamp01((frame - SCENE_FROM) / SCENE_FADE);
+    const entrada = clamp01((exacto - SCENE_FROM) / SCENE_FADE);
     if (sceneRef.current) sceneRef.current.style.opacity = entrada.toFixed(3);
     if (naveRef.current) {
-      naveRef.current.style.opacity = clamp01((SCENE_FROM - frame) / NAVE_FADE).toFixed(3);
+      naveRef.current.style.opacity = clamp01((SCENE_FROM - exacto) / NAVE_FADE).toFixed(3);
     }
 
     setChapter((current) => (current === next ? current : next));
@@ -906,18 +949,19 @@ const DroneShowcase = () => {
 
   useEffect(() => {
     const frame = frameFromProgress(avance.get());
+    const exacto = exactoDeProgreso(avance.get());
     const [cx, cy] = centerOf(DRONE_TRACK[frame] ?? DRONE_TRACK[0]);
     placeDot(cx, cy);
 
-    const entrada = clamp01((frame - SCENE_FROM) / SCENE_FADE);
+    const entrada = clamp01((exacto - SCENE_FROM) / SCENE_FADE);
     if (sceneRef.current) sceneRef.current.style.opacity = entrada.toFixed(3);
     if (naveRef.current) {
-      naveRef.current.style.opacity = clamp01((SCENE_FROM - frame) / NAVE_FADE).toFixed(3);
+      naveRef.current.style.opacity = clamp01((SCENE_FROM - exacto) / NAVE_FADE).toFixed(3);
     }
     placeOverlay(frame, sideRef.current);
-    frameRef.current = frame;
-    colocarGlobos(frame);
-  }, [colocarGlobos, frameFromProgress, placeDot, placeOverlay, avance]);
+    frameRef.current = exacto;
+    colocarGlobos(exacto);
+  }, [colocarGlobos, exactoDeProgreso, frameFromProgress, placeDot, placeOverlay, avance]);
 
   /** Reporta a la pantalla de carga y la retira cuando está todo. */
   const avisarCarga = useCallback(() => {
@@ -1201,7 +1245,12 @@ const DroneShowcase = () => {
           escribiendo transform y opacidad directo al DOM: por estado sería un
           render de React por fotograma.
         */}
-        <div ref={capaRef} className="pointer-events-none absolute inset-0 z-10">
+        {/* z-20, por encima de la barra de los actos: los globos la cruzan al
+            entrar y al salir, y compartiendo z-10 la barra se dibujaba encima
+            —la lectura de rotación salía sobre el texto del globo—. Pasando
+            por delante tapan la barra un instante, que es lo que se espera de
+            algo que cruza por encima. */}
+        <div ref={capaRef} className="pointer-events-none absolute inset-0 z-20">
           {GLOBOS.map((globo) => (
             <div
               key={globo.key}

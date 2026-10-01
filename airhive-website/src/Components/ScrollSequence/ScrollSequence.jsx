@@ -14,7 +14,13 @@ import { useMotionValueEvent, useReducedMotion } from "framer-motion";
  * inicio y se va refinando, en vez de quedarse en blanco hasta tener los 120.
  */
 
-const MAX_PARALLEL = 6;
+/*
+ * Descargas a la vez. Con 6 se dejaba capacidad sin usar: sobre HTTP/2, que es
+ * lo que sirve Vercel, las peticiones van multiplexadas por una sola conexión y
+ * no cuesta abrir más. Son 360 archivos de 35 KB, así que lo que manda es el
+ * número de idas y vueltas, no el ancho de banda.
+ */
+const MAX_PARALLEL = 10;
 
 /** Orden de carga: pasadas de stride decreciente, para refinar de grueso a fino. */
 const buildLoadOrder = (count) => {
@@ -110,9 +116,24 @@ const ScrollSequence = ({
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
       if (!rect.width || !rect.height) return;
+
+      /*
+       * El buffer se limita a lo que el render puede llenar.
+       *
+       * El canvas se dibuja en "contain", así que de sus píxeles solo se usan
+       * los del rectángulo donde cabe el render. A densidad 2 ese rectángulo
+       * salía bastante más grande que los 1920x1080 de la fuente: se ampliaba
+       * la imagen, que no añade un solo detalle, y se pagaba el relleno en cada
+       * fotograma. Topando la densidad donde el dibujo queda 1:1 con la fuente
+       * se pinta igual de nítido con un 40% menos de píxeles.
+       */
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.round(rect.width * dpr);
-      canvas.height = Math.round(rect.height * dpr);
+      const encaje = Math.min(rect.width / width, rect.height / height);
+      const justa = encaje > 0 ? 1 / encaje : dpr;
+      const densidad = Math.max(1, Math.min(dpr, justa));
+
+      canvas.width = Math.round(rect.width * densidad);
+      canvas.height = Math.round(rect.height * densidad);
       drawnRef.current = -1; // el buffer se limpió al redimensionar
       paint();
 
