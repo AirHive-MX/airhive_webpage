@@ -5,7 +5,7 @@
     <!-- icon -->
     <link rel="icon" type="image/png" href="/AH DEFINITIVO.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#060D96" />
+    <meta name="theme-color" content="#121D4A" />
     <title>Air Hive</title>
 
     <!--
@@ -14,7 +14,7 @@
       se tapa.
     -->
     <link rel="preload" as="image" href="/renders/drone/desktop/0001.webp" />
-    <link rel="preload" as="image" href="/fondo-ciudad.webp" />
+    <link rel="preload" as="image" href="/fondo-nave.webp" />
 
     <!--
       La pantalla de carga vive aquí y no en React a propósito: como componente
@@ -35,7 +35,16 @@
         align-items: center;
         justify-content: center;
         gap: 22px;
-        background: #060d96;
+        /*
+         * No es el azul de marca a tope, y es a propósito. Medido: a #060D96
+         * la pantalla salía al 96% de saturación, más del doble que el primer
+         * fotograma al que entrega (46%), y era la superficie más saturada de
+         * toda la página. Desde que espera al 100% real dura entre uno y cinco
+         * segundos, y tanta saturación tanto rato deja la foto lavada al
+         * levantarse. Este baja a 76% y sube la luminancia a 11.7%, que la
+         * escalona entre los globos (7.1%) y el primer fotograma (17.1%).
+         */
+        background: #121d4a;
         transition: opacity 500ms ease;
       }
       #ah-carga.se-va {
@@ -95,7 +104,15 @@
         var texto = document.getElementById("ah-carga-pct");
         var nacio = Date.now();
         var MINIMO = 500;
-        var MAXIMO = 5000;
+        /*
+         * El tope ya no es "lo que tarde en estar usable" sino una red de
+         * seguridad de verdad: la pantalla se queda hasta que esté cargado el
+         * recorrido entero, que son 13 MB y en una conexión normal van entre 1
+         * y 4 segundos. Con 5 s se cerraba a media descarga y el 100% era
+         * mentira; a 30 solo salta si algo se ha roto, y mientras tanto el
+         * porcentaje va contando, que es lo que dice que sigue vivo.
+         */
+        var MAXIMO = 30000;
         var cerrada = false;
 
         function cerrar() {
