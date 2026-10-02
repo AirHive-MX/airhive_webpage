@@ -1,6 +1,17 @@
 import { Link } from "react-router-dom";
 import { FaInstagram, FaLinkedin, FaFacebook, FaTiktok } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
+
+/**
+ * Enlaces que no se muestran por ahora, los mismos que oculta la barra de
+ * navegación.
+ *
+ * Es ocultar, no quitar: las rutas siguen registradas y las páginas intactas,
+ * porque se van a volver a usar. Para devolver uno basta con sacar su clave de
+ * esta lista; no hay que tocar el JSX.
+ */
+const OCULTOS = new Set(["products", "how_we_work"]);
+
 const Footer = () => {
   const { t, i18n } = useTranslation();
 
@@ -20,8 +31,12 @@ const Footer = () => {
           <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.14em] text-white">{t("footer.navigation")}</h3>
           <ul className="space-y-2 text-sm">
             <li><Link to="/" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">{t("navbar.home_short")}</Link></li>
+            {!OCULTOS.has("products") && (
             <li><Link to="/products" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">{t("navbar.cases")}</Link></li>
+            )}
+            {!OCULTOS.has("how_we_work") && (
             <li><Link to="/services#como-trabajamos" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">{t("navbar.how_we_work")}</Link></li>
+            )}
             <li><Link to="/about" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">{t("navbar.about")}</Link></li>
             <li><Link to="/diagnostico-gratis" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">{t("navbar.free_diagnostic")}</Link></li>
           </ul>
