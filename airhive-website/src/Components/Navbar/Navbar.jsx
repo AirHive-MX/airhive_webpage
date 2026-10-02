@@ -25,6 +25,7 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [productsOpen, setProductsOpen] = useState(false);
   const [onLight, setOnLight] = useState(false);
+  const [paginaOscura, setPaginaOscura] = useState(false);
   const location = useLocation();
   const { t } = useTranslation();
   const isHome = location.pathname === "/";
@@ -40,6 +41,16 @@ const Navbar = () => {
    * una franja de su propia altura y se entera de si lo que tiene debajo lleva
    * data-nav-light. Cualquier sección clara que se añada después funciona sola.
    */
+  /*
+   * Hay páginas enteras oscuras —Sobre nosotros, Diagnóstico— y en ellas el
+   * texto del header tiene que ir en blanco igual que en el home. Lo marcan
+   * con data-ah-oscuro en su <main>; aquí basta mirarlo al cambiar de ruta,
+   * sin observador, porque es la página entera y no una sección suelta.
+   */
+  useEffect(() => {
+    setPaginaOscura(!!document.querySelector("main[data-ah-oscuro]"));
+  }, [location.pathname]);
+
   useEffect(() => {
     const claro = document.querySelector("[data-nav-light]");
     if (!claro) {
@@ -56,7 +67,7 @@ const Navbar = () => {
 
   // Sin fondo propio: el header flota sobre el contenido. Lo único que cambia
   // es el color del texto, según lo que tenga debajo en ese momento.
-  const onDark = isHome && !onLight;
+  const onDark = (isHome || paginaOscura) && !onLight;
 
   const visible = useAutoHideHeader({
     pinned: isOpen || productsOpen,

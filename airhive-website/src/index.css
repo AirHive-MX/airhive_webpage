@@ -38,6 +38,39 @@ body {
   margin: 0 auto;
 }
 
+/*
+ * Páginas oscuras, con la misma paleta que el recorrido del dron.
+ *
+ * El fondo es el azul casi negro de los globos (#0A1322) con los mismos dos
+ * halos de marca que lleva .ah-page, aquí mucho más tenues: sobre claro un 8%
+ * se insinúa, sobre oscuro al 8% sería una mancha.
+ */
+.ah-oscura {
+  background:
+    radial-gradient(circle at 80% 8%, rgb(42 71 246 / 14%), transparent 46%),
+    radial-gradient(circle at 15% 85%, rgb(100 67 219 / 10%), transparent 42%),
+    #0a1322;
+  color: #ffffff;
+}
+
+/*
+ * La tarjeta es la misma receta que los globos: casi opaca, canto marcado con
+ * un ring interior en vez de un borde, radio de 14px y sombra larga y difusa.
+ * Un paso más clara que el fondo, porque allí flotaba sobre una foto y aquí
+ * sobre plano: al mismo color sería invisible.
+ *
+ * Sin el filo de color que sí llevan los globos del recorrido. Allí identifica
+ * el acto y cambia de uno a otro; aquí sería un adorno fijo, y el ring ya hace
+ * todo el trabajo de marcar dónde empieza la caja.
+ */
+.ah-tarjeta-oscura {
+  border-radius: 14px;
+  background: rgb(19 31 54 / 92%);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 7%),
+    0 26px 70px -28px rgb(0 0 0 / 85%);
+}
+
 .ah-surface {
   border: 1px solid rgb(255 255 255 / 98%);
   border-radius: 1.25rem;
@@ -58,16 +91,19 @@ main textarea[class*="border-[#DDDDDD]"] {
   background: #ffffff !important;
 }
 
-main [class*="border-[#162A42]/10"],
-main [class*="border-[#162A42]/12"],
-main [class*="border-[#162A42]/15"] {
+main:not([data-ah-oscuro]) [class*="border-[#162A42]/10"],
+main:not([data-ah-oscuro]) [class*="border-[#162A42]/12"],
+main:not([data-ah-oscuro]) [class*="border-[#162A42]/15"] {
   border-color: rgb(255 255 255 / 96%) !important;
 }
 
-main article:not(.ah-form-card),
-main details,
-main form:not(.ah-form-card form),
-main .ah-surface {
+/* Estas reglas pintan de blanco todo lo que parezca tarjeta, y con
+   !important, así que una página oscura no podría ganarles desde el JSX. En
+   vez de pelearlas con más !important se las excluye por el atributo. */
+main:not([data-ah-oscuro]) article:not(.ah-form-card),
+main:not([data-ah-oscuro]) details,
+main:not([data-ah-oscuro]) form:not(.ah-form-card form),
+main:not([data-ah-oscuro]) .ah-surface {
   border-color: rgb(255 255 255 / 98%) !important;
   background: rgb(255 255 255 / 96%) !important;
   box-shadow:
@@ -76,7 +112,7 @@ main .ah-surface {
 }
 
 /* Subtle blue glow on hover */
-main article:not(.ah-form-card):hover {
+main:not([data-ah-oscuro]) article:not(.ah-form-card):hover {
   border-color: rgb(42 71 246 / 30%) !important;
   box-shadow:
     0 0 0 1px rgb(42 71 246 / 15%),
@@ -91,8 +127,8 @@ main .ah-form-card form {
   box-shadow: none !important;
 }
 
-main .ah-form-card input,
-main .ah-form-card textarea {
+main:not([data-ah-oscuro]) .ah-form-card input,
+main:not([data-ah-oscuro]) .ah-form-card textarea {
   border-color: rgb(42 71 246 / 40%) !important;
   background: #ffffff !important;
 }
