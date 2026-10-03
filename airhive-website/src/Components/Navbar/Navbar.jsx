@@ -250,15 +250,22 @@ const Navbar = () => {
         )}
       </header>
 
-      <a
-        href="https://wa.me/528116070330"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-5 right-5 z-40 rounded-full bg-[#25D366] p-3 text-white shadow-xl transition duration-500 hover:scale-105 lg:hidden"
-        aria-label="WhatsApp"
-      >
-        <FaWhatsapp className="h-6 w-6" />
-      </a>
+      {/* El botón flotante de WhatsApp, en todas las páginas menos el home.
+          Allí los globos ocupan el ancho completo en móvil, así que el botón
+          les cae encima sí o sí; y el recorrido es una composición cerrada
+          donde ya se quitaron los demás botones sueltos. El contacto sigue a
+          un toque, en el menú. */}
+      {!isHome && (
+        <a
+          href="https://wa.me/528116070330"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-5 right-5 z-40 rounded-full bg-[#25D366] p-3 text-white shadow-xl transition duration-500 hover:scale-105 lg:hidden"
+          aria-label="WhatsApp"
+        >
+          <FaWhatsapp className="h-6 w-6" />
+        </a>
+      )}
     </>
   );
 };
