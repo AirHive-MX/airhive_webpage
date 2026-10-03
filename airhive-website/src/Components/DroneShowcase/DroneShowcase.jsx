@@ -146,6 +146,20 @@ const SCENE_ZOOM = "120%";
 const SCENE_POS = "33%";
 
 /**
+ * En móvil la foto se aleja todo lo que se puede.
+ *
+ * El alto de la foto manda el ancho de una estantería en pantalla, así que
+ * cuanto más alta, menos cajas caben. A 120% en un teléfono se veía poco más
+ * de una estantería y parecía estar pegado a ella. 100% es el tope: por debajo
+ * la foto deja de cubrir el alto y, como solo se repite en horizontal,
+ * aparecerían franjas vacías arriba y abajo.
+ *
+ * Al no sobrar alto, la posición vertical deja de tener efecto y se ve la foto
+ * entera: las tres bandas de cajas, con el dron a la altura de la del medio.
+ */
+const SCENE_ZOOM_MOVIL = "100%";
+
+/**
  * El dron se dibuja un 28% más grande que el escenario, para que domine sobre
  * la mercancía. 1.28 es el tope: por encima, en su punto más bajo se sale por
  * abajo de la pantalla en las resoluciones cortas.
@@ -373,6 +387,23 @@ const SUELO_CREDITO = 100;
 const TECHO_CREDITO = 84;
 
 /**
+ * En móvil los globos no hacen el recorrido de créditos.
+ *
+ * Allí no hay dos columnas: el globo cruza por donde vuela el dron y lo tapa
+ * medio trayecto, por mucho que se le busque sitio para aparcar. Así que en
+ * pantalla estrecha se quedan en una franja fija abajo y se relevan en el
+ * sitio: se va uno y entra el siguiente, con el dron siempre despejado arriba.
+ *
+ * SUELO_MOVIL es lo que se reserva por debajo, para la barra de los actos.
+ * ENTRADA_MOVIL es la parte del tramo que se usa para aparecer y para
+ * desaparecer. Como los tramos van pegados, al terminar uno su opacidad vale
+ * cero justo cuando la del siguiente empieza a subir: nunca se solapan dos.
+ */
+const SUELO_MOVIL = 96;
+const ENTRADA_MOVIL = 0.14;
+const DESLIZ_MOVIL = 12; // el pelín que sube al entrar y al salir
+
+/**
  * Dónde se planta cada globo mientras se lee. Si no está aquí, en el centro.
  *
  * Los que comparten carril con el dron no pueden quedarse en medio, porque ahí
@@ -482,9 +513,11 @@ const carrilDe = (globo, enMovil) => {
      empieza donde el dron todavía tiene brazo, y a 17rem lo libera. Las dos
      clases van escritas enteras porque Tailwind lee el código fuente: una
      interpolación aquí dentro no le genera nada. */
+  /* La variante por alto es para el móvil en horizontal: ahí sobra ancho y
+     falta alto, así que el globo se estrecha para no comerse la escena. */
   const ancho = EN_EL_PASO.has(globo.indice)
-    ? "w-[min(17rem,calc(100%-3rem))]"
-    : "w-[min(22rem,calc(100%-3rem))]";
+    ? "w-[min(17rem,calc(100%-3rem))] [@media(max-height:520px)]:w-[min(15rem,calc(100%-3rem))]"
+    : "w-[min(22rem,calc(100%-3rem))] [@media(max-height:520px)]:w-[min(17rem,calc(100%-3rem))]";
   return `${lado} ${ancho}`;
 };
 
@@ -507,7 +540,9 @@ const GloboActo = ({ indice, t }) => {
   const acto = CHAPTERS[indice];
   return (
     <div
-      className={`${GLOBO} ${indice === 0 ? SUPERFICIE.nave : SUPERFICIE.almacen} px-6 py-5`}
+      className={`${GLOBO} ${
+        indice === 0 ? SUPERFICIE.nave : SUPERFICIE.almacen
+      } px-6 py-5 [@media(max-height:520px)]:px-5 [@media(max-height:520px)]:py-3.5`}
     >
       <span
         aria-hidden="true"
@@ -533,10 +568,10 @@ const GloboActo = ({ indice, t }) => {
 
       {/* Interletraje negativo y menos interlínea: a este cuerpo el titular por
           defecto queda suelto y se lee genérico. */}
-      <h3 className="mt-3 text-[1.3rem] font-semibold leading-[1.18] tracking-[-0.015em] sm:text-[1.45rem]">
+      <h3 className="mt-3 text-[1.3rem] font-semibold leading-[1.18] tracking-[-0.015em] sm:text-[1.45rem] [@media(max-height:520px)]:mt-2 [@media(max-height:520px)]:text-[1.05rem]">
         {t(`showcase.chapters.${acto.key}.title`)}
       </h3>
-      <p className="mt-2.5 text-[0.85rem] leading-[1.65] text-white/60">
+      <p className="mt-2.5 text-[0.85rem] leading-[1.65] text-white/60 [@media(max-height:520px)]:mt-1.5 [@media(max-height:520px)]:text-[0.74rem] [@media(max-height:520px)]:leading-[1.5]">
         {t(`showcase.chapters.${acto.key}.text`)}
       </p>
     </div>
@@ -545,7 +580,9 @@ const GloboActo = ({ indice, t }) => {
 
 /** El globo del epílogo: qué es lo que enseña la tarjeta de al lado. */
 const GloboNota = ({ pasos }) => (
-  <div className={`${GLOBO} ${SUPERFICIE.almacen} px-5 py-4`}>
+  <div
+    className={`${GLOBO} ${SUPERFICIE.almacen} px-5 py-4 [@media(max-height:520px)]:px-4 [@media(max-height:520px)]:py-3`}
+  >
     <span
       aria-hidden="true"
       className="absolute inset-y-0 left-0 w-[3px]"
@@ -556,14 +593,19 @@ const GloboNota = ({ pasos }) => (
         tres queden en columna. */}
     <ol className="divide-y divide-white/[0.07]">
       {pasos.map((paso, i) => (
-        <li key={paso} className="flex gap-3 py-2.5 first:pt-0 last:pb-0">
+        <li
+          key={paso}
+          className="flex gap-3 py-2.5 first:pt-0 last:pb-0 [@media(max-height:520px)]:py-1.5"
+        >
           <span
             className="mt-px shrink-0 font-mono text-[0.62rem] tabular-nums"
             style={{ color: ACENTO_EPILOGO }}
           >
             {pad(i + 1).slice(2)}
           </span>
-          <p className="text-[0.8rem] leading-[1.5] text-white/70">{paso}</p>
+          <p className="text-[0.8rem] leading-[1.5] text-white/70 [@media(max-height:520px)]:text-[0.72rem]">
+            {paso}
+          </p>
         </li>
       ))}
     </ol>
@@ -771,6 +813,8 @@ const DroneShowcase = () => {
       const caja = cajas[i];
       if (!caja) return;
       const { x0: gx0, x1: gx1 } = caja;
+      const [desde, hasta] = tramoDe(globo, movilRef.current);
+
       const centro = (alto - caja.alto) / 2;
       const sitio = REPOSO[globo.key];
       const reposo =
@@ -781,8 +825,6 @@ const DroneShowcase = () => {
             : centro;
       const gy0 = reposo;
       const gy1 = reposo + caja.alto;
-
-      const [desde, hasta] = tramoDe(globo, movilRef.current);
       let salida = SALIDA_POR_RELOJ;
       let arranque = 0;
 
@@ -840,6 +882,31 @@ const DroneShowcase = () => {
       }
 
       const h = altosRef.current[globo.key] ?? el.offsetHeight;
+
+      /*
+       * Móvil: franja fija abajo y relevo en el sitio, sin recorrido. El globo
+       * entra y sale por opacidad, con un desliz de doce píxeles que da vida
+       * sin leerse como viaje. Nada de esto toca a escritorio.
+       */
+      if (movilRef.current) {
+        const base = Math.max(TECHO_CREDITO, alto - h - SUELO_MOVIL);
+        let opacidad = 1;
+        let desliz = 0;
+        if (p < ENTRADA_MOVIL) {
+          const x = p / ENTRADA_MOVIL;
+          opacidad = x;
+          desliz = (1 - x) * DESLIZ_MOVIL;
+        } else if (p > 1 - ENTRADA_MOVIL) {
+          const x = (1 - p) / ENTRADA_MOVIL;
+          opacidad = x;
+          desliz = -(1 - x) * DESLIZ_MOVIL;
+        }
+        if (el.style.visibility === "hidden") el.style.visibility = "visible";
+        el.style.transform = `translate3d(0, ${(base + desliz).toFixed(2)}px, 0)`;
+        el.style.opacity = opacidad.toFixed(3);
+        continue;
+      }
+
       const { salida = SALIDA_POR_RELOJ, arranque = 0, reposo } =
         salidasRef.current[globo.key] ?? {};
       const q = recorrido(p, salida, arranque);
@@ -1132,7 +1199,10 @@ const DroneShowcase = () => {
         <div ref={sceneRef} aria-hidden="true" className="absolute inset-0" style={{ opacity: 0 }}>
           <div
             className="absolute inset-0 bg-[url('/fondo-racks.webp')] bg-repeat-x"
-            style={{ backgroundSize: `auto ${SCENE_ZOOM}`, backgroundPosition: `center ${SCENE_POS}` }}
+            style={{
+              backgroundSize: `auto ${isMobile ? SCENE_ZOOM_MOVIL : SCENE_ZOOM}`,
+              backgroundPosition: `center ${SCENE_POS}`,
+            }}
           />
         </div>
 
@@ -1158,14 +1228,14 @@ const DroneShowcase = () => {
             del h3 del panel en el orden del documento; el z-10 conserva el
             apilamiento que tenía cuando estaba después. */}
         <div
-          className={`ah-container pointer-events-none relative z-10 pt-[84px] transition-opacity duration-700 ${
+          className={`ah-container pointer-events-none relative z-10 pt-[84px] transition-opacity duration-700 [@media(max-height:520px)]:pt-[64px] ${
             portada ? "opacity-100" : "opacity-0"
           }`}
         >
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">
             {t("showcase.kicker")}
           </p>
-          <h1 className="mt-3 max-w-lg text-3xl font-semibold leading-tight sm:text-4xl lg:text-[2.75rem]">
+          <h1 className="mt-3 max-w-lg text-3xl font-semibold leading-tight sm:text-4xl lg:text-[2.75rem] [@media(max-height:520px)]:mt-1.5 [@media(max-height:520px)]:max-w-sm [@media(max-height:520px)]:text-xl">
             {t("showcase.title")}
           </h1>
         </div>
@@ -1174,7 +1244,15 @@ const DroneShowcase = () => {
             mismo sistema de coordenadas. */}
         <div
           ref={stageRef}
-          className="absolute inset-x-0 bottom-[30vh] top-[84px] sm:bottom-[24vh] lg:bottom-[16vh]"
+          /*
+           * El recorte de abajo es lo que coloca al dron en vertical: al
+           * dibujarse centrado en el escenario, cuanto menos se recorta más
+           * baja. Medido en móvil, el centro del dron sale en 0.5·alto + 120,
+           * así que de 40vh a 32vh baja unos 26 px y queda mucho más cerca de
+           * la mitad de la pantalla. Más abajo no cabe: se le echaría encima
+           * de la franja de los globos.
+           */
+          className="absolute inset-x-0 bottom-[32vh] top-[84px] sm:bottom-[24vh] lg:bottom-[16vh]"
         >
           {/* El canvas va más grande que el escenario y centrado en él, para
               que el dron gane presencia frente a la mercancía. La retícula y la
@@ -1281,9 +1359,10 @@ const DroneShowcase = () => {
           ))}
         </div>
 
-        {/* Barra inferior: capítulos, lectura y salida. En móvil sube, porque
-            abajo del todo va la pista de scroll y se encimaban. */}
-        <div className="ah-container absolute inset-x-0 bottom-16 z-10 flex items-end justify-between gap-6 sm:bottom-8">
+        {/* Barra inferior: capítulos, lectura y salida. En móvil va algo más
+            arriba que en escritorio, para no encimarse con la pista de scroll,
+            pero lo justo: cada píxel que gana se lo quita al dron. */}
+        <div className="ah-container absolute inset-x-0 bottom-10 z-10 flex items-end justify-between gap-6 sm:bottom-8">
           <div className="flex flex-col gap-3">
             <div className="flex gap-2">
               {CHAPTERS.map((item, index) => (
