@@ -2,7 +2,19 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FaWhatsapp } from "react-icons/fa";
-import logo from "/logo sin fondo.png";
+import logo from "/ah-monograma.png";
+import useAutoHideHeader from "./useAutoHideHeader";
+
+const NAV_H = 64; // alto aproximado del header, para la franja que vigila
+
+/**
+ * Enlaces que no se muestran por ahora.
+ *
+ * Es ocultar, no quitar: las rutas siguen registradas en MainLayout y las
+ * páginas intactas, porque se van a volver a usar. Para devolver uno al menú
+ * basta con sacar su clave de esta lista; no hay que tocar el JSX.
+ */
+const OCULTOS = new Set(["products", "how_we_work", "schedule_diagnostic"]);
 
 const productItems = [
   { key: "drone_inventory", to: "/products#drone-inventory" },
@@ -11,8 +23,9 @@ const productItems = [
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const [productsOpen, setProductsOpen] = useState(false);
+  const [onLight, setOnLight] = useState(false);
+  const [paginaOscura, setPaginaOscura] = useState(false);
   const location = useLocation();
   const { t } = useTranslation();
   const isHome = location.pathname === "/";
@@ -22,30 +35,69 @@ const Navbar = () => {
     setProductsOpen(false);
   }, [location.pathname, location.hash]);
 
+  /*
+   * El home es oscuro salvo la sección del WMS, que enseña una captura sobre
+   * fondo claro. En vez de codificar aquí qué sección es cuál, el header vigila
+   * una franja de su propia altura y se entera de si lo que tiene debajo lleva
+   * data-nav-light. Cualquier sección clara que se añada después funciona sola.
+   */
+  /*
+   * Hay páginas enteras oscuras —Sobre nosotros, Diagnóstico— y en ellas el
+   * texto del header tiene que ir en blanco igual que en el home. Lo marcan
+   * con data-ah-oscuro en su <main>; aquí basta mirarlo al cambiar de ruta,
+   * sin observador, porque es la página entera y no una sección suelta.
+   */
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 18);
-    onScroll();
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+    setPaginaOscura(!!document.querySelector("main[data-ah-oscuro]"));
+  }, [location.pathname]);
 
-  const transparentHeader = isHome && !scrolled;
+  useEffect(() => {
+    const claro = document.querySelector("[data-nav-light]");
+    if (!claro) {
+      setOnLight(false);
+      return undefined;
+    }
+    const observer = new IntersectionObserver(
+      ([entrada]) => setOnLight(entrada.isIntersecting),
+      { rootMargin: `0px 0px -${Math.max(window.innerHeight - NAV_H, 0)}px 0px` }
+    );
+    observer.observe(claro);
+    return () => observer.disconnect();
+  }, [location.pathname]);
+
+  // Sin fondo propio: el header flota sobre el contenido. Lo único que cambia
+  // es el color del texto, según lo que tenga debajo en ese momento.
+  const onDark = (isHome || paginaOscura) && !onLight;
+
+  const visible = useAutoHideHeader({
+    pinned: isOpen || productsOpen,
+    resetKey: location.pathname,
+  });
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50">
+      {/* Al esconderse no solo sube: también se desvanece, porque el CTA lleva
+          una sombra azul larga que si no se queda asomando por el borde. */}
+      <header
+        className={`fixed inset-x-0 top-0 z-50 transition-[transform,opacity] duration-300 ease-out ${
+          visible
+            ? "translate-y-0 opacity-100"
+            : "pointer-events-none -translate-y-full opacity-0"
+        }`}
+      >
         <nav
-          className={`flex w-full items-center justify-between px-4 py-3 transition-all duration-500 sm:px-6 lg:px-10 ${
-            transparentHeader
-              ? "bg-white/8 text-[#162A42] shadow-[0_10px_34px_rgba(0,0,0,0.18)] backdrop-blur-md"
-              : "bg-white/92 text-[#162A42] shadow-[0_18px_60px_rgba(22,42,66,0.14)] backdrop-blur-xl"
+          className={`flex w-full items-center justify-between px-4 py-3 transition-colors duration-300 sm:px-6 lg:px-10 ${
+            onDark ? "text-white" : "text-[#162A42]"
           }`}
         >
           <Link to="/" className="flex items-center gap-2">
+            {/* Monograma en vez del wordmark: ~103px de ancho contra ~263px.
+                Sobre el home va en blanco para igualar los enlaces; en las
+                páginas claras se queda en el azul de marca. */}
             <img
               src={logo}
               alt="Air Hive"
-              className="h-9 w-auto transition duration-500"
+              className={`h-7 w-auto transition duration-300 ${onDark ? "brightness-0 invert" : ""}`}
             />
           </Link>
 
@@ -56,6 +108,7 @@ const Navbar = () => {
               </Link>
             </li>
 
+            {!OCULTOS.has("products") && (
             <li
               className="relative"
               onMouseEnter={() => setProductsOpen(true)}
@@ -85,12 +138,15 @@ const Navbar = () => {
                 ))}
               </div>
             </li>
+            )}
 
+            {!OCULTOS.has("how_we_work") && (
             <li>
               <Link to="/services#como-trabajamos" className="transition duration-300 hover:-translate-y-0.5 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">
                 {t("navbar.how_we_work")}
               </Link>
             </li>
+            )}
             <li>
               <Link to="/about" className="transition duration-300 hover:-translate-y-0.5 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">
                 {t("navbar.about")}
@@ -101,24 +157,26 @@ const Navbar = () => {
                 {t("navbar.free_diagnostic")}
               </Link>
             </li>
+            {!OCULTOS.has("schedule_diagnostic") && (
+            <li>
+              <a
+                href="https://wa.me/528116070330"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition duration-300 hover:-translate-y-0.5 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]"
+              >
+                {t("navbar.schedule_diagnostic")}
+              </a>
+            </li>
+            )}
           </ul>
 
-          <div className="hidden items-center gap-3 lg:flex">
-            <a
-              href="https://wa.me/528116070330"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ah-nav-cta inline-block rounded-full bg-[#2A47F6] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(42,71,246,0.35)] transition duration-500 hover:bg-[#6443DB]"
-            >
-              {t("navbar.schedule_diagnostic")}
-            </a>
-          </div>
 
           <div className="flex items-center gap-2 lg:hidden">
           <button
             onClick={() => setIsOpen((prev) => !prev)}
             className={`rounded-lg border p-2 ${
-              transparentHeader ? "border-[#162A42]/20 text-[#162A42]" : "border-[#162A42]/15 text-[#162A42]"
+              onDark ? "border-white/30 text-white" : "border-[#162A42]/15 text-[#162A42]"
             }`}
             aria-label="Toggle menu"
           >
@@ -137,6 +195,7 @@ const Navbar = () => {
                   {t("navbar.home_short")}
                 </Link>
               </li>
+              {!OCULTOS.has("products") && (
               <li className="rounded-lg border border-[#162A42]/10 px-3 py-2">
                 <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#162A42]/65">{t("navbar.cases")}</p>
                 <div className="space-y-1">
@@ -147,11 +206,14 @@ const Navbar = () => {
                   ))}
                 </div>
               </li>
+              )}
+              {!OCULTOS.has("how_we_work") && (
               <li>
                 <Link to="/services#como-trabajamos" className="block rounded-lg px-3 py-2 hover:bg-[#162A42]/5">
                   {t("navbar.how_we_work")}
                 </Link>
               </li>
+              )}
               <li>
                 <Link to="/about" className="block rounded-lg px-3 py-2 hover:bg-[#162A42]/5">
                   {t("navbar.about")}
@@ -162,6 +224,7 @@ const Navbar = () => {
                   {t("navbar.free_diagnostic")}
                 </Link>
               </li>
+              {!OCULTOS.has("schedule_diagnostic") && (
               <li>
                 <Link
                   to="/contact"
@@ -170,6 +233,7 @@ const Navbar = () => {
                   {t("navbar.schedule_diagnostic")}
                 </Link>
               </li>
+              )}
               <li>
                 <a
                   href="https://wa.me/528116070330"
@@ -186,15 +250,22 @@ const Navbar = () => {
         )}
       </header>
 
-      <a
-        href="https://wa.me/528116070330"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-5 right-5 z-40 rounded-full bg-[#25D366] p-3 text-white shadow-xl transition duration-500 hover:scale-105 lg:hidden"
-        aria-label="WhatsApp"
-      >
-        <FaWhatsapp className="h-6 w-6" />
-      </a>
+      {/* El botón flotante de WhatsApp, en todas las páginas menos el home.
+          Allí los globos ocupan el ancho completo en móvil, así que el botón
+          les cae encima sí o sí; y el recorrido es una composición cerrada
+          donde ya se quitaron los demás botones sueltos. El contacto sigue a
+          un toque, en el menú. */}
+      {!isHome && (
+        <a
+          href="https://wa.me/528116070330"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-5 right-5 z-40 rounded-full bg-[#25D366] p-3 text-white shadow-xl transition duration-500 hover:scale-105 lg:hidden"
+          aria-label="WhatsApp"
+        >
+          <FaWhatsapp className="h-6 w-6" />
+        </a>
+      )}
     </>
   );
 };

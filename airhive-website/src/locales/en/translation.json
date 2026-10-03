@@ -501,5 +501,66 @@
         "chart_label_3": "May 4",
         "chart_label_4": "May 9",
         "chart_today": "Today"
+    },
+    "showcase": {
+        "kicker": "THE HARDWARE IN FLIGHT",
+        "title": "A full pass around the drone that counts your inventory.",
+        "rotation": "Rotation",
+        "trajectory": "Trajectory",
+        "hint": "Scroll to follow it",
+        "cta": "See products",
+        "chapters": {
+            "inspection": {
+                "phase": "Act 1 · Inspection",
+                "kicker": "360° pass",
+                "title": "The hardware from every side",
+                "text": "Carbon frame, motors, antennas and the lower payload bay. A full turn around the drone that flies your warehouse."
+            },
+            "armed": {
+                "phase": "Act 2 · Takeoff",
+                "kicker": "Motors armed",
+                "title": "Spins up without stopping the floor",
+                "text": "It starts inside the running operation: no aisles to clear, no staff to move out, no shift to pause."
+            },
+            "position": {
+                "phase": "Act 3 · Counting",
+                "kicker": "In position",
+                "title": "Drops to the rack and reads it",
+                "text": "It holds in front of the locations and captures label, barcode and status for each position, level by level."
+            },
+            "route": {
+                "phase": "Act 4 · Route",
+                "kicker": "Follows the route",
+                "title": "Climbs and chains the next one",
+                "text": "Gains altitude, moves to the next location and keeps going. Every count lands in the Air Hive WMS in real time."
+            }
+        }
+    },
+    "wms": {
+        "kicker": "FROM FLIGHT TO SYSTEM",
+        "title": "Everything the drone read is already in the WMS.",
+        "cta": "See products",
+        "steps": {
+            "ingesta": {
+                "kicker": "Ingest",
+                "title": "Every read lands on its own",
+                "text": "The moment the drone reads a location, the bin, the label and the photo show up in the system. Nobody keys anything in."
+            },
+            "contraste": {
+                "kicker": "Reconcile",
+                "title": "Checked against what should be there",
+                "text": "The WMS matches each read against its own record and flags every bin as a match or a discrepancy."
+            },
+            "cobertura": {
+                "kicker": "Coverage",
+                "title": "You know what was counted and what's left",
+                "text": "The flight reports positions read, labels to review and anything left unplaced. Progress updates live."
+            },
+            "evidencia": {
+                "kicker": "Evidence",
+                "title": "Every bin keeps its photo",
+                "text": "When a count doesn't add up, you check the image from your desk instead of walking back to the aisle."
+            }
+        }
     }
 }

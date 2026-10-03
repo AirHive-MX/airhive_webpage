@@ -5,7 +5,12 @@ const ScrollEffects = () => {
   const { pathname, hash } = useLocation();
 
   useEffect(() => {
-    const elements = Array.from(document.querySelectorAll("section, article"));
+    // El reveal aplica un transform, y un transform en un ancestro rompe el
+    // position: sticky de adentro. Las secciones que animan su propio scroll
+    // se marcan con data-ah-no-reveal para quedar fuera.
+    const elements = Array.from(
+      document.querySelectorAll("section:not([data-ah-no-reveal]), article:not([data-ah-no-reveal])")
+    );
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     elements.forEach((el, idx) => {

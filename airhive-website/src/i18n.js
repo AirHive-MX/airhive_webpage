@@ -15,7 +15,12 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: "en",
+    // El público es mexicano: quien llega sin preferencia guardada debe ver
+    // español. Con "en" un visitante nuevo caía en inglés y, mientras
+    // LanguageSwitcher siga desmontado, no tenía forma de cambiarlo.
+    fallbackLng: "es",
+    supportedLngs: ["es", "en"],
+    load: "languageOnly", // es-MX y en-US resuelven a es / en
     detection: {
       order: ["localStorage"],
       lookupLocalStorage: "i18nextLng",
