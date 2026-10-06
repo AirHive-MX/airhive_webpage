@@ -15,20 +15,33 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    // El público es mexicano: quien llega sin preferencia guardada debe ver
-    // español. Con "en" un visitante nuevo caía en inglés y, mientras
-    // LanguageSwitcher siga desmontado, no tenía forma de cambiarlo.
+    /*
+     * El idioma sale del navegador: con el teléfono o la computadora en inglés
+     * se ve en inglés; con cualquier otro idioma, en español, que es el del
+     * público principal. No hay selector, así que tampoco se guarda nada: si
+     * se guardara, alguien que entró una vez en español se quedaría así aunque
+     * cambiara su navegador. Por lo mismo ya no se lee localStorage (antes era
+     * la única fuente, y todos acababan en español).
+     */
     fallbackLng: "es",
     supportedLngs: ["es", "en"],
+    nonExplicitSupportedLngs: true, // en-US, en-GB… cuentan como en
     load: "languageOnly", // es-MX y en-US resuelven a es / en
     detection: {
-      order: ["localStorage"],
-      lookupLocalStorage: "i18nextLng",
-      caches: ["localStorage"],
+      order: ["navigator"],
+      caches: [],
     },
     interpolation: {
       escapeValue: false,
     },
   });
+
+// Que el <html lang> diga el idioma real: lo usan lectores de pantalla,
+// traductores del navegador y buscadores.
+const marcarIdioma = (lng) => {
+  document.documentElement.lang = (lng || "es").split("-")[0];
+};
+marcarIdioma(i18n.resolvedLanguage);
+i18n.on("languageChanged", marcarIdioma);
 
 export default i18n;
