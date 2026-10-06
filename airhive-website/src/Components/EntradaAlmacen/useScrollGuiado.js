@@ -105,12 +105,19 @@ export default function useScrollGuiado(seccionRef, escenas, activo) {
     };
 
     /* Corta la inercia (en iOS solo overflow: hidden la detiene) y se
-       acomoda en la escena que se estaba cruzando. */
+       acomoda en la escena que se estaba cruzando.
+       Ojo: en Safari de iPhone, poner overflow: hidden a veces brinca la
+       página al inicio. Se guarda la posición antes y, si al soltar ya no es
+       la misma, se devuelve ahí antes de deslizar (lo mismo que hace
+       hextronics). Sin esto, a veces aparecía la fachada con el dron de
+       espaldas, a medio actualizar. */
     const atrapar = (p, m) => {
       const html = document.documentElement;
+      const y = window.scrollY;
       html.style.overflow = "hidden";
       requestAnimationFrame(() => {
         html.style.overflow = "";
+        if (Math.abs(window.scrollY - y) > 1) window.scrollTo({ top: y, behavior: "instant" });
         deslizar(yDe(p, m));
       });
     };

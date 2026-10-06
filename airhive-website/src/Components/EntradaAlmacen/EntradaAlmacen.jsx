@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMotionValue, useMotionValueEvent, useScroll, useSpring } from "framer-motion";
 import ScrollSequence from "../ScrollSequence/ScrollSequence";
 import DRONE_TRACK from "../DroneShowcase/droneTrack";
@@ -56,16 +56,71 @@ const SISTEMA = [0.8, 0.85]; // se apaga el rack y entra el WMS
  * escena se detiene en ella. Antes eran paradas rígidas (scroll-snap) y el
  * scroll se sentía frenado; así se comporta como en hextronics.com.
  */
+/*
+ * Cada escena empieza donde ya está completa, no donde asoma: al terminar una
+ * transición el scroll se queda justo en ese inicio, y ahí tiene que verse
+ * todo. Medido contra TEXTOS y las animaciones de cada tramo.
+ */
 const ESCENAS = [
-  [0, 0.03], // gancho
-  [0.07, 0.105], // el problema, con sus tres datos ya fuera
+  [0, 0.035], // gancho
+  [0.07, 0.105], // el problema: sus tres datos terminan de salir en 0.07
   [0.14, 0.21], // "Conoce al que cuenta por ti"
   [0.3, 0.34], // el dron llegando a la puerta
-  [0.44, 0.58], // el pasillo, esquivando palabras
+  [0.44, 0.595], // el pasillo: la tercera palabra se va en 0.593
   [0.595, 0.615], // "Tu turno sigue. Él también."
   [0.68, 0.78], // conteo frente al rack
-  [0.95, 1], // las diferencias resueltas
+  [0.87, 1], // el agente: las tarjetas ya están y las 3 diferencias se resuelven aquí
 ];
+
+/**
+ * Ritmo en pantallas táctiles: cuánto scroll se le da a cada tramo del
+ * recorrido, como pares [hasta, peso] (pesos relativos; el alto total no
+ * cambia).
+ *
+ * Con el reparto parejo, los textos cortos casi no duraban: "Tu turno sigue"
+ * se iba en una fracción de pantalla. Aquí las escenas de lectura (las de
+ * ESCENAS) pesan más y las transiciones menos, que además se completan solas
+ * con el scroll guiado. En computadora el reparto sigue parejo.
+ */
+const RITMO_TACTIL = [
+  [0.035, 0.5], // gancho
+  [0.07, 0.25],
+  [0.105, 0.7], // problema
+  [0.14, 0.25],
+  [0.21, 0.6], // conoce
+  [0.3, 0.4], // vuelo hacia la puerta
+  [0.34, 0.3], // la puerta
+  [0.44, 0.45], // cruce
+  [0.595, 1.3], // pasillo con palabras: tres esquives
+  [0.615, 0.5], // "Tu turno sigue"
+  [0.68, 0.3],
+  [0.78, 0.7], // conteo
+  [0.87, 0.35], // entra el sistema
+  [1, 0.9], // el agente resuelve una por una
+];
+
+/** Del scroll (0..1) al recorrido (0..1) según el ritmo, y al revés. */
+const RITMO = (() => {
+  const tramos = [];
+  let p0 = 0;
+  let q0 = 0;
+  const total = RITMO_TACTIL.reduce((suma, [, peso]) => suma + peso, 0);
+  for (const [hasta, peso] of RITMO_TACTIL) {
+    const q1 = q0 + peso / total;
+    tramos.push({ p0, p1: hasta, q0, q1 });
+    p0 = hasta;
+    q0 = q1;
+  }
+  const recorridoDe = (q) => {
+    const t = tramos.find((tr) => q <= tr.q1) ?? tramos[tramos.length - 1];
+    return t.p0 + ((Math.min(Math.max(q, 0), 1) - t.q0) / (t.q1 - t.q0)) * (t.p1 - t.p0);
+  };
+  const scrollDe = (p) => {
+    const t = tramos.find((tr) => p <= tr.p1) ?? tramos[tramos.length - 1];
+    return t.q0 + ((Math.min(Math.max(p, 0), 1) - t.p0) / (t.p1 - t.p0)) * (t.q1 - t.q0);
+  };
+  return { recorridoDe, scrollDe };
+})();
 
 /** La foto del pasillo (1536x1024): se ve por la puerta y luego se recorre. */
 const PASILLO = { w: 1536, h: 1024 };
@@ -216,7 +271,23 @@ const EntradaAlmacen = () => {
 
   // Scroll guiado solo en táctil: en computadora la rueda ya avanza poco a
   // poco y lo guiado se sentiría como quitarle el control a quien lee.
-  useScrollGuiado(seccionRef, ESCENAS, tactil);
+  /* Al recargar, la historia empieza desde arriba. El navegador por su
+     cuenta devolvía al punto donde se estaba, a veces a mitad de una
+     transición. Se restaura al salir, para no afectar a las demás páginas. */
+  useEffect(() => {
+    const anterior = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    window.scrollTo({ top: 0, behavior: "instant" });
+    return () => {
+      window.history.scrollRestoration = anterior;
+    };
+  }, []);
+
+  const escenasScroll = useMemo(
+    () => ESCENAS.map(([a, b]) => [RITMO.scrollDe(a), RITMO.scrollDe(b)]),
+    []
+  );
+  useScrollGuiado(seccionRef, escenasScroll, tactil);
 
   useEffect(() => {
     const q = window.matchMedia("(max-width: 767px)");
@@ -233,7 +304,10 @@ const EntradaAlmacen = () => {
     target: seccionRef,
     offset: ["start start", "end end"],
   });
-  const avance = useSpring(scrollYProgress, { stiffness: 300, damping: 20, mass: 0.3, restDelta: 0.0002 });
+  /* El resorte suaviza los saltos de la rueda del mouse. En táctil sobra: la
+     inercia del teléfono ya es suave y el resorte solo añadía retraso, que se
+     sentía como un scroll "chicloso". Ahí el recorrido sigue al dedo. */
+  const resorte = useSpring(scrollYProgress, { stiffness: 300, damping: 20, mass: 0.3, restDelta: 0.0002 });
 
   /* El fotograma del dron, como fracción de los 180 que se usan. */
   const fotograma = useMotionValue(60 / 180);
@@ -269,14 +343,23 @@ const EntradaAlmacen = () => {
     img.src = "/fachada-almacen.webp";
   }, [avisarCarga]);
 
-  /* El bucle de las hélices: solo escribe cuando el dron ya está volando. */
+  /*
+   * El bucle de las hélices. Lee en cada cuadro dónde está el scroll de verdad
+   * (no un dato guardado por aplicar), para corregirse solo: si alguna vez se
+   * perdía una actualización —p. ej. un brinco de scroll en Safari—, el dron
+   * se quedaba con el fotograma de espaldas estando frente a la fachada.
+   */
+  const leerRecorridoRef = useRef(() => 0);
   useEffect(() => {
     let raf = 0;
     const vuelta = HELICES_HASTA - HELICES_DESDE + 1;
     const latido = (ahora) => {
-      if (enVueloRef.current) {
+      const p = leerRecorridoRef.current();
+      if (p >= GIRO[1]) {
         const k = Math.floor((ahora / 1000) * HELICES_FPS) % vuelta;
         fotograma.set((HELICES_DESDE + k) / 180);
+      } else {
+        fotograma.set((60 + 60 * suave(tramo(p, GIRO))) / 180);
       }
       raf = requestAnimationFrame(latido);
     };
@@ -454,7 +537,8 @@ const EntradaAlmacen = () => {
     }
     problemasRef.current.forEach((el, i) => {
       if (!el) return;
-      const t = tramo(p, [0.06 + i * 0.012, 0.072 + i * 0.012]);
+      // Los tres terminan de salir en 0.07, donde empieza su escena de lectura.
+      const t = tramo(p, [0.05 + i * 0.005, 0.06 + i * 0.005]);
       el.style.opacity = t.toFixed(3);
       el.style.transform = `translate3d(0, ${((1 - t) * 12).toFixed(1)}px, 0)`;
     });
@@ -497,13 +581,17 @@ const EntradaAlmacen = () => {
     });
   }, [fotograma, tinte, movil]);
 
-  useMotionValueEvent(avance, "change", aplicar);
+  const avance = tactil ? scrollYProgress : resorte;
+  // En táctil el scroll pasa por el ritmo antes de mover la escena.
+  const recorrido = useCallback((v) => (tactil ? RITMO.recorridoDe(v) : v), [tactil]);
+  leerRecorridoRef.current = () => recorrido(avance.get());
+  useMotionValueEvent(avance, "change", (v) => aplicar(recorrido(v)));
   useEffect(() => {
-    aplicar(avance.get());
-    const r = () => aplicar(avance.get());
+    aplicar(recorrido(avance.get()));
+    const r = () => aplicar(recorrido(avance.get()));
     window.addEventListener("resize", r);
     return () => window.removeEventListener("resize", r);
-  }, [aplicar, avance]);
+  }, [aplicar, avance, recorrido]);
 
   const frameCount = movil ? 90 : 180;
   const srcFor = useCallback(
