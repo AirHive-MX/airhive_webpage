@@ -44,6 +44,27 @@ const AL_RACK = [0.6, 0.65]; // corte suave del pasillo a la toma de cerca
 const CUENTA = [0.65, 0.8]; // barrido lateral frente al rack
 const SISTEMA = [0.8, 0.85]; // se apaga el rack y entra el WMS
 
+/**
+ * Paradas del scroll en pantallas táctiles, en fracción del recorrido.
+ *
+ * En celular un deslizón fuerte avanza varias pantallas y se brincaba
+ * escenas enteras. En cada parada el scroll se detiene (scroll-snap con
+ * scroll-snap-stop: always), así que un deslizón, por fuerte que sea, solo
+ * llega a la siguiente; entre parada y parada la animación corre sola. Cada
+ * valor es el momento en que esa escena se ve completa. En computadora no se
+ * usan: con la rueda del mouse cada muesca brincaría una escena.
+ */
+const PARADAS = [
+  0, // gancho
+  0.1, // el problema, con sus tres datos ya fuera
+  0.175, // "Conoce al que cuenta por ti"
+  0.33, // el dron llegando a la puerta
+  0.51, // en el pasillo, esquivando
+  0.605, // "Tu turno sigue. Él también."
+  0.75, // conteo frente al rack
+  0.985, // las 3 diferencias ya resueltas
+];
+
 /** La foto del pasillo (1536x1024): se ve por la puerta y luego se recorre. */
 const PASILLO = { w: 1536, h: 1024 };
 
@@ -190,6 +211,14 @@ const EntradaAlmacen = () => {
   const gradoRef = useRef(null); // entonado del interior visto desde la calle
   const [movil, setMovil] = useState(false);
   const [tactil, setTactil] = useState(false);
+
+  /* Las paradas viven en el html (es quien hace scroll), y solo en táctil.
+     Se quitan al salir del home para no afectar a las demás páginas. */
+  useEffect(() => {
+    if (!tactil) return undefined;
+    document.documentElement.classList.add("ah-paradas");
+    return () => document.documentElement.classList.remove("ah-paradas");
+  }, [tactil]);
 
   useEffect(() => {
     const q = window.matchMedia("(max-width: 767px)");
@@ -507,6 +536,21 @@ const EntradaAlmacen = () => {
       className="relative bg-[#070b12] text-white"
       style={{ height: movil ? "750svh" : "1300vh" }}
     >
+      {/* Las paradas del scroll: marcas invisibles en la altura del recorrido
+          que corresponde a cada escena (ver PARADAS). */}
+      {PARADAS.map((p) => (
+        <span
+          key={p}
+          aria-hidden="true"
+          className="ah-parada pointer-events-none absolute left-0 h-px w-px"
+          style={{ top: `calc((100% - 100svh) * ${p})` }}
+        />
+      ))}
+      <style>{`
+        html.ah-paradas { scroll-snap-type: y mandatory; }
+        html.ah-paradas .ah-parada { scroll-snap-align: start; scroll-snap-stop: always; }
+        html.ah-paradas .ah-parada-final { scroll-snap-align: end; }
+      `}</style>
       <div className="sticky top-0 h-[100svh] overflow-hidden">
         {/* El mundo: fachada y, en el hueco de la puerta, el interior. */}
         <div
@@ -777,7 +821,9 @@ const RESULTADOS = [
 ];
 
 const Resultados = () => (
-  <section className="bg-[#070b12] py-24 text-white sm:py-32">
+  /* data-ah-no-reveal: la animación de entrada movía la sección y, con las
+     paradas activas, el navegador recalculaba y se iba solo a otra parada. */
+  <section data-ah-no-reveal className="ah-parada bg-[#070b12] py-24 text-white sm:py-32">
     <div className="ah-container">
       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">El resultado</p>
       <h2 className="mt-3 max-w-2xl text-3xl font-semibold leading-tight sm:text-5xl">De días a horas. De adivinar a saber.</h2>
@@ -795,7 +841,9 @@ const Resultados = () => (
 );
 
 const Llamado = () => (
-  <section className="relative overflow-hidden bg-[#070b12] py-28 text-white sm:py-40">
+  // Última parada: alineada al final, porque su inicio queda más abajo de
+  // donde la página puede llegar.
+  <section data-ah-no-reveal className="ah-parada ah-parada-final relative overflow-hidden bg-[#070b12] py-28 text-white sm:py-40">
     {/* El pasillo de nuevo, muy apagado: cierra donde empezó la historia. */}
     <div className="absolute inset-0 bg-[url('/pasillo-racks.webp')] bg-cover bg-center opacity-20" />
     <div className="absolute inset-0 bg-[linear-gradient(180deg,#070b12_0%,rgba(7,11,18,0.6)_50%,#070b12_100%)]" />
