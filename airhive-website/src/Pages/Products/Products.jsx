@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import FlujoOperativo from "../../Components/FlujoOperativo/FlujoOperativo";
 import WMSSection from "../../Components/WMSSection/WMSSection";
 
-const heroImages = ["/almacen.png", "/foto almacen dron volando.png"];
+const heroImages = ["/almacen.webp", "/almacen-dron-volando.webp"];
 
 const Products = () => {
   const { t } = useTranslation();

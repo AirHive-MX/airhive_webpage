@@ -10,92 +10,47 @@ import { useTranslation } from "react-i18next";
  * porque se van a volver a usar. Para devolver uno basta con sacar su clave de
  * esta lista; no hay que tocar el JSX.
  */
-const OCULTOS = new Set(["products", "how_we_work"]);
+const OCULTOS = new Set(["products", "how_we_work", "about"]);
 
+const enlace = "transition duration-300 hover:text-white";
+
+/*
+ * Footer mínimo: una sola línea con el monograma, los enlaces, las redes y los
+ * derechos. Mismo fondo que las páginas oscuras para que no corte la página.
+ */
 const Footer = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+
+  const redes = [
+    { href: "https://www.linkedin.com/company/air-hive/", icon: <FaLinkedin className="h-3.5 w-3.5" />, label: "LinkedIn" },
+    { href: "https://www.instagram.com/airhive.mx?igsh=aDR1dnBmbmJlOXMx", icon: <FaInstagram className="h-3.5 w-3.5" />, label: "Instagram" },
+    { href: "https://www.tiktok.com/@airhivemx?_t=ZN-8wjgqehh72d&_r=1", icon: <FaTiktok className="h-3.5 w-3.5" />, label: "TikTok" },
+    { href: "https://www.facebook.com/share/16QM1b3opP/?mibextid=wwXIfr", icon: <FaFacebook className="h-3.5 w-3.5" />, label: "Facebook" },
+  ];
 
   return (
-    <footer className="bg-[#202020] px-6 pb-10 pt-16 text-[#DDDDDD]">
-      <div className="mx-auto grid w-full max-w-7xl gap-10 border-b border-white/10 pb-10 md:grid-cols-3">
-        <div>
-          <img
-            src="/logo sin fondo.png"
-            alt="Air Hive"
-            className="mb-4 h-6 w-auto"
-          />
-          <p className="max-w-xs text-sm leading-relaxed text-[#DDDDDD]/85">{t("footer.description")}</p>
-        </div>
-
-        <div className="text-center">
-          <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.14em] text-white">{t("footer.navigation")}</h3>
-          <ul className="space-y-2 text-sm">
-            <li><Link to="/" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">{t("navbar.home_short")}</Link></li>
-            {!OCULTOS.has("products") && (
-            <li><Link to="/products" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">{t("navbar.cases")}</Link></li>
-            )}
-            {!OCULTOS.has("how_we_work") && (
-            <li><Link to="/services#como-trabajamos" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">{t("navbar.how_we_work")}</Link></li>
-            )}
-            <li><Link to="/about" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">{t("navbar.about")}</Link></li>
-            <li><Link to="/diagnostico-gratis" className="transition duration-300 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">{t("navbar.free_diagnostic")}</Link></li>
-          </ul>
-        </div>
-
-
-        <div className="flex flex-col items-end">
-          <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.14em] text-white">{t("footer.follow")}</h3>
-          <div className="mb-4 flex gap-4 text-xl">
-            <a href="https://www.instagram.com/airhive.mx?igsh=aDR1dnBmbmJlOXMx" target="_blank" rel="noopener noreferrer" className="hover:text-white">
-              <FaInstagram />
-            </a>
-            <a href="https://www.linkedin.com/company/air-hive/" target="_blank" rel="noopener noreferrer" className="hover:text-white">
-              <FaLinkedin />
-            </a>
-            <a href="https://www.tiktok.com/@airhivemx?_t=ZN-8wjgqehh72d&_r=1" target="_blank" rel="noopener noreferrer" className="hover:text-white">
-              <FaTiktok />
-            </a>
-            <a href="https://www.facebook.com/share/16QM1b3opP/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" className="hover:text-white">
-              <FaFacebook />
-            </a>
-          </div>
-          <Link
-            to="/contact"
-            className="ah-button ah-button-primary mb-3 inline-block rounded-full px-4 py-2 text-sm font-semibold"
-          >
-            {t("footer.diagnostic")}
+    <footer className="border-t border-white/[0.07] bg-[#0a1322] px-6 py-5 text-xs text-white/45">
+      <div className="mx-auto flex w-full max-w-[1120px] flex-col items-center gap-3 sm:flex-row sm:justify-between">
+        <div className="flex items-center gap-5">
+          <Link to="/" aria-label="Air Hive">
+            <img src="/ah-monograma.png" alt="Air Hive" className="h-4 w-auto brightness-0 invert opacity-70 transition hover:opacity-100" />
           </Link>
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 p-1 text-xs">
-            <span className="px-2 text-[#DDDDDD]/75">{t("footer.language")}</span>
-            <button
-              type="button"
-              onClick={() => i18n.changeLanguage("es")}
-              className={`rounded-full px-3 py-1 font-semibold transition ${
-                i18n.language?.startsWith("es")
-                  ? "bg-[#2A47F6] text-white"
-                  : "text-[#DDDDDD] hover:bg-white/10"
-              }`}
-            >
-              ES
-            </button>
-            <button
-              type="button"
-              onClick={() => i18n.changeLanguage("en")}
-              className={`rounded-full px-3 py-1 font-semibold transition ${
-                i18n.language?.startsWith("en")
-                  ? "bg-[#2A47F6] text-white"
-                  : "text-[#DDDDDD] hover:bg-white/10"
-              }`}
-            >
-              EN
-            </button>
-          </div>
+          <span>© {new Date().getFullYear()} Air Hive</span>
         </div>
-      </div>
 
-      <div className="mx-auto mt-8 flex w-full max-w-7xl flex-col gap-3 text-xs text-[#DDDDDD]/70 sm:flex-row sm:items-center sm:justify-between">
-        <p>© {new Date().getFullYear()} Air Hive S.A.S. de C.V. {t("footer.rights_reserved")}</p>
-        <p>{t("footer.tagline")}</p>
+        <nav className="flex items-center gap-5">
+          {!OCULTOS.has("products") && <Link to="/products" className={enlace}>{t("navbar.cases")}</Link>}
+          {!OCULTOS.has("how_we_work") && <Link to="/services#como-trabajamos" className={enlace}>{t("navbar.how_we_work")}</Link>}
+          {!OCULTOS.has("about") && <Link to="/about" className={enlace}>{t("navbar.about")}</Link>}
+          <Link to="/diagnostico-gratis" className={enlace}>{t("navbar.free_diagnostic")}</Link>
+          <span className="flex items-center gap-3 pl-1">
+            {redes.map(({ href, icon, label }) => (
+              <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className={enlace}>
+                {icon}
+              </a>
+            ))}
+          </span>
+        </nav>
       </div>
     </footer>
   );

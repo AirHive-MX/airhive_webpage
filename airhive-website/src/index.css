@@ -189,17 +189,14 @@ main:not([data-ah-oscuro]) .ah-form-card textarea {
   }
 }
 
+/* Barra de scroll oculta en todo el sitio. El scroll sigue funcionando igual
+   (rueda, touchpad, teclado y táctil); solo deja de dibujarse la barra. */
+html {
+  scrollbar-width: none; /* Firefox */
+}
+
 ::-webkit-scrollbar {
-  width: 9px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(var(--ah-indigo), var(--ah-blue));
-  border-radius: 999px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f4f4f4;
+  display: none; /* Chrome, Safari, Edge */
 }
 
 main article,

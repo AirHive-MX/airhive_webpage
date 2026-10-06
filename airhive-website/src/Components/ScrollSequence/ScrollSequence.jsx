@@ -23,11 +23,11 @@ import { useMotionValueEvent, useReducedMotion } from "framer-motion";
 const MAX_PARALLEL = 10;
 
 /** Orden de carga: pasadas de stride decreciente, para refinar de grueso a fino. */
-const buildLoadOrder = (count) => {
+const buildLoadOrder = (count, start = 0) => {
   const order = [];
   const seen = new Set();
   for (let stride = 16; stride >= 1; stride = Math.floor(stride / 2)) {
-    for (let i = 0; i < count; i += stride) {
+    for (let i = start; i < count; i += stride) {
       if (!seen.has(i)) {
         seen.add(i);
         order.push(i);
@@ -38,19 +38,33 @@ const buildLoadOrder = (count) => {
   return order;
 };
 
+/*
+ * Píxeles de holgura alrededor del recorte, en píxeles de la imagen. La caja
+ * viene medida del alpha, pero el antialiasing del canto puede quedar a un
+ * píxel; así no se come el borde del dron.
+ */
+const HOLGURA_RECORTE = 4;
+
 const ScrollSequence = ({
   progress,
   frameCount,
   srcFor,
+  cropFor,
+  startFrame = 0, // los anteriores no se muestran nunca, así que ni se bajan
+  tint, // MotionValue 0..1 opcional: cuánto se tiñe el render con la luz de la escena
+  tintTop = "rgb(120, 150, 215)", // cielo de noche
+  tintBottom = "rgb(255, 170, 110)", // luz cálida de la puerta
   width = 1920,
   height = 1080,
+  sourceWidth = width,
+  sourceHeight = height,
   className = "",
   onLoadProgress,
   onLayout,
 }) => {
   const canvasRef = useRef(null);
   const framesRef = useRef([]);
-  const targetRef = useRef(0);
+  const targetRef = useRef(startFrame);
   const rafRef = useRef(0);
   const drawnRef = useRef(-1);
   const [firstReady, setFirstReady] = useState(false);
@@ -59,9 +73,17 @@ const ScrollSequence = ({
   // Vía refs para que el efecto de precarga no dependa de la identidad de las
   // props: una función inline del padre reiniciaría la carga en cada render.
   const srcForRef = useRef(srcFor);
+  const cropForRef = useRef(cropFor);
   const onLoadProgressRef = useRef(onLoadProgress);
   const onLayoutRef = useRef(onLayout);
   srcForRef.current = srcFor;
+  const tintRef = useRef(tint);
+  const tintTopRef = useRef(tintTop);
+  const tintBottomRef = useRef(tintBottom);
+  tintRef.current = tint;
+  tintTopRef.current = tintTop;
+  tintBottomRef.current = tintBottom;
+  cropForRef.current = cropFor;
   onLoadProgressRef.current = onLoadProgress;
   onLayoutRef.current = onLayout;
 
@@ -87,7 +109,7 @@ const ScrollSequence = ({
     const index = nearestLoaded(targetRef.current);
     if (index < 0 || index === drawnRef.current) return;
 
-    const bitmap = framesRef.current[index];
+    const { bitmap, x, y, w, h } = framesRef.current[index];
     const ctx = canvas.getContext("2d");
     const cw = canvas.width;
     const ch = canvas.height;
@@ -95,10 +117,41 @@ const ScrollSequence = ({
     // El render trae alpha: hay que limpiar, no sobreescribir.
     ctx.clearRect(0, 0, cw, ch);
 
+    // x, y, w, h son el recorte dentro de la imagen de width x height; se
+    // dibuja en su sitio del encuadre completo, como si fuera la imagen entera.
     const scale = Math.min(cw / width, ch / height);
-    const dw = width * scale;
-    const dh = height * scale;
-    ctx.drawImage(bitmap, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
+    const ox = (cw - width * scale) / 2;
+    const oy = (ch - height * scale) / 2;
+    const dx = ox + x * scale;
+    const dy = oy + y * scale;
+    const dw = w * scale;
+    const dh = h * scale;
+    ctx.drawImage(bitmap, dx, dy, dw, dh);
+
+    /*
+     * Luz de la escena sobre el render. Los renders traen luz de estudio,
+     * neutra; aquí se le multiplica un degradado de tintTop a tintBottom, que
+     * es como se tiñe algo con la luz que le llega: los claros toman el color
+     * y los negros siguen negros. (Pintando encima con "source-atop" los negros
+     * se aclaraban y el dron se veía deslavado.) Como multiplicar también
+     * pinta el fondo transparente, después se recorta con el mismo render.
+     * `tint` (0..1) es cuánto.
+     */
+    const cuanto = tintRef.current?.get?.() ?? 0;
+    if (cuanto > 0) {
+      ctx.save();
+      ctx.globalCompositeOperation = "multiply";
+      ctx.globalAlpha = Math.min(cuanto, 1);
+      const degradado = ctx.createLinearGradient(0, dy, 0, dy + dh);
+      degradado.addColorStop(0, tintTopRef.current);
+      degradado.addColorStop(1, tintBottomRef.current);
+      ctx.fillStyle = degradado;
+      ctx.fillRect(dx, dy, dw, dh);
+      ctx.globalCompositeOperation = "destination-in";
+      ctx.globalAlpha = 1;
+      ctx.drawImage(bitmap, dx, dy, dw, dh);
+      ctx.restore();
+    }
 
     drawnRef.current = index;
   }, [height, nearestLoaded, width]);
@@ -159,38 +212,92 @@ const ScrollSequence = ({
     let cancelled = false;
     framesRef.current = new Array(frameCount);
     drawnRef.current = -1;
+    targetRef.current = Math.max(targetRef.current, startFrame);
     setFirstReady(false);
 
-    const load = (index) =>
+    /*
+     * Recorte a la caja del dron, en píxeles de la imagen fuente.
+     *
+     * Decodificado, cada fotograma de 1920x1080 ocupa 8 MB, y son 360: casi
+     * 3 GB. El navegador no los aguanta en memoria, los tira y los vuelve a
+     * decodificar al pasar por ellos, y eso es el tirón del scroll. Pero el
+     * dron solo ocupa ~14% de cada fotograma; el resto es transparente.
+     * Guardando solo su caja (medida del alpha, la misma de droneTrack) la
+     * memoria baja a una sexta parte sin perder un píxel.
+     */
+    const recorte = (index, iw, ih) => {
+      const caja = cropForRef.current?.(index);
+      if (!caja) return { sx: 0, sy: 0, sw: iw, sh: ih };
+      const [l, t, r, b] = caja;
+      const holgura = HOLGURA_RECORTE * (iw / width);
+      const sx = Math.max(0, Math.floor(l * iw - holgura));
+      const sy = Math.max(0, Math.floor(t * ih - holgura));
+      return {
+        sx,
+        sy,
+        sw: Math.min(iw, Math.ceil(r * iw + holgura)) - sx,
+        sh: Math.min(ih, Math.ceil(b * ih + holgura)) - sy,
+      };
+    };
+
+    /** Lo que guarda framesRef: el bitmap y dónde va dentro del encuadre. */
+    const fotograma = (bitmap, { sx, sy, sw, sh }, iw, ih) => ({
+      bitmap,
+      x: (sx / iw) * width,
+      y: (sy / ih) * height,
+      w: (sw / iw) * width,
+      h: (sh / ih) * height,
+    });
+
+    /*
+     * Camino rápido: fetch y createImageBitmap sobre el Blob.
+     *
+     * Con un <img> de por medio, Chrome decodifica en el hilo principal al
+     * recortar, y con 90 fotogramas en cola eso se comía más de un segundo
+     * mientras la pantalla de carga esperaba: cada archivo bajaba en 3 ms y
+     * luego hacía fila para decodificarse. Desde un Blob la decodificación va
+     * en otro hilo. Hace falta saber el tamaño de la fuente antes de abrirla,
+     * por eso llega como prop.
+     */
+    const cargarBlob = async (index) => {
+      const respuesta = await fetch(srcForRef.current(index));
+      if (!respuesta.ok) throw new Error(respuesta.status);
+      const blob = await respuesta.blob();
+      const caja = recorte(index, sourceWidth, sourceHeight);
+      const bitmap = await createImageBitmap(blob, caja.sx, caja.sy, caja.sw, caja.sh);
+      return fotograma(bitmap, caja, sourceWidth, sourceHeight);
+    };
+
+    /* Camino de respaldo, para navegadores sin createImageBitmap. */
+    const cargarImg = (index) =>
       new Promise((resolve) => {
         const img = new Image();
         img.decoding = "async";
-        img.onload = () => {
-          if (cancelled) return resolve();
-          // createImageBitmap decodifica fuera del hilo principal: drawImage
-          // queda instantáneo y el scroll no se atora en el primer pase.
-          if (typeof createImageBitmap === "function") {
-            createImageBitmap(img)
-              .then((bitmap) => {
-                if (!cancelled) framesRef.current[index] = bitmap;
-                resolve();
-              })
-              .catch(() => {
-                if (!cancelled) framesRef.current[index] = img;
-                resolve();
-              });
-          } else {
-            framesRef.current[index] = img;
-            resolve();
-          }
-        };
-        img.onerror = () => resolve();
+        img.onload = () => resolve({ bitmap: img, x: 0, y: 0, w: width, h: height });
+        img.onerror = () => resolve(null);
         img.src = srcForRef.current(index);
       });
 
+    const load = async (index) => {
+      let frame = null;
+      if (typeof createImageBitmap === "function") {
+        try {
+          frame = await cargarBlob(index);
+        } catch {
+          frame = null;
+        }
+      }
+      if (!frame && !cancelled) frame = await cargarImg(index);
+      if (cancelled) {
+        frame?.bitmap?.close?.();
+        return;
+      }
+      if (frame) framesRef.current[index] = frame;
+    };
+
     const run = async () => {
       // Un frame visible cuanto antes; el resto puede llegar después.
-      await load(0);
+      await load(startFrame);
       if (cancelled) return;
       setFirstReady(true);
       schedule();
@@ -200,7 +307,7 @@ const ScrollSequence = ({
         return;
       }
 
-      const queue = buildLoadOrder(frameCount).filter((i) => i !== 0);
+      const queue = buildLoadOrder(frameCount, startFrame).filter((i) => i !== startFrame);
       let cursor = 0;
       let done = 1;
 
@@ -211,7 +318,7 @@ const ScrollSequence = ({
           await load(index);
           done += 1;
           if (cancelled) return;
-          onLoadProgressRef.current?.(done / frameCount);
+          onLoadProgressRef.current?.(done / (frameCount - startFrame));
           schedule();
         }
       };
@@ -225,20 +332,29 @@ const ScrollSequence = ({
 
     return () => {
       cancelled = true;
-      framesRef.current.forEach((frame) => frame?.close?.());
+      framesRef.current.forEach((frame) => frame?.bitmap?.close?.());
       framesRef.current = [];
     };
-  }, [frameCount, reduceMotion, schedule]);
+  }, [frameCount, height, reduceMotion, schedule, sourceHeight, sourceWidth, startFrame, width]);
 
   /* Scroll -> frame. */
   useMotionValueEvent(progress, "change", (value) => {
     if (reduceMotion) return;
     const clamped = Math.min(Math.max(value, 0), 0.9999);
-    const next = Math.floor(clamped * frameCount);
+    const next = Math.max(startFrame, Math.floor(clamped * frameCount));
     if (next === targetRef.current) return;
     targetRef.current = next;
     schedule();
   });
+
+  /* Si cambia el tinte hay que repintar aunque el fotograma sea el mismo. */
+  useEffect(() => {
+    if (!tint?.on) return undefined;
+    return tint.on("change", () => {
+      drawnRef.current = -1;
+      schedule();
+    });
+  }, [tint, schedule]);
 
   useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
 
@@ -248,7 +364,7 @@ const ScrollSequence = ({
       className={className}
       style={{ opacity: firstReady ? 1 : 0, transition: "opacity 600ms ease" }}
       role="img"
-      aria-label="Dron Air Hive en vista 360°"
+      aria-label="Dron Air Hive en vuelo"
     />
   );
 };

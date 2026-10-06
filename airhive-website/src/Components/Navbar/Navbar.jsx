@@ -14,7 +14,10 @@ const NAV_H = 64; // alto aproximado del header, para la franja que vigila
  * páginas intactas, porque se van a volver a usar. Para devolver uno al menú
  * basta con sacar su clave de esta lista; no hay que tocar el JSX.
  */
-const OCULTOS = new Set(["products", "how_we_work", "schedule_diagnostic"]);
+const OCULTOS = new Set(["products", "how_we_work", "schedule_diagnostic", "about"]);
+
+const enlaceMovil =
+  "block border-b border-white/[0.07] py-4 text-3xl font-semibold tracking-[-0.02em] transition hover:text-[#9fb0ff]";
 
 const productItems = [
   { key: "drone_inventory", to: "/products#drone-inventory" },
@@ -44,11 +47,16 @@ const Navbar = () => {
   /*
    * Hay páginas enteras oscuras —Sobre nosotros, Diagnóstico— y en ellas el
    * texto del header tiene que ir en blanco igual que en el home. Lo marcan
-   * con data-ah-oscuro en su <main>; aquí basta mirarlo al cambiar de ruta,
-   * sin observador, porque es la página entera y no una sección suelta.
+   * con data-ah-oscuro en su <main>. Las páginas se cargan diferidas, así que
+   * al cambiar de ruta el <main> todavía no existe: se vigila el DOM hasta que
+   * aparece en vez de mirarlo una sola vez.
    */
   useEffect(() => {
-    setPaginaOscura(!!document.querySelector("main[data-ah-oscuro]"));
+    const mirar = () => setPaginaOscura(!!document.querySelector("main[data-ah-oscuro]"));
+    mirar();
+    const observer = new MutationObserver(mirar);
+    observer.observe(document.getElementById("root") ?? document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
   }, [location.pathname]);
 
   useEffect(() => {
@@ -67,7 +75,17 @@ const Navbar = () => {
 
   // Sin fondo propio: el header flota sobre el contenido. Lo único que cambia
   // es el color del texto, según lo que tenga debajo en ese momento.
-  const onDark = (isHome || paginaOscura) && !onLight;
+  const onDark = isOpen || ((isHome || paginaOscura) && !onLight);
+
+  // Con el menú abierto la página de atrás no se mueve.
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const previo = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previo;
+    };
+  }, [isOpen]);
 
   const visible = useAutoHideHeader({
     pinned: isOpen || productsOpen,
@@ -147,11 +165,13 @@ const Navbar = () => {
               </Link>
             </li>
             )}
+            {!OCULTOS.has("about") && (
             <li>
               <Link to="/about" className="transition duration-300 hover:-translate-y-0.5 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">
                 {t("navbar.about")}
               </Link>
             </li>
+            )}
             <li>
               <Link to="/diagnostico-gratis" className="transition duration-300 hover:-translate-y-0.5 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">
                 {t("navbar.free_diagnostic")}
@@ -175,87 +195,75 @@ const Navbar = () => {
           <div className="flex items-center gap-2 lg:hidden">
           <button
             onClick={() => setIsOpen((prev) => !prev)}
-            className={`rounded-lg border p-2 ${
-              onDark ? "border-white/30 text-white" : "border-[#162A42]/15 text-[#162A42]"
-            }`}
+            className="-mr-2 rounded-full p-2 outline-none transition focus-visible:ring-2 focus-visible:ring-white/40"
             aria-label="Toggle menu"
+            aria-expanded={isOpen}
           >
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              {isOpen ? <path d="M6 6l12 12M18 6 6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              {isOpen ? <path d="M6 6l12 12M18 6 6 18" /> : <path d="M4 8h16M4 16h16" />}
             </svg>
           </button>
           </div>
         </nav>
-
-        {isOpen && (
-          <div className="w-full border-t border-[#162A42]/12 bg-white/95 p-4 text-[#162A42] backdrop-blur-xl lg:hidden">
-            <ul className="flex flex-col gap-2 text-sm font-medium">
-              <li>
-                <Link to="/" className="block rounded-lg px-3 py-2 hover:bg-[#162A42]/5">
-                  {t("navbar.home_short")}
-                </Link>
-              </li>
-              {!OCULTOS.has("products") && (
-              <li className="rounded-lg border border-[#162A42]/10 px-3 py-2">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#162A42]/65">{t("navbar.cases")}</p>
-                <div className="space-y-1">
-                  {productItems.map((item) => (
-                    <Link key={item.key} to={item.to} className="block rounded-md px-2 py-1.5 text-sm hover:bg-[#162A42]/5">
-                      {t(`products.${item.key}.title`)}
-                    </Link>
-                  ))}
-                </div>
-              </li>
-              )}
-              {!OCULTOS.has("how_we_work") && (
-              <li>
-                <Link to="/services#como-trabajamos" className="block rounded-lg px-3 py-2 hover:bg-[#162A42]/5">
-                  {t("navbar.how_we_work")}
-                </Link>
-              </li>
-              )}
-              <li>
-                <Link to="/about" className="block rounded-lg px-3 py-2 hover:bg-[#162A42]/5">
-                  {t("navbar.about")}
-                </Link>
-              </li>
-              <li>
-                <Link to="/diagnostico-gratis" className="block rounded-lg px-3 py-2 hover:bg-[#162A42]/5">
-                  {t("navbar.free_diagnostic")}
-                </Link>
-              </li>
-              {!OCULTOS.has("schedule_diagnostic") && (
-              <li>
-                <Link
-                  to="/contact"
-                  className="ah-nav-cta mt-2 block rounded-full bg-[#2A47F6] px-4 py-2.5 text-center font-semibold text-white transition duration-500 hover:bg-[#6443DB]"
-                >
-                  {t("navbar.schedule_diagnostic")}
-                </Link>
-              </li>
-              )}
-              <li>
-                <a
-                  href="https://wa.me/528116070330"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-1 flex items-center justify-center gap-2 rounded-full border border-[#162A42]/15 px-4 py-2 text-sm"
-                >
-                  <FaWhatsapp />
-                  {t("navbar.whatsapp")}
-                </a>
-              </li>
-            </ul>
-          </div>
-        )}
       </header>
+
+      {/* Menú del teléfono: pantalla completa en el azul de las páginas
+          oscuras, por debajo del header para que el logo y la X sigan en su
+          sitio. Enlaces grandes, y WhatsApp como la acción principal abajo. */}
+      {isOpen && (
+        <div className="fixed inset-0 z-40 flex flex-col bg-[#0a1322]/[0.97] px-6 pb-10 pt-24 text-white backdrop-blur-xl lg:hidden">
+          <ul className="flex flex-col gap-1">
+            <li>
+              <Link to="/" onClick={() => setIsOpen(false)} className={enlaceMovil}>
+                {t("navbar.home_short")}
+              </Link>
+            </li>
+            {!OCULTOS.has("products") && productItems.map((item) => (
+              <li key={item.key}>
+                <Link to={item.to} onClick={() => setIsOpen(false)} className={enlaceMovil}>
+                  {t(`products.${item.key}.title`)}
+                </Link>
+              </li>
+            ))}
+            {!OCULTOS.has("how_we_work") && (
+            <li>
+              <Link to="/services#como-trabajamos" onClick={() => setIsOpen(false)} className={enlaceMovil}>
+                {t("navbar.how_we_work")}
+              </Link>
+            </li>
+            )}
+            {!OCULTOS.has("about") && (
+            <li>
+              <Link to="/about" onClick={() => setIsOpen(false)} className={enlaceMovil}>
+                {t("navbar.about")}
+              </Link>
+            </li>
+            )}
+            <li>
+              <Link to="/diagnostico-gratis" onClick={() => setIsOpen(false)} className={enlaceMovil}>
+                {t("navbar.free_diagnostic")}
+              </Link>
+            </li>
+          </ul>
+
+          <a
+            href="https://wa.me/528116070330"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-auto flex items-center justify-center gap-2 rounded-full bg-[#2A47F6] px-5 py-4 text-base font-semibold shadow-[0_8px_24px_rgba(42,71,246,0.35)] transition hover:bg-[#3d5aff]"
+          >
+            <FaWhatsapp className="h-5 w-5" />
+            {t("navbar.whatsapp")}
+          </a>
+        </div>
+      )}
 
       {/* El botón flotante de WhatsApp, en todas las páginas menos el home.
           Allí los globos ocupan el ancho completo en móvil, así que el botón
           les cae encima sí o sí; y el recorrido es una composición cerrada
           donde ya se quitaron los demás botones sueltos. El contacto sigue a
           un toque, en el menú. */}
-      {!isHome && (
+      {!isHome && !isOpen && (
         <a
           href="https://wa.me/528116070330"
           target="_blank"

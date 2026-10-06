@@ -24,15 +24,29 @@ import { TarjetaConteo, TarjetaLecturas } from "./WmsCards";
  *
  * droneTrack.js trae la posición exacta del dron en cada fotograma (medida del
  * canal alpha de los propios renders), y con eso:
- * - la retícula lo sigue cuadro por cuadro,
  * - el panel de texto se coloca solo del lado contrario,
- * - la línea guía une los dos.
+ * - los globos se apartan cuando el dron se les echa encima,
+ * - en móvil, la cámara lo sigue para tenerlo centrado.
+ *
+ * Antes también lo encuadraba una retícula (cuatro esquinas) con una línea
+ * guía hasta el panel; se quitaron.
  *
  * Nada de eso está a mano: si cambia la animación se regenera droneTrack.js y
  * el encuadre se reacomoda solo.
  */
 
 const TOTAL_FRAMES = 360;
+
+/**
+ * Fotograma donde arranca el recorrido.
+ *
+ * Los renders traen una vuelta entera en los fotogramas 0-120, empezando de
+ * espaldas: el dron queda de frente en el 60 y de vuelta de espaldas en el
+ * 120, justo donde enciende motores. Arrancando en el 60 se abre con el dron
+ * de frente y el giro queda en media vuelta, 180°, que enlaza igual con el
+ * despegue. Los fotogramas 0-59 ni se descargan.
+ */
+const INICIO = 60;
 
 /**
  * El almacén entra cuando el dron deja de girar y se pone a escanear: antes es
@@ -92,12 +106,15 @@ const MOSTRAR_CTA = false;
  * este tamaño se lee construido y no burbuja; y la sombra es larga y muy
  * difusa, para que el globo se despegue de la foto sin mancharla.
  *
+ * Sin backdrop-blur: a 90% de opacidad el desenfoque no se nota, y obligaba a
+ * recalcular el fondo detrás de cada globo en cada fotograma mientras suben.
+ *
  * El color no va en el fondo ni en el borde: va en un filo de 3px a la
  * izquierda. Es lo único que cambia de un acto a otro y basta para
  * identificarlo, sin teñir el texto ni encerrarlo.
  */
 const GLOBO =
-  "relative overflow-hidden rounded-[14px] shadow-[0_26px_70px_-28px_rgba(0,0,0,0.85)] ring-1 backdrop-blur-xl transition-colors duration-700";
+  "relative overflow-hidden rounded-[14px] shadow-[0_26px_70px_-28px_rgba(0,0,0,0.85)] ring-1 transition-colors duration-700";
 
 /**
  * La superficie cambia con el fondo que hay detrás.
@@ -139,8 +156,18 @@ const ACENTO_EPILOGO = "#2A47F6";
  * Los pesos salen de lo que ocupa cada parte, no a ojo, para que el número
  * suba parejo en vez de a saltos.
  */
-const CARGA_PESO_FRAMES = 0.96; // 12.9 MB de 13.4
-const CARGA_PESO_FONDOS = 0.04; // 0.47 MB entre las dos fotos
+const CARGA_PESO_FRAMES = 0.88; // 3.2 MB de 3.7
+const CARGA_PESO_FONDOS = 0.12; // 0.47 MB entre las dos fotos
+
+/*
+ * Pero "todo" resultó demasiado: 13 MB son más de 6 s en cada recarga, y la
+ * pantalla de carga se volvía lo más lento de la página. Ahora espera a la
+ * pasada de un fotograma de cada CARGA_PASADA (75 de los 300 que se usan, unos 3 MB). Con eso
+ * la vuelta completa ya se ve fluida, porque ScrollSequence pinta el más
+ * cercano que haya; el resto llega por detrás y solo afina el giro. El 100%
+ * sigue siendo verdad en lo que importa: el recorrido entero ya se puede ver.
+ */
+const CARGA_PASADA = 4;
 
 const SCENE_ZOOM = "120%";
 const SCENE_POS = "33%";
@@ -165,6 +192,48 @@ const SCENE_ZOOM_MOVIL = "100%";
  * abajo de la pantalla en las resoluciones cortas.
  */
 const DRONE_SCALE = 1.28;
+
+/**
+ * En móvil la cámara sigue al dron.
+ *
+ * Con el encuadre fijo de escritorio, en una pantalla vertical el dron salía a
+ * menos de la mitad del ancho, con media pantalla de piso vacío debajo, y al
+ * desplazarse en el vuelo se pegaba al borde y perdía una hélice. Aquí se
+ * dibuja bastante más grande y el lienzo se desplaza para que el dron se quede
+ * cerca del centro: en horizontal casi del todo, en vertical solo en parte,
+ * para que la bajada al rack se siga leyendo como bajada. El fondo se corre en
+ * la misma dirección pero menos, así que el vuelo se siente por paralaje en
+ * vez de por el dron cruzando la pantalla.
+ *
+ * DRONE_SCALE_MOVIL es el tamaño: con 2.2 el dron ocupa unos cuatro quintos
+ * del ancho. SIGUE_X y SIGUE_Y son cuánto del desplazamiento absorbe la cámara
+ * (1 = el dron no se mueve en pantalla). ALTURA_DRON_MOVIL es dónde reposa
+ * su centro, como fracción del alto: por encima de la franja de los globos y
+ * por debajo del titular. PARALAJE es cuánto acompaña el fondo a la cámara.
+ */
+const DRONE_SCALE_MOVIL = 2.2;
+const SIGUE_X = 0.95;
+const SIGUE_Y = 0.75;
+const ALTURA_DRON_MOVIL = 0.46;
+const PARALAJE = 0.5;
+
+/**
+ * Barrido del conteo: mientras el dron cuenta cajas, el pasillo pasa por detrás.
+ *
+ * Los renders tienen al dron quieto frente al rack durante el conteo, así que
+ * el desplazamiento lateral se hace con la cámara: la foto de los racks (que se
+ * repite en horizontal) se corre BARRIDO_TRAMOS veces su ancho entre
+ * BARRIDO_DESDE y BARRIDO_HASTA, y el dron se inclina hasta INCLINACION_MAX
+ * grados hacia donde avanza, como hace uno de verdad al trasladarse. Al acabar
+ * el fondo se queda donde llegó, sin volver.
+ *
+ * RACKS_PROPORCION es ancho entre alto de fondo-racks.webp (2132x1888).
+ */
+const BARRIDO_DESDE = 178; // arranca el acto del conteo
+const BARRIDO_HASTA = 214; // y termina con él
+const BARRIDO_TRAMOS = 1;
+const INCLINACION_MAX = 4;
+const RACKS_PROPORCION = 2132 / 1888;
 const MOBILE_FRAMES = 180; // Un fotograma de cada dos: la mitad de bytes en móvil.
 
 /**
@@ -172,7 +241,7 @@ const MOBILE_FRAMES = 180; // Un fotograma de cada dos: la mitad de bytes en mó
  * `until` es el fotograma donde termina cada uno.
  */
 const CHAPTERS = [
-  { key: "inspection", until: 120, accent: "#2A47F6", readout: "degrees" },
+  { key: "inspection", until: 120, accent: "#2A47F6", readout: null },
   { key: "armed", until: 178, accent: "#6443DB", readout: "path" },
   { key: "position", until: 214, accent: "#4F8BFF", readout: "path" },
   { key: "route", until: 240, accent: "#2A47F6", readout: "path" },
@@ -207,8 +276,8 @@ const ALTO_VH = 1700;
  * `hasta` es el fotograma donde termina el tramo.
  */
 const RITMO = [
-  { hasta: 12, peso: 1.8 }, // el titular, antes de que empiece a girar
-  { hasta: 108, peso: 1.0 }, // la vuelta de 360°
+  { hasta: INICIO + 12, peso: 1.8 }, // el titular, antes de que empiece a girar
+  { hasta: 108, peso: 1.0 }, // la media vuelta, de frente a espaldas
   { hasta: 132, peso: 1.7 }, // se va la nave y entran los racks
   /*
    * Los actos 2, 3 y 4 duran 58, 36 y 26 fotogramas contra los 120 del
@@ -232,7 +301,7 @@ const RITMO = [
 /** Tramos con su coste acumulado, para poder ir del scroll al fotograma. */
 const RITMO_TRAMOS = (() => {
   const tramos = [];
-  let desde = 0;
+  let desde = INICIO;
   let acumulado = 0;
   for (const { hasta, peso } of RITMO) {
     const coste = (hasta - desde) * peso;
@@ -281,7 +350,7 @@ const avanceDelScroll = (p) => {
 const EN_EL_PASO = new Set([3]);
 
 const CHAPTER_SIDES = CHAPTERS.map((chapter, index) => {
-  const from = index === 0 ? 0 : CHAPTERS[index - 1].until;
+  const from = index === 0 ? INICIO : CHAPTERS[index - 1].until;
   const frames = DRONE_TRACK.slice(from, chapter.until);
   const avg = frames.reduce((sum, box) => sum + centerOf(box)[0], 0) / frames.length;
   const dondeVaElDron = avg > 0.5 ? "right" : "left";
@@ -357,7 +426,7 @@ const GLOBOS = [
     key: `acto-${index}`,
     tipo: "acto",
     indice: index,
-    desde: index === 0 ? 0 : CHAPTERS[index - 1].until,
+    desde: index === 0 ? INICIO : CHAPTERS[index - 1].until,
     hasta: chapter.until,
   })),
   /*
@@ -394,13 +463,14 @@ const TECHO_CREDITO = 84;
  * pantalla estrecha se quedan en una franja fija abajo y se relevan en el
  * sitio: se va uno y entra el siguiente, con el dron siempre despejado arriba.
  *
- * SUELO_MOVIL es lo que se reserva por debajo, para la barra de los actos.
+ * SUELO_MOVIL es lo que se reserva por debajo. Ya no hay barra de actos que
+ * librar, solo el aire del borde y la pista de scroll.
  * ENTRADA_MOVIL es la parte del tramo que se usa para aparecer y para
  * desaparecer. Como los tramos van pegados, al terminar uno su opacidad vale
  * cero justo cuando la del siguiente empieza a subir: nunca se solapan dos.
  */
-const SUELO_MOVIL = 96;
-const ENTRADA_MOVIL = 0.14;
+const SUELO_MOVIL = 44;
+const ENTRADA_MOVIL = 0.08; // corto: a media opacidad el texto se encima con la foto y se lee sucio
 const DESLIZ_MOVIL = 12; // el pelín que sube al entrar y al salir
 
 /**
@@ -425,7 +495,7 @@ const REPOSO = { "acto-3": "abajo", "nota-0": "arriba", "nota-1": "arriba" };
  * antes de que asome, que además es lo que hace que el globo se lea como lo que
  * viene después y no como algo encimado.
  */
-const TITULO_HASTA_MOVIL = 14;
+const TITULO_HASTA_MOVIL = INICIO + 14;
 
 /**
  * Parte del recorrido que se usa para entrar y para salir. Los créditos de
@@ -619,23 +689,19 @@ const DroneShowcase = () => {
   const sectionRef = useRef(null);
   const stageRef = useRef(null);
   const fieldRef = useRef(null); // el canvas ampliado, mayor que el escenario
-  const reticleRef = useRef(null);
-  const leaderRef = useRef(null);
-  const angleRef = useRef(null);
   const pathDotRef = useRef(null);
   const sceneRef = useRef(null);
+  const racksRef = useRef(null); // la foto de los racks, que se corre con la cámara en móvil
   const naveRef = useRef(null);
 
   const layoutRef = useRef(null); // dónde queda dibujado el render dentro del canvas
   // Altura a la que reposa el dron, en píxeles del viewport. La caída de luz del
   // fondo se centra ahí, así que hace falta en el render y por eso vive en estado.
   const [horizonte, setHorizonte] = useState(0);
-  const sideRef = useRef(CHAPTER_SIDES[0]);
   const [isMobile, setIsMobile] = useState(false);
   const movilRef = useRef(false); // el mismo dato, para los callbacks
   const [portada, setPortada] = useState(true);
   const [chapter, setChapter] = useState(0);
-  const [epilogo, setEpilogo] = useState(false);
 
   /* La capa de créditos y cada globo dentro de ella. */
   const capaRef = useRef(null);
@@ -671,7 +737,7 @@ const DroneShowcase = () => {
   /*
    * El recorrido no consume el scroll a ritmo constante: RITMO le da más sitio
    * a los momentos que hay que mirar. De aquí en adelante manda `avance`, no
-   * `scrollYProgress`, para que la secuencia, la retícula, los fondos y las
+   * `scrollYProgress`, para que la secuencia, los fondos y las
    * tarjetas vayan todos por la misma curva.
    */
   const avanceCrudo = useTransform(scrollYProgress, avanceDelScroll);
@@ -688,7 +754,7 @@ const DroneShowcase = () => {
    * unos 120 ms y, sobre todo, no rebota. Un muelle con rebote aquí haría que
    * el dron se pasara de fotograma y volviera, que es peor que el tirón.
    *
-   * Lo gobierna todo, no solo la secuencia: la retícula, los globos y los
+   * Lo gobierna todo, no solo la secuencia: la cámara, los globos y los
    * fondos cuelgan del mismo valor, así que suavizan a la vez y nada se
    * desincroniza.
    */
@@ -702,47 +768,80 @@ const DroneShowcase = () => {
   // Con movimiento reducido no se interpola nada: el scroll manda directo.
   const avance = reduceMotion ? avanceCrudo : avanceSuave;
 
-  /**
-   * Pone retícula y línea guía sobre el dron del fotograma pedido. Escribe
-   * directo al DOM: por estado sería un render de React por fotograma.
-   */
-  const placeOverlay = useCallback((frame, panelSide) => {
-    const layout = layoutRef.current;
-    const stage = stageRef.current;
-    const field = fieldRef.current;
-    if (!layout || !stage || !field) return;
-
-    const [l, top, r, bottom] = DRONE_TRACK[frame] ?? DRONE_TRACK[0];
-    const x = layout.x + l * layout.width;
-    const y = layout.y + top * layout.height;
-    const w = (r - l) * layout.width;
-    const h = (bottom - top) * layout.height;
-
-    const reticle = reticleRef.current;
-    if (reticle) {
-      reticle.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-      reticle.style.width = `${w}px`;
-      reticle.style.height = `${h}px`;
-    }
-
-    const leader = leaderRef.current;
-    if (leader) {
-      leader.setAttribute("opacity", frame >= EPILOGO_FROM ? "0" : "0.6");
-      // De la orilla de la retícula al borde del escenario donde vive el panel.
-      const fromX = panelSide === "right" ? x + w : x;
-      const toX = panelSide === "right" ? field.clientWidth : 0;
-      leader.setAttribute("x1", fromX);
-      leader.setAttribute("y1", y + h / 2);
-      leader.setAttribute("x2", toX);
-      leader.setAttribute("y2", y + h / 2);
-    }
-  }, []);
-
   /** Punto del minimapa. Vive en el mismo 0..1 del viewBox. */
   const placeDot = useCallback((cx, cy) => {
     if (!pathDotRef.current) return;
     pathDotRef.current.setAttribute("cx", cx.toFixed(4));
     pathDotRef.current.setAttribute("cy", cy.toFixed(4));
+  }, []);
+
+  /**
+   * Cámara de móvil: desplaza el lienzo para mantener al dron cerca del centro.
+   *
+   * Recibe el fotograma sin redondear e interpola la caja entre los dos
+   * fotogramas vecinos, para que el encuadre se deslice en vez de ir a
+   * escalones. Escribe `transform` y no `translate`, que es la propiedad que
+   * usan las clases de Tailwind que centran el lienzo: así no se pisan.
+   */
+  const placeCamara = useCallback((exacto) => {
+    const field = fieldRef.current;
+    const stage = stageRef.current;
+    const layout = layoutRef.current;
+    const racks = racksRef.current;
+    if (!field || !stage || !layout) return;
+
+    const f0 = Math.min(TOTAL_FRAMES - 1, Math.max(INICIO, Math.floor(exacto)));
+    const f1 = Math.min(TOTAL_FRAMES - 1, f0 + 1);
+    const k = exacto - f0;
+    const [ax, ay] = centerOf(DRONE_TRACK[f0]);
+    const [bx, by] = centerOf(DRONE_TRACK[f1]);
+    const cx = ax + (bx - ax) * k;
+    const cy = ay + (by - ay) * k;
+
+    /*
+     * Barrido lateral del conteo: los racks pasan por detrás y el dron se
+     * inclina hacia donde avanza, así que se lee como un vuelo de lado a lo
+     * largo del pasillo. Corre en escritorio y en móvil.
+     */
+    const t = clamp01((exacto - BARRIDO_DESDE) / (BARRIDO_HASTA - BARRIDO_DESDE));
+    const suave = t * t * (3 - 2 * t); // arranca y frena, sin tirones
+    const altoRacks = racks?.clientHeight ?? window.innerHeight;
+    const zoom = parseFloat(movilRef.current ? SCENE_ZOOM_MOVIL : SCENE_ZOOM) / 100;
+    const anchoFoto = RACKS_PROPORCION * altoRacks * zoom;
+    const barrido = -suave * BARRIDO_TRAMOS * anchoFoto;
+    const inclinacion = INCLINACION_MAX * Math.sin(Math.PI * t);
+
+    // El dron gira sobre su propio centro, no sobre el del lienzo.
+    const ox = layout.x + cx * layout.width;
+    const oy = layout.y + cy * layout.height;
+    field.style.transformOrigin = `${ox.toFixed(1)}px ${oy.toFixed(1)}px`;
+    const giro = `rotate(${inclinacion.toFixed(2)}deg)`;
+
+    if (!movilRef.current) {
+      field.style.transform = inclinacion ? giro : "";
+      if (racks) racks.style.backgroundPosition = `calc(50% + ${barrido.toFixed(1)}px) ${SCENE_POS}`;
+      return;
+    }
+
+    // Dónde cae el dron respecto al centro del lienzo, sin cámara.
+    const fw = field.offsetWidth;
+    const fh = field.offsetHeight;
+    const dx = ox - fw / 2;
+    const dy = oy - fh / 2;
+
+    // El centro del lienzo coincide con el del escenario.
+    const centroY = stage.offsetTop + stage.clientHeight / 2;
+    const objetivoY = window.innerHeight * ALTURA_DRON_MOVIL;
+    // 0.5 es la altura a la que reposa mientras gira: ese es el punto fijo.
+    const reposoY = layout.y + 0.5 * layout.height - fh / 2;
+
+    const panX = -dx * SIGUE_X;
+    const panY = objetivoY - centroY - reposoY - (dy - reposoY) * SIGUE_Y;
+
+    field.style.transform = `translate3d(${panX.toFixed(1)}px, ${panY.toFixed(1)}px, 0) ${giro}`;
+    if (racks) {
+      racks.style.backgroundPosition = `calc(50% + ${(panX * PARALAJE + barrido).toFixed(1)}px) ${SCENE_POS}`;
+    }
   }, []);
 
   /**
@@ -973,14 +1072,16 @@ const DroneShowcase = () => {
       const field = fieldRef.current;
       if (stage && field) {
         const desfase = (stage.clientHeight - field.clientHeight) / 2;
-        const y = (stage.offsetTop ?? 84) + desfase + layout.y + 0.502 * layout.height;
+        const y = movilRef.current
+          ? window.innerHeight * ALTURA_DRON_MOVIL // ahí lo deja la cámara
+          : (stage.offsetTop ?? 84) + desfase + layout.y + 0.502 * layout.height;
         setHorizonte((prev) => (Math.abs(prev - y) < 0.5 ? prev : y));
       }
-      placeOverlay(frameFromProgress(avance.get()), sideRef.current);
+      placeCamara(exactoDeProgreso(avance.get()));
       // El encuadre acaba de cambiar: con él cambian los roces.
       recalcularSalidas();
     },
-    [recalcularSalidas, frameFromProgress, placeOverlay, avance]
+    [recalcularSalidas, exactoDeProgreso, placeCamara, avance]
   );
 
   useMotionValueEvent(avance, "change", (value) => {
@@ -990,15 +1091,9 @@ const DroneShowcase = () => {
     const next = chapterAt(frame);
 
     frameRef.current = exacto;
-    sideRef.current = CHAPTER_SIDES[next];
-    // La retícula va con el dron, así que comparte su redondeo; los globos no.
-    placeOverlay(frame, sideRef.current);
+    placeCamara(exacto);
     colocarGlobos(exacto);
 
-    if (angleRef.current) {
-      // La vuelta completa se consume en los primeros 120 fotogramas.
-      angleRef.current.textContent = `${Math.round(Math.min(frame / 120, 1) * 360)}°`;
-    }
     placeDot(cx, cy);
 
     const entrada = clamp01((exacto - SCENE_FROM) / SCENE_FADE);
@@ -1010,8 +1105,6 @@ const DroneShowcase = () => {
     setChapter((current) => (current === next ? current : next));
     const enPortada = movilRef.current ? frame < TITULO_HASTA_MOVIL : next === 0;
     setPortada((current) => (current === enPortada ? current : enPortada));
-    const enEpilogo = frame >= EPILOGO_FROM;
-    setEpilogo((current) => (current === enEpilogo ? current : enEpilogo));
   });
 
   useEffect(() => {
@@ -1025,10 +1118,10 @@ const DroneShowcase = () => {
     if (naveRef.current) {
       naveRef.current.style.opacity = clamp01((SCENE_FROM - exacto) / NAVE_FADE).toFixed(3);
     }
-    placeOverlay(frame, sideRef.current);
+    placeCamara(exacto);
     frameRef.current = exacto;
     colocarGlobos(exacto);
-  }, [colocarGlobos, exactoDeProgreso, frameFromProgress, placeDot, placeOverlay, avance]);
+  }, [colocarGlobos, exactoDeProgreso, frameFromProgress, placeCamara, placeDot, avance, isMobile]);
 
   /** Reporta a la pantalla de carga y la retira cuando está todo. */
   const avisarCarga = useCallback(() => {
@@ -1159,17 +1252,12 @@ const DroneShowcase = () => {
     [isMobile]
   );
 
-  /** Lleva el scroll al arranque del capítulo pedido. */
-  const goToChapter = useCallback((index) => {
-    const section = sectionRef.current;
-    if (!section) return;
-    const from = index === 0 ? 0 : CHAPTERS[index - 1].until;
-    const range = section.offsetHeight - window.innerHeight;
-    window.scrollTo({
-      top: section.offsetTop + range * ((from + 4) / TOTAL_FRAMES),
-      behavior: "smooth",
-    });
-  }, []);
+  // La caja del dron en cada fotograma, para que la secuencia guarde solo eso.
+  // En móvil va uno de cada dos, igual que en srcFor.
+  const cropFor = useCallback(
+    (index) => DRONE_TRACK[isMobile ? index * 2 : index],
+    [isMobile]
+  );
 
   const active = CHAPTERS[chapter];
 
@@ -1190,14 +1278,15 @@ const DroneShowcase = () => {
             antes. Así que arriba basta con poco oscurecido para el titular, y
             abajo hace falta bastante más para que la barra de los actos no se
             pierda sobre el hormigón. */}
-        <div ref={naveRef} aria-hidden="true" className="absolute inset-0" style={{ opacity: 1 }}>
+        <div ref={naveRef} aria-hidden="true" className="absolute inset-0" style={{ opacity: 1, willChange: "opacity" }}>
           <div className="absolute inset-0 bg-[url('/fondo-nave.webp')] bg-cover bg-center" />
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,17,28,0.55)_0%,rgba(10,17,28,0.30)_30%,rgba(10,17,28,0.34)_58%,rgba(10,17,28,0.74)_100%)]" />
         </div>
 
         {/* Los racks, durante el escaneo. Entran según se va la nave. */}
-        <div ref={sceneRef} aria-hidden="true" className="absolute inset-0" style={{ opacity: 0 }}>
+        <div ref={sceneRef} aria-hidden="true" className="absolute inset-0" style={{ opacity: 0, willChange: "opacity" }}>
           <div
+            ref={racksRef}
             className="absolute inset-0 bg-[url('/fondo-racks.webp')] bg-repeat-x"
             style={{
               backgroundSize: `auto ${isMobile ? SCENE_ZOOM_MOVIL : SCENE_ZOOM}`,
@@ -1209,7 +1298,7 @@ const DroneShowcase = () => {
         {/* Aquí vivían un degradado índigo y un halo del color del capítulo.
             Sobre fondo liso funcionaban, pero encima de una foto se leen como
             una mancha azul en el centro. El acento del capítulo se sigue viendo
-            donde toca: retícula, línea guía, número del panel y minimapa. */}
+            donde toca: número del panel y minimapa. */}
 
         {/* Caída detrás del dron y viñeta: comunes a las dos fotos, porque el
             chasis es blanco y se pierde igual sobre el cartón que sobre el
@@ -1255,60 +1344,34 @@ const DroneShowcase = () => {
           className="absolute inset-x-0 bottom-[32vh] top-[84px] sm:bottom-[24vh] lg:bottom-[16vh]"
         >
           {/* El canvas va más grande que el escenario y centrado en él, para
-              que el dron gane presencia frente a la mercancía. La retícula y la
-              línea guía viven aquí dentro, en el mismo sistema de coordenadas
-              que el render; el panel se queda fuera, atado al viewport. */}
+              que el dron gane presencia frente a la mercancía. El panel se queda
+              fuera, atado al viewport. */}
           <div
             ref={fieldRef}
             className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-            style={{ width: `${DRONE_SCALE * 100}%`, height: `${DRONE_SCALE * 100}%` }}
+            style={{
+              width: `${(isMobile ? DRONE_SCALE_MOVIL : DRONE_SCALE) * 100}%`,
+              height: `${(isMobile ? DRONE_SCALE_MOVIL : DRONE_SCALE) * 100}%`,
+              willChange: isMobile ? "transform" : undefined,
+            }}
           >
             <ScrollSequence
               progress={avance}
               frameCount={frameCount}
               srcFor={srcFor}
+              cropFor={cropFor}
+              startFrame={isMobile ? INICIO / 2 : INICIO}
+              sourceWidth={isMobile ? 960 : 1920}
+              sourceHeight={isMobile ? 540 : 1080}
               onLoadProgress={(f) => {
-                fraccionRef.current = f;
+                // La carga cuenta hasta la pasada de CARGA_PASADA, no hasta el final.
+                fraccionRef.current = Math.min(1, f * CARGA_PASADA);
                 avisarCarga();
               }}
               onLayout={handleLayout}
               className="h-full w-full"
             />
 
-            {!reduceMotion && (
-              <>
-                <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible">
-                  <line
-                    ref={leaderRef}
-                    stroke={active.accent}
-                    strokeWidth="1"
-                    strokeDasharray="3 5"
-                    opacity="0.6"
-                    className="transition-[stroke] duration-700"
-                  />
-                </svg>
-
-                {/* Retícula: cuatro esquinas que encuadran al dron. */}
-                <div
-                  ref={reticleRef}
-                  className="pointer-events-none absolute left-0 top-0 opacity-90"
-                  style={{ willChange: "transform, width, height" }}
-                >
-                  {[
-                    "left-0 top-0 border-l border-t",
-                    "right-0 top-0 border-r border-t",
-                    "left-0 bottom-0 border-l border-b",
-                    "right-0 bottom-0 border-r border-b",
-                  ].map((corner) => (
-                    <span
-                      key={corner}
-                      className={`absolute h-5 w-5 transition-[border-color] duration-700 ${corner}`}
-                      style={{ borderColor: active.accent }}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
           </div>
 
         </div>
@@ -1359,47 +1422,17 @@ const DroneShowcase = () => {
           ))}
         </div>
 
-        {/* Barra inferior: capítulos, lectura y salida. En móvil va algo más
-            arriba que en escritorio, para no encimarse con la pista de scroll,
-            pero lo justo: cada píxel que gana se lo quita al dron. */}
-        <div className="ah-container absolute inset-x-0 bottom-10 z-10 flex items-end justify-between gap-6 sm:bottom-8">
-          <div className="flex flex-col gap-3">
-            <div className="flex gap-2">
-              {CHAPTERS.map((item, index) => (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => goToChapter(index)}
-                  aria-label={t(`showcase.chapters.${item.key}.title`)}
-                  aria-current={index === chapter}
-                  className={`h-1.5 rounded-full transition-all duration-500 ${
-                    index === chapter ? "w-10 bg-white" : "w-5 bg-white/25 hover:bg-white/50"
-                  }`}
-                />
-              ))}
-            </div>
-            <p className="text-[0.65rem] uppercase tracking-[0.2em] text-white/45">
-              {epilogo ? "" : t(`showcase.chapters.${active.key}.phase`)}
-            </p>
-          </div>
-
+        {/* Barra inferior: lectura de rotación o trayectoria, y la salida.
+            Antes llevaba también los guiones de los actos y el rótulo "Acto N
+            · ...": se quitaron, el recorrido no necesita decir en qué etapa va.
+            En móvil la lectura no se muestra, así que ahí la barra queda vacía
+            y los globos aprovechan ese sitio. */}
+        <div className="ah-container absolute inset-x-0 bottom-10 z-10 flex items-end justify-end gap-6 sm:bottom-8">
           <div className="flex items-center gap-6">
-            {/* Una ranura, dos lecturas: grados mientras gira, trayectoria real
-                cuando se desplaza. */}
+            {/* La lectura de trayectoria, del despegue en adelante. Durante el
+                giro iba una de grados ("0° Rotación"); se quitó. */}
             <div className="hidden text-right sm:block">
-              {active.readout === "degrees" ? (
-                <>
-                  <span
-                    ref={angleRef}
-                    className="block font-mono text-2xl font-semibold tabular-nums"
-                  >
-                    0°
-                  </span>
-                  <span className="text-[0.65rem] uppercase tracking-[0.2em] text-white/45">
-                    {t("showcase.rotation")}
-                  </span>
-                </>
-              ) : (
+              {active.readout === "path" && (
                 <>
                   <svg viewBox={FLIGHT_VIEWBOX} className="ml-auto h-12 w-20" aria-hidden="true">
                     <polyline
