@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMotionValue, useMotionValueEvent, useScroll, useSpring } from "framer-motion";
 import ScrollSequence from "../ScrollSequence/ScrollSequence";
 import DRONE_TRACK from "../DroneShowcase/droneTrack";
 import { TarjetaConteo } from "../DroneShowcase/WmsCards";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import useScrollGuiado from "./useScrollGuiado";
 import { ArrowRight } from "lucide-react";
 
 /**
@@ -46,25 +47,80 @@ const CUENTA = [0.65, 0.8]; // barrido lateral frente al rack
 const SISTEMA = [0.8, 0.85]; // se apaga el rack y entra el WMS
 
 /**
- * Paradas del scroll en pantallas táctiles, en fracción del recorrido.
+ * Escenas del scroll guiado en pantallas táctiles (ver useScrollGuiado), como
+ * tramos [desde, hasta] en fracción del recorrido.
  *
- * En celular un deslizón fuerte avanza varias pantallas y se brincaba
- * escenas enteras. En cada parada el scroll se detiene (scroll-snap con
- * scroll-snap-stop: always), así que un deslizón, por fuerte que sea, solo
- * llega a la siguiente; entre parada y parada la animación corre sola. Cada
- * valor es el momento en que esa escena se ve completa. En computadora no se
- * usan: con la rueda del mouse cada muesca brincaría una escena.
+ * Dentro de cada tramo el scroll es libre: es donde se lee. Lo que queda
+ * entre dos tramos es transición, y si se suelta el dedo ahí se termina sola
+ * hasta la escena siguiente. Un deslizón fuerte que cruza el centro de una
+ * escena se detiene en ella. Antes eran paradas rígidas (scroll-snap) y el
+ * scroll se sentía frenado; así se comporta como en hextronics.com.
  */
-const PARADAS = [
-  0, // gancho
-  0.1, // el problema, con sus tres datos ya fuera
-  0.175, // "Conoce al que cuenta por ti"
-  0.33, // el dron llegando a la puerta
-  0.51, // en el pasillo, esquivando
-  0.605, // "Tu turno sigue. Él también."
-  0.75, // conteo frente al rack
-  0.985, // las 3 diferencias ya resueltas
+/*
+ * Cada escena empieza donde ya está completa, no donde asoma: al terminar una
+ * transición el scroll se queda justo en ese inicio, y ahí tiene que verse
+ * todo. Medido contra TEXTOS y las animaciones de cada tramo.
+ */
+const ESCENAS = [
+  [0, 0.035], // gancho
+  [0.07, 0.105], // el problema: sus tres datos terminan de salir en 0.07
+  [0.14, 0.21], // "Conoce al que cuenta por ti"
+  [0.3, 0.34], // el dron llegando a la puerta
+  [0.44, 0.595], // el pasillo: la tercera palabra se va en 0.593
+  [0.595, 0.615], // "Tu turno sigue. Él también."
+  [0.68, 0.78], // conteo frente al rack
+  [0.87, 1], // el agente: las tarjetas ya están y las 3 diferencias se resuelven aquí
 ];
+
+/**
+ * Ritmo en pantallas táctiles: cuánto scroll se le da a cada tramo del
+ * recorrido, como pares [hasta, peso] (pesos relativos; el alto total no
+ * cambia).
+ *
+ * Con el reparto parejo, los textos cortos casi no duraban: "Tu turno sigue"
+ * se iba en una fracción de pantalla. Aquí las escenas de lectura (las de
+ * ESCENAS) pesan más y las transiciones menos, que además se completan solas
+ * con el scroll guiado. En computadora el reparto sigue parejo.
+ */
+const RITMO_TACTIL = [
+  [0.035, 0.5], // gancho
+  [0.07, 0.25],
+  [0.105, 0.7], // problema
+  [0.14, 0.25],
+  [0.21, 0.6], // conoce
+  [0.3, 0.4], // vuelo hacia la puerta
+  [0.34, 0.3], // la puerta
+  [0.44, 0.45], // cruce
+  [0.595, 1.3], // pasillo con palabras: tres esquives
+  [0.615, 0.5], // "Tu turno sigue"
+  [0.68, 0.3],
+  [0.78, 0.7], // conteo
+  [0.87, 0.35], // entra el sistema
+  [1, 0.9], // el agente resuelve una por una
+];
+
+/** Del scroll (0..1) al recorrido (0..1) según el ritmo, y al revés. */
+const RITMO = (() => {
+  const tramos = [];
+  let p0 = 0;
+  let q0 = 0;
+  const total = RITMO_TACTIL.reduce((suma, [, peso]) => suma + peso, 0);
+  for (const [hasta, peso] of RITMO_TACTIL) {
+    const q1 = q0 + peso / total;
+    tramos.push({ p0, p1: hasta, q0, q1 });
+    p0 = hasta;
+    q0 = q1;
+  }
+  const recorridoDe = (q) => {
+    const t = tramos.find((tr) => q <= tr.q1) ?? tramos[tramos.length - 1];
+    return t.p0 + ((Math.min(Math.max(q, 0), 1) - t.q0) / (t.q1 - t.q0)) * (t.p1 - t.p0);
+  };
+  const scrollDe = (p) => {
+    const t = tramos.find((tr) => p <= tr.p1) ?? tramos[tramos.length - 1];
+    return t.q0 + ((Math.min(Math.max(p, 0), 1) - t.p0) / (t.p1 - t.p0)) * (t.q1 - t.q0);
+  };
+  return { recorridoDe, scrollDe };
+})();
 
 /** La foto del pasillo (1536x1024): se ve por la puerta y luego se recorre. */
 const PASILLO = { w: 1536, h: 1024 };
@@ -180,7 +236,14 @@ const PROFUNDIDAD = 0.85;
  * escena y con el dron a tamaño completo la batería quedaba justo encima.
  */
 const DRON_INICIO = 0.7;
-const DRON_LEJOS = 0.3;
+/*
+ * Al llegar a la puerta apenas se achica (0.64): la cámara lo sigue a
+ * distancia fija y lo que crece es el edificio. Antes bajaba a 0.3 y al cruzar
+ * volvía a crecer, y se leía como un dron que cambia de tamaño, no que avanza.
+ */
+const DRON_LEJOS = 0.64;
+/** Tamaño en el pasillo; frente al rack crece a 1 para la toma de cerca. */
+const DRON_PASILLO = 0.7;
 
 const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
 const tramo = (p, [a, b]) => clamp01((p - a) / (b - a));
@@ -213,13 +276,25 @@ const EntradaAlmacen = () => {
   const [movil, setMovil] = useState(false);
   const [tactil, setTactil] = useState(false);
 
-  /* Las paradas viven en el html (es quien hace scroll), y solo en táctil.
-     Se quitan al salir del home para no afectar a las demás páginas. */
+  // Scroll guiado solo en táctil: en computadora la rueda ya avanza poco a
+  // poco y lo guiado se sentiría como quitarle el control a quien lee.
+  /* Al recargar, la historia empieza desde arriba. El navegador por su
+     cuenta devolvía al punto donde se estaba, a veces a mitad de una
+     transición. Se restaura al salir, para no afectar a las demás páginas. */
   useEffect(() => {
-    if (!tactil) return undefined;
-    document.documentElement.classList.add("ah-paradas");
-    return () => document.documentElement.classList.remove("ah-paradas");
-  }, [tactil]);
+    const anterior = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    window.scrollTo({ top: 0, behavior: "instant" });
+    return () => {
+      window.history.scrollRestoration = anterior;
+    };
+  }, []);
+
+  const escenasScroll = useMemo(
+    () => ESCENAS.map(([a, b]) => [RITMO.scrollDe(a), RITMO.scrollDe(b)]),
+    []
+  );
+  useScrollGuiado(seccionRef, escenasScroll, tactil);
 
   useEffect(() => {
     const q = window.matchMedia("(max-width: 767px)");
@@ -236,7 +311,10 @@ const EntradaAlmacen = () => {
     target: seccionRef,
     offset: ["start start", "end end"],
   });
-  const avance = useSpring(scrollYProgress, { stiffness: 300, damping: 20, mass: 0.3, restDelta: 0.0002 });
+  /* El resorte suaviza los saltos de la rueda del mouse. En táctil sobra: la
+     inercia del teléfono ya es suave y el resorte solo añadía retraso, que se
+     sentía como un scroll "chicloso". Ahí el recorrido sigue al dedo. */
+  const resorte = useSpring(scrollYProgress, { stiffness: 300, damping: 20, mass: 0.3, restDelta: 0.0002 });
 
   /* El fotograma del dron, como fracción de los 180 que se usan. */
   const fotograma = useMotionValue(60 / 180);
@@ -272,14 +350,23 @@ const EntradaAlmacen = () => {
     img.src = "/fachada-almacen.webp";
   }, [avisarCarga]);
 
-  /* El bucle de las hélices: solo escribe cuando el dron ya está volando. */
+  /*
+   * El bucle de las hélices. Lee en cada cuadro dónde está el scroll de verdad
+   * (no un dato guardado por aplicar), para corregirse solo: si alguna vez se
+   * perdía una actualización —p. ej. un brinco de scroll en Safari—, el dron
+   * se quedaba con el fotograma de espaldas estando frente a la fachada.
+   */
+  const leerRecorridoRef = useRef(() => 0);
   useEffect(() => {
     let raf = 0;
     const vuelta = HELICES_HASTA - HELICES_DESDE + 1;
     const latido = (ahora) => {
-      if (enVueloRef.current) {
+      const p = leerRecorridoRef.current();
+      if (p >= GIRO[1]) {
         const k = Math.floor((ahora / 1000) * HELICES_FPS) % vuelta;
         fotograma.set((HELICES_DESDE + k) / 180);
+      } else {
+        fotograma.set((60 + 60 * suave(tramo(p, GIRO))) / 180);
       }
       raf = requestAnimationFrame(latido);
     };
@@ -330,7 +417,9 @@ const EntradaAlmacen = () => {
        más oscuro. Al cruzar se le quita, porque ya no se ve a través de nada. */
     // Rápido y al principio del cruce: a media opacidad se lee como neblina.
     if (gradoRef.current) {
-      gradoRef.current.style.opacity = (1 - suave(tramo(p, [CRUZA[0], CRUZA[0] + 0.06]))).toFixed(3);
+      // A la par que la puerta llena la pantalla, no de golpe: antes se
+      // quitaba en un tramo cortísimo y el pasillo se "encendía" de repente.
+      gradoRef.current.style.opacity = (1 - suave(tramo(p, CRUZA))).toFixed(3);
     }
 
     /* El render trae luz de estudio, neutra y más brillante que la escena. El
@@ -355,22 +444,18 @@ const EntradaAlmacen = () => {
       cercaRef.current.style.transform = `translate3d(calc(-50% + ${dx.toFixed(1)}px), -50%, 0) scale(${mezcla(1.12, 1, tR).toFixed(4)})`;
     }
 
-    /* Dron. Reposa al centro, algo por encima de la puerta. Al acercarse se
-       adelanta hacia ella (se achica y sube a su altura); al cruzar la cámara
-       lo alcanza y vuelve a su tamaño, ya adentro. */
-    const reposoY = movil ? vh * 0.34 : vh * 0.33;
+    /* Dron. Reposa arriba de la puerta y baja a su altura mientras se acerca.
+       La cámara lo sigue a distancia fija, así que su tamaño casi no cambia:
+       lo que crece es el edificio. Solo frente al rack se agranda. */
+        const reposoY = movil ? vh * 0.34 : vh * 0.33;
     const lejosY = puertaY - puertaH * 0.05;
     let escala;
     let y;
     if (tC > 0) {
-      escala = mezcla(DRON_LEJOS, 1, suave(tramo(p, CRUZA)));
+      // Cruza la puerta casi del mismo tamaño y solo crece frente al rack.
+      escala = mezcla(mezcla(DRON_LEJOS, DRON_PASILLO, suave(tramo(p, CRUZA))), 1, tR);
       y = mezcla(lejosY, vh * 0.5, suave(tramo(p, CRUZA)));
-      /* En el pasillo va más chico y más abajo: a tamaño completo y al centro
-         tapaba justo el montacargas que se supone que esquiva. Así se ven las
-         cosas del piso y el dron pasando junto a ellas. Frente al rack vuelve
-         a su tamaño. */
-      const enPasillo = suave(tramo(p, [CRUZA[1] - 0.04, CRUZA[1] + 0.02])) * (1 - suave(tramo(p, AL_RACK)));
-      escala *= mezcla(1, 0.7, enPasillo);
+      const enPasillo = suave(tramo(p, [CRUZA[1] - 0.04, CRUZA[1] + 0.02])) * (1 - tR);
       y += vh * 0.03 * enPasillo;
       // Frente al rack baja un poco, a la altura del nivel que va a leer.
       y += vh * 0.06 * tR;
@@ -457,7 +542,8 @@ const EntradaAlmacen = () => {
     }
     problemasRef.current.forEach((el, i) => {
       if (!el) return;
-      const t = tramo(p, [0.06 + i * 0.012, 0.072 + i * 0.012]);
+      // Los tres terminan de salir en 0.07, donde empieza su escena de lectura.
+      const t = tramo(p, [0.05 + i * 0.005, 0.06 + i * 0.005]);
       el.style.opacity = t.toFixed(3);
       el.style.transform = `translate3d(0, ${((1 - t) * 12).toFixed(1)}px, 0)`;
     });
@@ -500,13 +586,17 @@ const EntradaAlmacen = () => {
     });
   }, [fotograma, tinte, movil]);
 
-  useMotionValueEvent(avance, "change", aplicar);
+  const avance = tactil ? scrollYProgress : resorte;
+  // En táctil el scroll pasa por el ritmo antes de mover la escena.
+  const recorrido = useCallback((v) => (tactil ? RITMO.recorridoDe(v) : v), [tactil]);
+  leerRecorridoRef.current = () => recorrido(avance.get());
+  useMotionValueEvent(avance, "change", (v) => aplicar(recorrido(v)));
   useEffect(() => {
-    aplicar(avance.get());
-    const r = () => aplicar(avance.get());
+    aplicar(recorrido(avance.get()));
+    const r = () => aplicar(recorrido(avance.get()));
     window.addEventListener("resize", r);
     return () => window.removeEventListener("resize", r);
-  }, [aplicar, avance]);
+  }, [aplicar, avance, recorrido]);
 
   const frameCount = movil ? 90 : 180;
   const srcFor = useCallback(
@@ -537,21 +627,6 @@ const EntradaAlmacen = () => {
       className="relative bg-[#070b12] text-white"
       style={{ height: movil ? "750svh" : "1300vh" }}
     >
-      {/* Las paradas del scroll: marcas invisibles en la altura del recorrido
-          que corresponde a cada escena (ver PARADAS). */}
-      {PARADAS.map((p) => (
-        <span
-          key={p}
-          aria-hidden="true"
-          className="ah-parada pointer-events-none absolute left-0 h-px w-px"
-          style={{ top: `calc((100% - 100svh) * ${p})` }}
-        />
-      ))}
-      <style>{`
-        html.ah-paradas { scroll-snap-type: y mandatory; }
-        html.ah-paradas .ah-parada { scroll-snap-align: start; scroll-snap-stop: always; }
-        html.ah-paradas .ah-parada-final { scroll-snap-align: end; }
-      `}</style>
       <div className="sticky top-0 h-[100svh] overflow-hidden">
         {/* El mundo: fachada y, en el hueco de la puerta, el interior. */}
         <div
@@ -591,19 +666,24 @@ const EntradaAlmacen = () => {
               </div>
             </div>
             {/*
-              Entonado, para que el interior pertenezca a la foto de afuera:
-              - cálido, porque en la fachada la puerta derrama luz naranja sobre
-                el piso mojado y un interior blanco no la explicaría;
-              - más oscuro que la calle no, pero tampoco más brillante;
-              - sombra bajo el dintel y en los costados, que es lo que hace que
-                se lea como un hueco en la pared y no como una estampa.
+              Entonado desde la calle: un poco más oscuro, para que no brille
+              más que la noche de afuera, y una sombra bajo el dintel, que es
+              lo que hace que se lea como un hueco en la pared y no como una
+              estampa. Se va poco a poco mientras se cruza la puerta.
             */}
-            <div ref={gradoRef} className="absolute inset-0">
-              <div className="absolute inset-0 bg-[#ffb36b] opacity-60 mix-blend-multiply" />
-              <div className="absolute inset-0 bg-black/30" />
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.75)_0%,transparent_28%)]" />
-              <div className="absolute inset-0 shadow-[inset_0_0_40px_14px_rgba(0,0,0,0.7)]" />
-            </div>
+            {/*
+              Una sola capa que multiplica directo sobre el pasillo: gris (lo
+              oscurece sin cambiarle el color) y negro arriba (la sombra del
+              dintel). Va sola y con su propia opacidad a propósito: cuando
+              estas capas vivían dentro de un contenedor con opacity, el
+              navegador las mezclaba dentro del contenedor y no con el pasillo,
+              y a media transición se veían como un velo gris o café encima.
+            */}
+            <div
+              ref={gradoRef}
+              className="absolute inset-0 mix-blend-multiply"
+              style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 22%), #c4c4c4" }}
+            />
           </div>
         </div>
 
@@ -815,9 +895,9 @@ const EntradaAlmacen = () => {
 const Resultados = () => {
   const { t } = useTranslation();
   return (
-    /* data-ah-no-reveal: la animación de entrada movía la sección y, con las
-       paradas activas, el navegador recalculaba y se iba solo a otra parada. */
-    <section data-ah-no-reveal className="ah-parada bg-[#070b12] py-24 text-white sm:py-32">
+    /* data-ah-no-reveal: sin la animación de entrada, que la dejaba
+       transparente un instante y se veía el fondo blanco de la página. */
+    <section data-ah-no-reveal className="bg-[#070b12] py-24 text-white sm:py-32">
       <div className="ah-container">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">{t("inicio.resultado_kicker")}</p>
         <h2 className="mt-3 max-w-2xl text-3xl font-semibold leading-tight sm:text-5xl">{t("inicio.resultado_titulo")}</h2>
@@ -838,13 +918,13 @@ const Resultados = () => {
 const Llamado = () => {
   const { t } = useTranslation();
   return (
-  // Última parada: alineada al final, porque su inicio queda más abajo de
-  // donde la página puede llegar.
-  <section data-ah-no-reveal className="ah-parada ah-parada-final relative overflow-hidden bg-[#070b12] py-28 text-white sm:py-40">
+  // Mide al menos una pantalla y centra su contenido: más bajo que la
+  // pantalla, al llegar al fondo se asomaba arriba el final de los resultados.
+  <section data-ah-no-reveal className="relative flex min-h-[100svh] items-center overflow-hidden bg-[#070b12] py-28 text-white sm:py-40">
     {/* El pasillo de nuevo, muy apagado: cierra donde empezó la historia. */}
     <div className="absolute inset-0 bg-[url('/pasillo-racks.webp')] bg-cover bg-center opacity-20" />
     <div className="absolute inset-0 bg-[linear-gradient(180deg,#070b12_0%,rgba(7,11,18,0.6)_50%,#070b12_100%)]" />
-    <div className="ah-container relative text-center">
+    <div className="ah-container relative w-full text-center">
       <h2 className="mx-auto max-w-3xl text-4xl font-semibold leading-tight sm:text-6xl">{t("inicio.llamado_titulo")}</h2>
       <p className="mx-auto mt-5 max-w-xl text-base text-white/70">
         {t("inicio.llamado_texto")}
