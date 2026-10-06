@@ -840,11 +840,13 @@ const Llamado = () => {
   return (
   // Última parada: alineada al final, porque su inicio queda más abajo de
   // donde la página puede llegar.
-  <section data-ah-no-reveal className="ah-parada ah-parada-final relative overflow-hidden bg-[#070b12] py-28 text-white sm:py-40">
+  // Mide al menos una pantalla y centra su contenido: más bajo que la
+  // pantalla, al llegar al fondo se asomaba arriba el final de los resultados.
+  <section data-ah-no-reveal className="ah-parada ah-parada-final relative flex min-h-[100svh] items-center overflow-hidden bg-[#070b12] py-28 text-white sm:py-40">
     {/* El pasillo de nuevo, muy apagado: cierra donde empezó la historia. */}
     <div className="absolute inset-0 bg-[url('/pasillo-racks.webp')] bg-cover bg-center opacity-20" />
     <div className="absolute inset-0 bg-[linear-gradient(180deg,#070b12_0%,rgba(7,11,18,0.6)_50%,#070b12_100%)]" />
-    <div className="ah-container relative text-center">
+    <div className="ah-container relative w-full text-center">
       <h2 className="mx-auto max-w-3xl text-4xl font-semibold leading-tight sm:text-6xl">{t("inicio.llamado_titulo")}</h2>
       <p className="mx-auto mt-5 max-w-xl text-base text-white/70">
         {t("inicio.llamado_texto")}
