@@ -236,7 +236,14 @@ const PROFUNDIDAD = 0.85;
  * escena y con el dron a tamaño completo la batería quedaba justo encima.
  */
 const DRON_INICIO = 0.7;
-const DRON_LEJOS = 0.3;
+/*
+ * Al llegar a la puerta apenas se achica (0.64): la cámara lo sigue a
+ * distancia fija y lo que crece es el edificio. Antes bajaba a 0.3 y al cruzar
+ * volvía a crecer, y se leía como un dron que cambia de tamaño, no que avanza.
+ */
+const DRON_LEJOS = 0.64;
+/** Tamaño en el pasillo; frente al rack crece a 1 para la toma de cerca. */
+const DRON_PASILLO = 0.7;
 
 const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
 const tramo = (p, [a, b]) => clamp01((p - a) / (b - a));
@@ -410,7 +417,9 @@ const EntradaAlmacen = () => {
        más oscuro. Al cruzar se le quita, porque ya no se ve a través de nada. */
     // Rápido y al principio del cruce: a media opacidad se lee como neblina.
     if (gradoRef.current) {
-      gradoRef.current.style.opacity = (1 - suave(tramo(p, [CRUZA[0], CRUZA[0] + 0.06]))).toFixed(3);
+      // A la par que la puerta llena la pantalla, no de golpe: antes se
+      // quitaba en un tramo cortísimo y el pasillo se "encendía" de repente.
+      gradoRef.current.style.opacity = (1 - suave(tramo(p, CRUZA))).toFixed(3);
     }
 
     /* El render trae luz de estudio, neutra y más brillante que la escena. El
@@ -435,22 +444,18 @@ const EntradaAlmacen = () => {
       cercaRef.current.style.transform = `translate3d(calc(-50% + ${dx.toFixed(1)}px), -50%, 0) scale(${mezcla(1.12, 1, tR).toFixed(4)})`;
     }
 
-    /* Dron. Reposa al centro, algo por encima de la puerta. Al acercarse se
-       adelanta hacia ella (se achica y sube a su altura); al cruzar la cámara
-       lo alcanza y vuelve a su tamaño, ya adentro. */
-    const reposoY = movil ? vh * 0.34 : vh * 0.33;
+    /* Dron. Reposa arriba de la puerta y baja a su altura mientras se acerca.
+       La cámara lo sigue a distancia fija, así que su tamaño casi no cambia:
+       lo que crece es el edificio. Solo frente al rack se agranda. */
+        const reposoY = movil ? vh * 0.34 : vh * 0.33;
     const lejosY = puertaY - puertaH * 0.05;
     let escala;
     let y;
     if (tC > 0) {
-      escala = mezcla(DRON_LEJOS, 1, suave(tramo(p, CRUZA)));
+      // Cruza la puerta casi del mismo tamaño y solo crece frente al rack.
+      escala = mezcla(mezcla(DRON_LEJOS, DRON_PASILLO, suave(tramo(p, CRUZA))), 1, tR);
       y = mezcla(lejosY, vh * 0.5, suave(tramo(p, CRUZA)));
-      /* En el pasillo va más chico y más abajo: a tamaño completo y al centro
-         tapaba justo el montacargas que se supone que esquiva. Así se ven las
-         cosas del piso y el dron pasando junto a ellas. Frente al rack vuelve
-         a su tamaño. */
-      const enPasillo = suave(tramo(p, [CRUZA[1] - 0.04, CRUZA[1] + 0.02])) * (1 - suave(tramo(p, AL_RACK)));
-      escala *= mezcla(1, 0.7, enPasillo);
+      const enPasillo = suave(tramo(p, [CRUZA[1] - 0.04, CRUZA[1] + 0.02])) * (1 - tR);
       y += vh * 0.03 * enPasillo;
       // Frente al rack baja un poco, a la altura del nivel que va a leer.
       y += vh * 0.06 * tR;
@@ -661,19 +666,24 @@ const EntradaAlmacen = () => {
               </div>
             </div>
             {/*
-              Entonado, para que el interior pertenezca a la foto de afuera:
-              - cálido, porque en la fachada la puerta derrama luz naranja sobre
-                el piso mojado y un interior blanco no la explicaría;
-              - más oscuro que la calle no, pero tampoco más brillante;
-              - sombra bajo el dintel y en los costados, que es lo que hace que
-                se lea como un hueco en la pared y no como una estampa.
+              Entonado desde la calle: un poco más oscuro, para que no brille
+              más que la noche de afuera, y una sombra bajo el dintel, que es
+              lo que hace que se lea como un hueco en la pared y no como una
+              estampa. Se va poco a poco mientras se cruza la puerta.
             */}
-            <div ref={gradoRef} className="absolute inset-0">
-              <div className="absolute inset-0 bg-[#ffb36b] opacity-60 mix-blend-multiply" />
-              <div className="absolute inset-0 bg-black/30" />
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.75)_0%,transparent_28%)]" />
-              <div className="absolute inset-0 shadow-[inset_0_0_40px_14px_rgba(0,0,0,0.7)]" />
-            </div>
+            {/*
+              Una sola capa que multiplica directo sobre el pasillo: gris (lo
+              oscurece sin cambiarle el color) y negro arriba (la sombra del
+              dintel). Va sola y con su propia opacidad a propósito: cuando
+              estas capas vivían dentro de un contenedor con opacity, el
+              navegador las mezclaba dentro del contenedor y no con el pasillo,
+              y a media transición se veían como un velo gris o café encima.
+            */}
+            <div
+              ref={gradoRef}
+              className="absolute inset-0 mix-blend-multiply"
+              style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 22%), #c4c4c4" }}
+            />
           </div>
         </div>
 
