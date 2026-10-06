@@ -409,7 +409,12 @@
         "faq_4_a": "Sí. Si avanzamos, ejecutamos por fases según prioridad y capacidad de tu equipo.",
         "form_title": "Agenda tu diagnóstico",
         "form_subtitle": "Déjanos tu contexto y te contactamos con la siguiente acción recomendada.",
-        "form_placeholder": "Cuéntanos brevemente tu operación y reto principal."
+        "form_placeholder": "Cuéntanos brevemente tu operación y reto principal.",
+        "form_company": "Empresa",
+        "form_send": "Solicitar diagnóstico",
+        "page_title": "Diagnóstico gratuito",
+        "page_question": "¿Cómo cuentan hoy su inventario?",
+        "page_text": "Cuéntanos de tu almacén y te decimos qué automatizar primero. Si lo prefieres, escríbenos por"
     },
     "comparator": {
         "eyebrow": "ANTES Y DESPUÉS",

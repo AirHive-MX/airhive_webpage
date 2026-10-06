@@ -13,8 +13,14 @@
       en paralelo con el bundle, así que la espera se acorta de verdad, no solo
       se tapa.
     -->
-    <link rel="preload" as="image" href="/renders/drone/desktop/0001.webp" />
-    <link rel="preload" as="image" href="/fondo-nave.webp" />
+    <!--
+      El primer fotograma visible es el 61 (el recorrido arranca con el dron de
+      frente). Va como fetch y no como image porque ScrollSequence lo pide con
+      fetch(): si el tipo no coincide, el navegador lo baja dos veces.
+    -->
+    <link rel="preload" as="fetch" crossorigin="anonymous" href="/renders/drone/desktop/0061.webp" media="(min-width: 768px)" />
+    <link rel="preload" as="fetch" crossorigin="anonymous" href="/renders/drone/mobile/0061.webp" media="(max-width: 767px)" />
+    <link rel="preload" as="image" href="/fachada-almacen.webp" />
 
     <!--
       La pantalla de carga vive aquí y no en React a propósito: como componente
@@ -118,6 +124,8 @@
         function cerrar() {
           if (cerrada) return;
           cerrada = true;
+          // Para medir: performance.getEntriesByName("ah-carga-cerrada")
+          performance.mark("ah-carga-cerrada");
           var espera = Math.max(0, MINIMO - (Date.now() - nacio));
           setTimeout(function () {
             texto.textContent = "100%";

@@ -1,0 +1,811 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useMotionValue, useMotionValueEvent, useScroll, useSpring } from "framer-motion";
+import ScrollSequence from "../ScrollSequence/ScrollSequence";
+import DRONE_TRACK from "../DroneShowcase/droneTrack";
+import { TarjetaConteo } from "../DroneShowcase/WmsCards";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
+
+/**
+ * El dron entra al almacén: la historia del home.
+ *
+ * Afuera, de noche, el dron flota frente a la fachada mirando a cámara. Con el
+ * scroll gira 180° hasta quedar de espaldas, vuela hacia la puerta de carga y
+ * la cámara lo sigue hasta cruzarla; adentro arranca motores.
+ *
+ * Todo es 2D sobre fotos, así que la profundidad se fabrica:
+ * - La fachada se acerca escalando sobre el centro de la puerta, que por eso
+ *   no se mueve de sitio en pantalla.
+ * - Lo que se ve por la puerta es otra capa (la foto del pasillo de racks) que crece
+ *   más despacio que la fachada (ver PROFUNDIDAD). Lo lejano
+ *   crece menos que lo cercano, y esa diferencia es la que se lee como
+ *   profundidad al acercarse.
+ * - El dron primero se adelanta (se achica rumbo a la puerta) y luego la
+ *   cámara lo alcanza (vuelve a crecer) justo al cruzar.
+ *
+ * Una versión renderizada en Blender con la escena completa se vería aún más
+ * real; los tiempos y encuadres de aquí sirven de guía para hacerla.
+ */
+
+/** La foto de la fachada y su puerta de carga, en píxeles de la imagen. */
+const FACHADA = { w: 1376, h: 768 };
+const PUERTA = { x0: 552, y0: 396, x1: 824, y1: 598 };
+const PUERTA_CX = (PUERTA.x0 + PUERTA.x1) / 2 / FACHADA.w;
+const PUERTA_CY = (PUERTA.y0 + PUERTA.y1) / 2 / FACHADA.h;
+const PUERTA_W = (PUERTA.x1 - PUERTA.x0) / FACHADA.w;
+const PUERTA_H = (PUERTA.y1 - PUERTA.y0) / FACHADA.h;
+
+/** Tramos del recorrido, en fracción del scroll de la sección. */
+const GIRO = [0.03, 0.16]; // de frente (fotograma 60) a de espaldas (120)
+const ACERCA = [0.16, 0.34]; // vuela hacia la puerta, la cámara lo sigue
+const CRUZA = [0.34, 0.42]; // la cámara lo alcanza y cruzan la puerta
+const AVANZA = [0.42, 0.62]; // la cámara sigue avanzando por el pasillo
+const AL_RACK = [0.6, 0.65]; // corte suave del pasillo a la toma de cerca
+const CUENTA = [0.65, 0.8]; // barrido lateral frente al rack
+const SISTEMA = [0.8, 0.85]; // se apaga el rack y entra el WMS
+
+/** La foto del pasillo (1536x1024): se ve por la puerta y luego se recorre. */
+const PASILLO = { w: 1536, h: 1024 };
+
+/**
+ * Palabras como obstáculos.
+ *
+ * Mientras avanza por el pasillo, el dron se encuentra con lo que pasa en un
+ * almacén que no se detiene, escrito en el aire, y lo esquiva. No se dice que
+ * evita obstáculos: se ve.
+ *
+ * Van en 3D de verdad (perspective de CSS): cada palabra tiene un sitio fijo
+ * en el pasillo —x, y, z en píxeles de mundo, z negativo es hacia el fondo— y
+ * lo que se mueve es la cámara, CAMARA_RECORRE píxeles hacia adelante. Así
+ * todas crecen con la misma perspectiva, las cercanas corren más que las
+ * lejanas y al rebasarlas salen por su costado. (Antes cada una crecía a su
+ * propio ritmo, sin relación con las demás ni con el pasillo, y se notaba
+ * pegado.) Lo lejano va tenue y desenfocado, como a través del aire de la
+ * nave; al pasar junto a la cámara se desenfoca otra vez.
+ *
+ * El dron va DRON_Z por delante de la cámara y se aparta cuando una palabra
+ * llega a su profundidad: al lado contrario, o hacia arriba si la palabra va
+ * baja y al centro.
+ */
+const PERSPECTIVA = 900;
+const CAMARA_RECORRE = 9400;
+const DRON_Z = -500;
+const PALABRAS = [
+  // La primera arranca más allá de -3200, donde empieza el esquive: si no, el
+  // dron ya se ladeaba afuera, frente a la fachada.
+  { texto: "Montacargas en ruta", x: 300, y: -30, z: -3600 },
+  { texto: "Personal surtiendo", x: -340, y: 10, z: -6200 },
+  { texto: "Pedidos saliendo", x: 20, y: 260, z: -8800 },
+];
+const ESQUIVE = 0.2; // cuánto se aparta de lado, en fracción del ancho
+const SUBE = 0.14; // cuánto sube para pasar por encima, en fracción del alto
+
+/**
+ * Los textos de la historia, cada uno con su tramo: [entra desde, entra
+ * hasta, sale desde, sale hasta]. Van uno a la vez, como subtítulos.
+ */
+const TEXTOS = {
+  gancho: [-1, -1, 0.035, 0.055],
+  problema: [0.05, 0.065, 0.105, 0.12],
+  // Se presenta al dron cuando acaba de girar y todavía está grande; más
+  // tarde ya va chico rumbo a la puerta y casi no se ve a quién se presenta.
+  conoce: [0.125, 0.14, 0.21, 0.23],
+  sinParar: [0.575, 0.595, 0.615, 0.635],
+  cuenta: [0.65, 0.67, 0.78, 0.8],
+  sistema: [0.82, 0.85, 2, 2],
+};
+
+/** Las tres caras del problema, que aparecen una tras otra. */
+const PROBLEMAS = [
+  { dato: "Días", texto: "para contar un almacén a mano" },
+  { dato: "Pedidos en pausa", texto: "porque no se surte mientras se cuenta" },
+  { dato: "60–80%", texto: "de precisión, aun con todo ese esfuerzo" },
+];
+
+/**
+ * Lo que va leyendo el dron frente al rack. Una sale distinta a lo que dice
+ * el sistema: es la que luego resuelve el agente.
+ */
+const LECTURAS = [
+  { ubicacion: "A-01-02", detalle: "24 piezas", bien: true },
+  { ubicacion: "A-01-03", detalle: "12 piezas", bien: true },
+  { ubicacion: "A-02-01", detalle: "8 cajas", bien: true },
+  { ubicacion: "A-03-01", detalle: "sistema 24 · físico 22", bien: false },
+  { ubicacion: "A-03-02", detalle: "40 piezas", bien: true },
+];
+const TOTAL_ETIQUETAS = 117;
+const TOTAL_UBICACIONES = 41;
+
+/** Las diferencias del vuelo y lo que hizo el agente con cada una. */
+const DIFERENCIAS = [
+  { ubicacion: "A-03-01", problema: "Faltan 2 piezas", accion: "Ajuste aplicado en el WMS", resuelta: 0.89 },
+  { ubicacion: "B-02-04", problema: "Producto en ubicación equivocada", accion: "Reubicación asignada al turno", resuelta: 0.93 },
+  { ubicacion: "C-01-03", problema: "Etiqueta ilegible", accion: "Recuento programado para mañana", resuelta: 0.97 },
+];
+
+/**
+ * La toma de cerca se corre de derecha a izquierda mientras el dron cuenta,
+ * como si avanzara de lado a lo largo del rack. ANCHO_CERCA es cuánto más
+ * ancha que la pantalla se dibuja, para tener por dónde correrla.
+ */
+const ANCHO_CERCA = 1.45;
+const INCLINACION = 5; // grados que se ladea el dron hacia donde avanza
+
+/**
+ * Hélices en marcha.
+ *
+ * Los renders ya traen las hélices animadas: del fotograma 121 al 170 el dron
+ * no cambia de pose y lo único que se mueve son las aspas. Así que mientras
+ * vuela se reproducen esos fotogramas en bucle, por tiempo y no por scroll:
+ * las hélices giran aunque nadie esté haciendo scroll, como en un dron que
+ * flota. El salto del 170 al 121 no se nota con las aspas a esta velocidad.
+ */
+const HELICES_DESDE = 121;
+const HELICES_HASTA = 170;
+const HELICES_FPS = 30;
+
+/** Cuánto se acerca la cámara al final del acercamiento, antes de cruzar. */
+const ZOOM_ACERCA = 2.3;
+/**
+ * Cuánto crece lo que se ve por la puerta respecto a la fachada, como
+ * exponente: 1 sería pegado a la fachada (sin profundidad) y 0.5 muy lejos.
+ * Con 0.5 el interior arrancaba tan ampliado que por la puerta se veía una
+ * sola caja, y con 0.75 los primeros racks medían lo que la puerta. 0.85 los
+ * deja al fondo y aún se nota la profundidad.
+ */
+const PROFUNDIDAD = 0.85;
+
+/**
+ * Tamaño del dron: al inicio, al llegar a la puerta y ya adentro (1). Arranca
+ * en 0.7 y arriba de la puerta para no taparla: la puerta es el punto de la
+ * escena y con el dron a tamaño completo la batería quedaba justo encima.
+ */
+const DRON_INICIO = 0.7;
+const DRON_LEJOS = 0.3;
+
+const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
+const tramo = (p, [a, b]) => clamp01((p - a) / (b - a));
+const suave = (t) => t * t * (3 - 2 * t);
+const entra = (t) => t * t * t; // acelera al final, como al cruzar
+const mezcla = (a, b, t) => a + (b - a) * t;
+const pad = (n) => String(n).padStart(4, "0");
+
+const EntradaAlmacen = () => {
+  const seccionRef = useRef(null);
+  const mundoRef = useRef(null);
+  const interiorRef = useRef(null);
+  const dronRef = useRef(null);
+  const velo = useRef(null);
+  const cercaRef = useRef(null); // la toma de cerca de los racks
+  const textosRef = useRef({}); // cada texto de la historia, por su clave
+  const problemasRef = useRef([]);
+  const etiquetasRef = useRef(null);
+  const ubicacionesRef = useRef(null);
+  const lecturasRef = useRef([]);
+  const alertaRef = useRef(null);
+  const apagadoRef = useRef(null); // oscurece el rack cuando entra el sistema
+  const sistemaRef = useRef(null);
+  const diferenciasRef = useRef([]);
+  const palabrasRef = useRef([]); // las palabras-obstáculo del pasillo
+  const gradoRef = useRef(null); // entonado del interior visto desde la calle
+  const [movil, setMovil] = useState(false);
+
+  useEffect(() => {
+    const q = window.matchMedia("(max-width: 767px)");
+    const sync = () => setMovil(q.matches);
+    sync();
+    q.addEventListener("change", sync);
+    return () => q.removeEventListener("change", sync);
+  }, []);
+
+  const { scrollYProgress } = useScroll({
+    target: seccionRef,
+    offset: ["start start", "end end"],
+  });
+  const avance = useSpring(scrollYProgress, { stiffness: 300, damping: 20, mass: 0.3, restDelta: 0.0002 });
+
+  /* El fotograma del dron, como fracción de los 180 que se usan. */
+  const fotograma = useMotionValue(60 / 180);
+  /* Cuánto se tiñe el dron con la luz de la escena (0..1). */
+  const tinte = useMotionValue(0.85);
+  const enVueloRef = useRef(false);
+
+  /*
+   * Pantalla de carga (vive en index.html). Se retira cuando está la fachada y
+   * una cuarta parte de los fotogramas: con eso el giro ya se ve completo y el
+   * resto entra por detrás mientras se lee el gancho.
+   */
+  const cargaRef = useRef({ fachada: false, fotogramas: 0, cerrada: false });
+  const avisarCarga = useCallback(() => {
+    const c = cargaRef.current;
+    const carga = window.__ahCarga;
+    if (!carga || c.cerrada) return;
+    const listos = Math.min(1, c.fotogramas * 4);
+    carga.progreso((c.fachada ? 0.2 : 0) + listos * 0.8);
+    if (c.fachada && listos >= 1) {
+      c.cerrada = true;
+      carga.cerrar();
+    }
+  }, []);
+  useEffect(() => {
+    const img = new Image();
+    const listo = () => {
+      cargaRef.current.fachada = true;
+      avisarCarga();
+    };
+    img.onload = listo;
+    img.onerror = listo; // si falla, no vale la pena retener la pantalla
+    img.src = "/fachada-almacen.webp";
+  }, [avisarCarga]);
+
+  /* El bucle de las hélices: solo escribe cuando el dron ya está volando. */
+  useEffect(() => {
+    let raf = 0;
+    const vuelta = HELICES_HASTA - HELICES_DESDE + 1;
+    const latido = (ahora) => {
+      if (enVueloRef.current) {
+        const k = Math.floor((ahora / 1000) * HELICES_FPS) % vuelta;
+        fotograma.set((HELICES_DESDE + k) / 180);
+      }
+      raf = requestAnimationFrame(latido);
+    };
+    raf = requestAnimationFrame(latido);
+    return () => cancelAnimationFrame(raf);
+  }, [fotograma]);
+
+  const aplicar = useCallback((p) => {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const mundo = mundoRef.current;
+    const dron = dronRef.current;
+    if (!mundo || !dron) return;
+
+    /* Dónde queda la puerta en pantalla. El mundo cubre el viewport con la
+       proporción de la foto, centrado; la escala gira sobre la puerta, así que
+       la puerta se queda quieta y lo demás crece alrededor. */
+    const mundoW = Math.max(vw, (vh * FACHADA.w) / FACHADA.h);
+    const mundoH = (mundoW * FACHADA.h) / FACHADA.w;
+    const puertaX = vw / 2 + (PUERTA_CX - 0.5) * mundoW;
+    const puertaY = vh / 2 + (PUERTA_CY - 0.5) * mundoH;
+    const puertaW = PUERTA_W * mundoW;
+    const puertaH = PUERTA_H * mundoH;
+
+    /* Cámara. Hasta ZOOM_ACERCA va suave; al cruzar acelera hasta que la
+       puerta llena la pantalla con margen. */
+    const zoomLleno = Math.max(vw / puertaW, vh / puertaH) * 1.15;
+    const tA = suave(tramo(p, ACERCA));
+    const tC = entra(tramo(p, CRUZA));
+    const tAv = suave(tramo(p, AVANZA));
+    const zoom =
+      tC > 0 ? mezcla(ZOOM_ACERCA, zoomLleno, tC) * (1 + 0.6 * tAv) : mezcla(1, ZOOM_ACERCA, tA);
+    mundo.style.transform = `scale(${zoom.toFixed(4)})`;
+
+    /* Lo que se ve por la puerta crece menos que la cámara (zoom^PROFUNDIDAD):
+       está más lejos. Se compensa desde el tamaño final para que nunca deje
+       hueco dentro del marco de la puerta. */
+    if (interiorRef.current) {
+      const relativa = Math.pow(zoomLleno / zoom, 1 - PROFUNDIDAD);
+      interiorRef.current.style.transform = `scale(${relativa.toFixed(4)})`;
+    }
+
+    /* La fachada se apaga en el último tramo para que no quede un marco
+       borroso alrededor una vez dentro. */
+    if (velo.current) velo.current.style.opacity = (tC * 0.12).toFixed(3);
+
+    /* Desde la calle el interior va entonado a la luz de la puerta: cálido y
+       más oscuro. Al cruzar se le quita, porque ya no se ve a través de nada. */
+    // Rápido y al principio del cruce: a media opacidad se lee como neblina.
+    if (gradoRef.current) {
+      gradoRef.current.style.opacity = (1 - suave(tramo(p, [CRUZA[0], CRUZA[0] + 0.06]))).toFixed(3);
+    }
+
+    /* El render trae luz de estudio, neutra y más brillante que la escena.
+       Afuera se baja y se desatura para que pertenezca a la noche; adentro,
+       con luz de nave, vuelve casi a su tono. */
+    const brillo = mezcla(0.82, 0.86, tC);
+    const sat = mezcla(0.85, 1, tC);
+    dron.style.filter = `brightness(${brillo.toFixed(3)}) saturate(${sat.toFixed(3)})`;
+    /* Y encima, el color de la luz: azul del cielo arriba y naranja de la
+       puerta abajo, pintado solo sobre el dron (ver tint en ScrollSequence).
+       Adentro queda un resto, que es la luz de la nave y el naranja de vigas. */
+    tinte.set(mezcla(0.85, 0.3, tC));
+
+    /* Toma de cerca: entra con un acercamiento corto (de 1.12 a 1), como un
+       corte que sigue el mismo movimiento, y luego se corre de lado. */
+    const tR = suave(tramo(p, AL_RACK));
+    const tK = suave(tramo(p, CUENTA));
+    if (cercaRef.current) {
+      const ancho = Math.max(vw * ANCHO_CERCA, vh * 1.5 * 1.08);
+      const sobra = ancho - vw;
+      const dx = mezcla(sobra / 2, -sobra / 2, tK);
+      cercaRef.current.style.width = `${ancho}px`;
+      cercaRef.current.style.opacity = tR.toFixed(3);
+      cercaRef.current.style.transform = `translate3d(calc(-50% + ${dx.toFixed(1)}px), -50%, 0) scale(${mezcla(1.12, 1, tR).toFixed(4)})`;
+    }
+
+    /* Dron. Reposa al centro, algo por encima de la puerta. Al acercarse se
+       adelanta hacia ella (se achica y sube a su altura); al cruzar la cámara
+       lo alcanza y vuelve a su tamaño, ya adentro. */
+    const reposoY = movil ? vh * 0.34 : vh * 0.33;
+    const lejosY = puertaY - puertaH * 0.05;
+    let escala;
+    let y;
+    if (tC > 0) {
+      escala = mezcla(DRON_LEJOS, 1, suave(tramo(p, CRUZA)));
+      y = mezcla(lejosY, vh * 0.5, suave(tramo(p, CRUZA)));
+      /* En el pasillo va más chico y más abajo: a tamaño completo y al centro
+         tapaba justo el montacargas que se supone que esquiva. Así se ven las
+         cosas del piso y el dron pasando junto a ellas. Frente al rack vuelve
+         a su tamaño. */
+      const enPasillo = suave(tramo(p, [CRUZA[1] - 0.04, CRUZA[1] + 0.02])) * (1 - suave(tramo(p, AL_RACK)));
+      escala *= mezcla(1, 0.7, enPasillo);
+      y += vh * 0.03 * enPasillo;
+      // Frente al rack baja un poco, a la altura del nivel que va a leer.
+      y += vh * 0.06 * tR;
+    } else {
+      escala = mezcla(DRON_INICIO, DRON_LEJOS, tA);
+      y = mezcla(reposoY, lejosY, tA);
+    }
+    // Se inclina hacia adelante mientras avanza, más en el centro del tramo.
+    const cabeceo = Math.sin(Math.PI * tramo(p, [ACERCA[0], CRUZA[1]])) * 14;
+    // Un balanceo leve mientras flota, para que no parezca pegado.
+    const flota = Math.sin(p * 40) * 3 * (1 - tC);
+    /* Por el pasillo: la cámara avanza y las palabras se le vienen encima. */
+    const tPas = tramo(p, AVANZA);
+    const camaraZ = tPas * CAMARA_RECORRE;
+    /* En pantallas angostas las palabras y sus distancias se encogen con el
+       ancho (la letra va en clamp), y el dron se aparta más en proporción,
+       porque ahí ocupa casi todo el ancho. */
+    const escalaMundo = Math.min(1, vw / 1100);
+    const apartaLado = movil ? 0.3 : ESQUIVE;
+    let esquive = 0;
+    let subida = 0;
+    let ladeoEsquive = 0;
+    PALABRAS.forEach((w, i) => {
+      const z = w.z + camaraZ; // profundidad respecto a la cámara
+      const el = palabrasRef.current[i];
+      if (el) {
+        const enTramo = p > AVANZA[0] && p < AVANZA[1];
+        const op = enTramo
+          ? // Aparece ya cerca (de -3800 a -2400): más lejos se amontonaba al
+            // centro detrás de la que estaba pasando.
+            // y se va antes de llegar a la profundidad del dron, para nunca
+            // taparlo.
+            tramo(z, [-3800, -2400]) * (1 - tramo(z, [DRON_Z - 800, DRON_Z - 150]))
+          : 0;
+        const desenfoque = (1 - tramo(z, [-3800, -1800])) * 3 + tramo(z, [DRON_Z - 800, DRON_Z - 150]) * 6;
+        el.style.opacity = (op * 0.95).toFixed(3);
+        el.style.visibility = op > 0.001 ? "visible" : "hidden";
+        el.style.transform = `translate3d(calc(-50% + ${(w.x * escalaMundo).toFixed(1)}px), calc(-50% + ${(w.y * escalaMundo).toFixed(1)}px), ${Math.min(z, PERSPECTIVA * 0.7).toFixed(1)}px)`;
+        el.style.filter = `blur(${desenfoque.toFixed(2)}px)`;
+      }
+      /* Se aparta con tiempo: empieza mientras la palabra aún viene lejos, se
+         sostiene a un lado y vuelve cuando ya pasó (para entonces la palabra
+         ya se desvaneció). Antes esperaba a tenerla encima y se veía la
+         palabra tapándolo. */
+      const aparta = suave(tramo(z, [-3200, -1700]));
+      const regresa = suave(tramo(z, [DRON_Z - 100, DRON_Z + 700]));
+      // Solo dentro del pasillo: fuera de su tramo el dron no esquiva nada.
+      const enPasillo = p > AVANZA[0] && p < AVANZA[1] ? 1 : 0;
+      const empuje = aparta * (1 - regresa) * enPasillo;
+      if (Math.abs(w.x) < 120) {
+        subida += empuje * SUBE * vh;
+        return;
+      }
+      const lado = w.x > 0 ? -1 : 1;
+      esquive += lado * empuje * apartaLado * vw;
+      // Ladeo = velocidad lateral, con tope para que no se vea volcado.
+      // Se ladea al apartarse y al revés al volver; quieto mientras sostiene.
+      const vaiven = Math.sin(Math.PI * tramo(z, [-3200, -1700])) - Math.sin(Math.PI * tramo(z, [DRON_Z - 100, DRON_Z + 700]));
+      ladeoEsquive += Math.max(-8, Math.min(8, lado * vaiven * 8)) * enPasillo;
+    });
+    y -= subida;
+
+    const x = (puertaX - vw / 2) * (tC > 0 ? 1 : tA) + esquive;
+    // De lado frente al rack: se ladea hacia donde avanza, más a media marcha.
+    const ladeo = Math.sin(Math.PI * tramo(p, CUENTA)) * INCLINACION + ladeoEsquive;
+    dron.style.transform =
+      `translate3d(${x.toFixed(1)}px, ${(y - vh / 2 + flota).toFixed(1)}px, 0) ` +
+      `scale(${escala.toFixed(4)}) rotateX(${cabeceo.toFixed(2)}deg) rotate(${ladeo.toFixed(2)}deg)`;
+
+    /* Fotograma: durante el giro lo manda el scroll; en cuanto termina, el
+       bucle de las hélices (ver el efecto de abajo). El barrido frente al rack
+       lo hace la cámara, para que el dron no se vaya a la esquina como en los
+       renders. */
+    enVueloRef.current = p >= GIRO[1];
+    if (!enVueloRef.current) fotograma.set((60 + 60 * suave(tramo(p, GIRO))) / 180);
+
+    /* Textos: entran subiendo un poco y salen desvaneciéndose. */
+    for (const [clave, [a, b, c, d]] of Object.entries(TEXTOS)) {
+      const el = textosRef.current[clave];
+      if (!el) continue;
+      const dentro = a < 0 ? 1 : tramo(p, [a, b]);
+      const op = Math.min(dentro, 1 - tramo(p, [c, d]));
+      el.style.opacity = op.toFixed(3);
+      el.style.transform = `translate3d(0, ${((1 - dentro) * 18).toFixed(1)}px, 0)`;
+      el.style.visibility = op > 0.001 ? "visible" : "hidden";
+    }
+    problemasRef.current.forEach((el, i) => {
+      if (!el) return;
+      const t = tramo(p, [0.06 + i * 0.012, 0.072 + i * 0.012]);
+      el.style.opacity = t.toFixed(3);
+      el.style.transform = `translate3d(0, ${((1 - t) * 12).toFixed(1)}px, 0)`;
+    });
+
+    /* Conteo: los contadores suben con el barrido y las lecturas entran en
+       orden, la que no cuadra en ámbar. */
+    const tCuenta = tramo(p, [CUENTA[0] + 0.01, CUENTA[1] - 0.02]);
+    if (etiquetasRef.current) etiquetasRef.current.textContent = Math.round(tCuenta * TOTAL_ETIQUETAS);
+    if (ubicacionesRef.current) ubicacionesRef.current.textContent = Math.round(tCuenta * TOTAL_UBICACIONES);
+    /* Cada lectura brota junto al dron, sube un poco y se desvanece: así
+       se ve que es él quien las va tomando. */
+    lecturasRef.current.forEach((el, i) => {
+      if (!el) return;
+      const ti = (i + 0.4) / (LECTURAS.length + 0.6);
+      const t = tramo(tCuenta, [ti, ti + 0.16]);
+      const op = t <= 0 || t >= 1 ? 0 : Math.min(tramo(t, [0, 0.15]), 1 - tramo(t, [0.7, 1]));
+      el.style.opacity = op.toFixed(3);
+      el.style.transform = `translate3d(0, ${(-70 * t).toFixed(1)}px, 0)`;
+    });
+    if (alertaRef.current) {
+      const aparece = (3 + 0.4) / (LECTURAS.length + 0.6);
+      alertaRef.current.style.opacity = tramo(tCuenta, [aparece, aparece + 0.03]).toFixed(3);
+    }
+
+    /* Sistema: el rack se apaga, el dron se va y entran las tarjetas. Cada
+       diferencia pasa de detectada a resuelta en su momento. */
+    const tS = suave(tramo(p, SISTEMA));
+    if (apagadoRef.current) apagadoRef.current.style.opacity = (tS * 0.78).toFixed(3);
+    dron.style.opacity = (1 - tS).toFixed(3);
+    if (sistemaRef.current) {
+      const t = suave(tramo(p, [0.82, 0.87]));
+      sistemaRef.current.style.opacity = t.toFixed(3);
+      sistemaRef.current.style.transform = `translate3d(0, ${((1 - t) * 28).toFixed(1)}px, 0)`;
+      sistemaRef.current.style.visibility = t > 0.001 ? "visible" : "hidden";
+    }
+    diferenciasRef.current.forEach((el, i) => {
+      if (!el) return;
+      const hecha = p >= DIFERENCIAS[i].resuelta;
+      if (el.dataset.hecha !== String(hecha)) el.dataset.hecha = String(hecha);
+    });
+  }, [fotograma, tinte, movil]);
+
+  useMotionValueEvent(avance, "change", aplicar);
+  useEffect(() => {
+    aplicar(avance.get());
+    const r = () => aplicar(avance.get());
+    window.addEventListener("resize", r);
+    return () => window.removeEventListener("resize", r);
+  }, [aplicar, avance]);
+
+  const frameCount = movil ? 90 : 180;
+  const srcFor = useCallback(
+    (i) => (movil ? `/renders/drone/mobile/${pad(i * 2 + 1)}.webp` : `/renders/drone/desktop/${pad(i + 1)}.webp`),
+    [movil]
+  );
+  const cropFor = useCallback((i) => DRONE_TRACK[movil ? i * 2 : i], [movil]);
+
+  /* El render trae al dron algo a la izquierda del centro (0.446); se corrige
+     para que su centro, y no el del cuadro, quede en el eje de la pantalla. */
+  const anchoDron = movil ? "230vw" : "min(100vw, 1500px)";
+
+  return (
+    /* data-ah-oscuro: el header lo lee y pone el logo y el menú en blanco. */
+    /* Fondo oscuro en todo el main: las secciones de abajo entran con una
+       animación (ScrollEffects) y, mientras están transparentes, se veía el
+       fondo blanco de la página. */
+    <main data-ah-oscuro className="bg-[#070b12]">
+    <section ref={seccionRef} data-ah-no-reveal className="relative bg-[#070b12] text-white" style={{ height: "1400vh" }}>
+      <div className="sticky top-0 h-screen overflow-hidden">
+        {/* El mundo: fachada y, en el hueco de la puerta, el interior. */}
+        <div
+          ref={mundoRef}
+          className="absolute left-1/2 top-1/2"
+          style={{
+            width: `max(100vw, calc(100vh * ${FACHADA.w / FACHADA.h}))`,
+            aspectRatio: `${FACHADA.w} / ${FACHADA.h}`,
+            translate: "-50% -50%",
+            transformOrigin: `${PUERTA_CX * 100}% ${PUERTA_CY * 100}%`,
+            /* Sin will-change a propósito: con él Chrome dibuja la foto una vez
+               y luego la estira como textura al escalar, y al acercarse se ve
+               borrosa junto a un dron nítido. Sin él la vuelve a dibujar a
+               cada tamaño. */
+          }}
+        >
+          <img src="/fachada-almacen.webp" alt="" className="absolute inset-0 h-full w-full" draggable="false" />
+          <div
+            className="absolute overflow-hidden"
+            style={{
+              left: `${(PUERTA.x0 / FACHADA.w) * 100}%`,
+              top: `${(PUERTA.y0 / FACHADA.h) * 100}%`,
+              width: `${PUERTA_W * 100}%`,
+              height: `${PUERTA_H * 100}%`,
+            }}
+          >
+            {/* La foto del pasillo con su proporción real (3:2), centrada y
+                cubriendo el alto de la puerta. */}
+            <div ref={interiorRef} className="absolute inset-0">
+              <div
+                className="absolute left-1/2 top-0 h-full -translate-x-1/2 bg-[url('/pasillo-racks.webp')] bg-[length:100%_100%]"
+                style={{ aspectRatio: `${PASILLO.w} / ${PASILLO.h}` }}
+              >
+              </div>
+            </div>
+            {/*
+              Entonado, para que el interior pertenezca a la foto de afuera:
+              - cálido, porque en la fachada la puerta derrama luz naranja sobre
+                el piso mojado y un interior blanco no la explicaría;
+              - más oscuro que la calle no, pero tampoco más brillante;
+              - sombra bajo el dintel y en los costados, que es lo que hace que
+                se lea como un hueco en la pared y no como una estampa.
+            */}
+            <div ref={gradoRef} className="absolute inset-0">
+              <div className="absolute inset-0 bg-[#ffb36b] opacity-60 mix-blend-multiply" />
+              <div className="absolute inset-0 bg-black/30" />
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.75)_0%,transparent_28%)]" />
+              <div className="absolute inset-0 shadow-[inset_0_0_40px_14px_rgba(0,0,0,0.7)]" />
+            </div>
+          </div>
+        </div>
+
+        {/* La toma de cerca del rack, para el conteo. Más ancha que la
+            pantalla para poder correrla de lado. */}
+        <div
+          ref={cercaRef}
+          className="absolute left-1/2 top-1/2 bg-[url('/racks-cerca.webp')] bg-cover bg-center"
+          style={{ aspectRatio: "3 / 2", opacity: 0, willChange: "transform, opacity" }}
+        />
+
+        {/* Al cruzar, la escena se oscurece un poco: ya no es la calle. */}
+        <div ref={velo} className="pointer-events-none absolute inset-0 bg-[#070b12]" style={{ opacity: 0 }} />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_50%,rgba(4,7,12,0.65)_100%)]" />
+
+        {/* El dron. La perspectiva es la que deja ver el cabeceo hacia adelante. */}
+        <div className="pointer-events-none absolute inset-0 z-[11] flex items-center justify-center" style={{ perspective: "900px" }}>
+          <div ref={dronRef} style={{ willChange: "transform, filter" }}>
+            <div className="relative" style={{ width: anchoDron, aspectRatio: "16 / 9", translate: "5.4% 0" }}>
+              <ScrollSequence
+                progress={fotograma}
+                frameCount={frameCount}
+                srcFor={srcFor}
+                cropFor={cropFor}
+                startFrame={movil ? 30 : 60}
+                tint={tinte}
+                onLoadProgress={(f) => {
+                  cargaRef.current.fotogramas = f;
+                  avisarCarga();
+                }}
+                sourceWidth={movil ? 960 : 1920}
+                sourceHeight={movil ? 540 : 1080}
+                className="h-full w-full"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Piso oscurecido bajo los textos: el reflejo naranja de la puerta
+            y el pie del rack les quitaban contraste. */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[45%] bg-[linear-gradient(0deg,rgba(5,8,14,0.85)_0%,rgba(5,8,14,0.5)_45%,transparent_100%)]" />
+
+        {/* Rack apagado para la escena del sistema. */}
+        <div ref={apagadoRef} className="pointer-events-none absolute inset-0 bg-[#05080e]" style={{ opacity: 0 }} />
+
+        {/* Las palabras-obstáculo, en 3D sobre el pasillo. Van detrás del dron
+            (él lleva z-[11]) y se desvanecen antes de alcanzar su
+            profundidad, así que nunca lo tapan. */}
+        <div
+          className="pointer-events-none absolute inset-0 z-10 overflow-hidden"
+          style={{ perspective: `${PERSPECTIVA}px`, perspectiveOrigin: "50% 47%" }}
+        >
+          {PALABRAS.map((w, i) => (
+            <div
+              key={w.texto}
+              ref={(el) => (palabrasRef.current[i] = el)}
+              className="absolute left-1/2 top-1/2 whitespace-nowrap text-[clamp(52px,10vw,150px)] font-semibold leading-none tracking-tight text-white [text-shadow:0_8px_40px_rgba(0,0,0,0.55)]"
+              style={{ opacity: 0, visibility: "hidden", willChange: "transform, opacity, filter" }}
+            >
+              {w.texto}
+            </div>
+          ))}
+        </div>
+
+        {/*
+          Cada escena tiene su propia composición, para que no sean todas el
+          mismo título abajo a la izquierda: el gancho y el problema abajo a la
+          izquierda sobre el piso; "Conoce…" a la derecha, del lado contrario a
+          donde vuela el dron; "Tu turno sigue" centrado, como remate del pasillo.
+        */}
+        <div ref={(el) => (textosRef.current.gancho = el)} className="ah-container pointer-events-none absolute inset-x-0 bottom-14 z-10">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">Air Hive · Inventario con drones autónomos</p>
+          {/* Una frase por renglón, sin partir: "10,000" solo en su línea
+              pierde la comparación con "9,214". */}
+          <h1 className="mt-4 text-[1.7rem] font-semibold leading-[1.1] sm:text-6xl">
+            <span className="block sm:whitespace-nowrap">Tu sistema dice 10,000.</span>
+            <span className="block text-white/50 sm:whitespace-nowrap">Tu almacén tiene 9,214.</span>
+          </h1>
+          <p className="mt-4 max-w-md text-base text-white/70">Y nadie sabe dónde están las otras 786.</p>
+        </div>
+
+        <div ref={(el) => (textosRef.current.problema = el)} className="ah-container pointer-events-none absolute inset-x-0 bottom-14 z-10" style={{ opacity: 0, visibility: "hidden" }}>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">Contar a mano cuesta</p>
+          <ul className="mt-5 grid max-w-5xl gap-5 sm:grid-cols-3 sm:gap-10">
+            {PROBLEMAS.map((item, i) => (
+              <li key={item.dato} ref={(el) => (problemasRef.current[i] = el)} className="border-l-2 border-[#f5b549]/70 pl-4" style={{ opacity: 0 }}>
+                <p className="text-2xl font-semibold leading-tight sm:whitespace-nowrap sm:text-3xl">{item.dato}</p>
+                <p className="mt-1 text-sm leading-snug text-white/65">{item.texto}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div ref={(el) => (textosRef.current.conoce = el)} className="ah-container pointer-events-none absolute inset-x-0 bottom-14 z-10 flex flex-col items-end text-right" style={{ opacity: 0, visibility: "hidden" }}>
+          <h2 className="max-w-xl text-3xl font-semibold leading-tight sm:text-5xl">Conoce al que cuenta por ti.</h2>
+          <p className="mt-3 max-w-md text-base text-white/70">Vuela solo dentro del almacén y lee cada ubicación.</p>
+        </div>
+
+        <div ref={(el) => (textosRef.current.sinParar = el)} className="ah-container pointer-events-none absolute inset-x-0 bottom-14 z-10 flex flex-col items-center text-center" style={{ opacity: 0, visibility: "hidden" }}>
+          <h2 className="text-4xl font-semibold leading-tight sm:text-6xl">Tu turno sigue. Él también.</h2>
+          <p className="mt-3 max-w-md text-base text-white/70">Nada se detiene por contar: ni pasillos, ni personal, ni pedidos.</p>
+        </div>
+
+        {/* Conteo: el titular abajo, los contadores arriba a la derecha y cada
+            lectura brotando junto al dron. */}
+        <div ref={(el) => (textosRef.current.cuenta = el)} className="pointer-events-none absolute inset-0 z-10" style={{ opacity: 0, visibility: "hidden" }}>
+          <div className="ah-container absolute inset-x-0 bottom-14">
+            <h2 className="max-w-xl text-3xl font-semibold leading-tight sm:text-5xl">Rack por rack. Etiqueta por etiqueta.</h2>
+          </div>
+          <div className="absolute inset-x-4 top-20 rounded-2xl bg-[#070b12]/85 p-4 ring-1 ring-white/10 md:left-auto md:right-8 md:top-24 md:w-[15rem]">
+            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-white/50">Rack R-14 · Pasillo 3</p>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div>
+                <p ref={etiquetasRef} className="font-mono text-3xl font-semibold tabular-nums">0</p>
+                <p className="text-[0.7rem] text-white/55">etiquetas leídas</p>
+              </div>
+              <div>
+                <p ref={ubicacionesRef} className="font-mono text-3xl font-semibold tabular-nums">0</p>
+                <p className="text-[0.7rem] text-white/55">ubicaciones</p>
+              </div>
+            </div>
+            <p ref={alertaRef} className="mt-3 border-t border-white/10 pt-3 text-[0.75rem] font-medium text-[#f5b549]" style={{ opacity: 0 }}>
+              ⚠ 1 diferencia contra el sistema
+            </p>
+          </div>
+          {/* Las lecturas salen arriba a la derecha del dron, que en esta
+              escena está fijo al centro: la cámara es la que se mueve. */}
+          {/* En celular salen centradas bajo el panel de contadores: a la
+              derecha del dron se encimaban con el panel y se salían de la
+              pantalla. */}
+          <div className="absolute left-1/2 top-[37%] md:top-[34%] md:ml-[9vw]">
+            {LECTURAS.map((l, i) => (
+              <div
+                key={l.ubicacion}
+                ref={(el) => (lecturasRef.current[i] = el)}
+                className={`absolute left-0 top-0 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full md:translate-x-0 px-3 py-1.5 text-[0.78rem] font-medium ring-1 ${
+                  l.bien ? "bg-[#0d1524]/85 text-white ring-white/15" : "bg-[#3a2a0c]/90 text-[#f5c86b] ring-[#f5b549]/40"
+                }`}
+                style={{ opacity: 0 }}
+              >
+                <span className="font-mono">{l.ubicacion}</span>
+                <span className="text-white/60">·</span>
+                <span>{l.detalle}</span>
+                <span>{l.bien ? "✓" : "⚠"}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Del vuelo al sistema. */}
+        <div ref={sistemaRef} className="pointer-events-none absolute inset-0 z-10 overflow-y-auto" style={{ opacity: 0, visibility: "hidden" }}>
+          <div className="ah-container flex min-h-full flex-col justify-center gap-5 py-16 sm:gap-8 sm:py-24">
+            <div ref={(el) => (textosRef.current.sistema = el)}>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">Del vuelo al sistema</p>
+              <h2 className="mt-3 max-w-2xl text-[1.7rem] font-semibold leading-tight sm:text-5xl">
+                Encontró 3 diferencias.
+                <br />
+                <span className="text-[#7fa2ff]">Ya las resolvió.</span>
+              </h2>
+              {/* En pantallas bajas se omite: sin él la escena cabe en cualquier
+                  teléfono, y el titular y la tarjeta ya cuentan la idea. */}
+              <p className="mt-3 max-w-lg text-sm text-white/70 sm:text-base [@media(max-height:760px)]:hidden">
+                El WMS de Air Hive compara cada lectura contra el sistema, y sus agentes de IA actúan sin esperar a nadie.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-start gap-6">
+              <div className="hidden md:block">
+                <TarjetaConteo porRevisar={DIFERENCIAS.length} />
+              </div>
+              <article className="w-full max-w-[26rem] rounded-2xl bg-[#0d1524] p-5 ring-1 ring-white/10">
+                <div className="flex items-center gap-3">
+                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-[linear-gradient(150deg,#3f6ddb,#2b50ac)] text-sm font-semibold">IA</span>
+                  <div>
+                    <p className="text-sm font-semibold">Agente de inventario</p>
+                    <p className="text-[0.7rem] text-white/50">Revisando el vuelo de las 16:45</p>
+                  </div>
+                </div>
+                <ul className="mt-4 space-y-3">
+                  {DIFERENCIAS.map((d, i) => (
+                    <li key={d.ubicacion} ref={(el) => (diferenciasRef.current[i] = el)} data-hecha="false" className="group rounded-xl bg-white/[0.04] p-3 ring-1 ring-white/5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-mono text-[0.78rem] text-white/85">{d.ubicacion}</span>
+                        <span className="rounded-md bg-[#f5b549]/15 px-2 py-0.5 text-[0.65rem] font-semibold text-[#f5b549] group-data-[hecha=true]:hidden">Detectada</span>
+                        <span className="hidden rounded-md bg-[#54b385]/15 px-2 py-0.5 text-[0.65rem] font-semibold text-[#6fd3a2] group-data-[hecha=true]:inline">Resuelta</span>
+                      </div>
+                      <p className="mt-1 text-[0.78rem] text-white/60">{d.problema}</p>
+                      <p className="mt-1 hidden text-[0.78rem] text-[#6fd3a2] group-data-[hecha=true]:block">→ {d.accion}</p>
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <Resultados />
+    <Llamado />
+    </main>
+  );
+};
+
+/* ---------- Después del recorrido: la prueba y el siguiente paso ---------- */
+
+/**
+ * Resultados. Son rangos de la industria, no de un cliente: se dice así en la
+ * nota, y el número propio se ofrece en el diagnóstico.
+ */
+const RESULTADOS = [
+  { antes: "Días", despues: "Horas", que: "Tiempo para contar el almacén" },
+  { antes: "60–80%", despues: "99%+", que: "Precisión del inventario" },
+  { antes: "Paro", despues: "Sin paro", que: "La operación sigue mientras se cuenta" },
+];
+
+const Resultados = () => (
+  <section className="bg-[#070b12] py-24 text-white sm:py-32">
+    <div className="ah-container">
+      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">El resultado</p>
+      <h2 className="mt-3 max-w-2xl text-3xl font-semibold leading-tight sm:text-5xl">De días a horas. De adivinar a saber.</h2>
+      <div className="mt-14 grid gap-px overflow-hidden rounded-2xl bg-white/10 sm:grid-cols-3">
+        {RESULTADOS.map((r) => (
+          <div key={r.que} className="bg-[#0a101b] p-8">
+            <p className="text-sm text-white/45 line-through decoration-white/30">{r.antes}</p>
+            <p className="mt-1 text-5xl font-semibold tracking-tight text-[#7fa2ff]">{r.despues}</p>
+            <p className="mt-4 text-sm text-white/70">{r.que}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+const Llamado = () => (
+  <section className="relative overflow-hidden bg-[#070b12] py-28 text-white sm:py-40">
+    {/* El pasillo de nuevo, muy apagado: cierra donde empezó la historia. */}
+    <div className="absolute inset-0 bg-[url('/pasillo-racks.webp')] bg-cover bg-center opacity-20" />
+    <div className="absolute inset-0 bg-[linear-gradient(180deg,#070b12_0%,rgba(7,11,18,0.6)_50%,#070b12_100%)]" />
+    <div className="ah-container relative text-center">
+      <h2 className="mx-auto max-w-3xl text-4xl font-semibold leading-tight sm:text-6xl">¿Cuánto inventario estás perdiendo de vista?</h2>
+      <p className="mx-auto mt-5 max-w-xl text-base text-white/70">
+        En una llamada corta revisamos cómo cuentan hoy y te decimos qué automatizar primero.
+      </p>
+      <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+        <Link
+          to="/diagnostico-gratis"
+          className="inline-flex items-center gap-2 rounded-full bg-[#2A47F6] px-7 py-3.5 text-sm font-semibold shadow-[0_10px_30px_rgba(42,71,246,0.45)] transition hover:bg-[#3d5aff]"
+        >
+          Agenda tu diagnóstico gratis <ArrowRight size={16} />
+        </Link>
+        <a
+          href="https://wa.me/528116070330"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-full px-6 py-3.5 text-sm font-semibold text-white/80 ring-1 ring-white/20 transition hover:bg-white/5"
+        >
+          Escríbenos por WhatsApp
+        </a>
+      </div>
+    </div>
+  </section>
+);
+
+export default EntradaAlmacen;
