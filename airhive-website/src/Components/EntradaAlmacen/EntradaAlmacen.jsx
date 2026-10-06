@@ -207,17 +207,54 @@ const ANCHO_CERCA = 1.45;
 const INCLINACION = 5; // grados que se ladea el dron hacia donde avanza
 
 /**
- * Hélices en marcha.
+ * El dron flotando frente a la fachada.
  *
- * Los renders ya traen las hélices animadas: del fotograma 121 al 170 el dron
- * no cambia de pose y lo único que se mueve son las aspas. Así que mientras
- * vuela se reproducen esos fotogramas en bucle, por tiempo y no por scroll:
- * las hélices giran aunque nadie esté haciendo scroll, como en un dron que
- * flota. El salto del 170 al 121 no se nota con las aspas a esta velocidad.
+ * No cambia de pose: se queda en el fotograma donde lo deja el giro, y lo
+ * único que se mueve es el balanceo de abajo. Las hélices están paradas a
+ * propósito; conviene leer esto antes de "arreglarlo", porque ya se intentó.
+ *
+ * Los renders del Atlas 2.0 traen las hélices animadas, y la idea era
+ * reproducir en bucle un tramo donde el dron no cambia de postura para que
+ * giraran solas. Con estos renders no sale:
+ *
+ * - El tramo útil son seis fotogramas (115-120). No se puede alargar: tiene
+ *   que terminar donde lo deja el giro o da un tirón al entrar, y solo once
+ *   fotogramas comparten esa pose. Medido, el dron no la recupera en ningún
+ *   otro punto: del 125 en adelante su silueta difiere entre un 22% y un 44%,
+ *   porque ya giró para entrar al almacén.
+ * - Seis fotogramas son media vuelta de pala, y las aspas salen del render
+ *   como siluetas negras, finas y muy contrastadas. Alternarlas no se lee como
+ *   giro: deprisa parpadea, despacio se leen los saltos.
+ * - Y lo que más se notaba no era ni siquiera el movimiento de las palas, que
+ *   es mínimo entre fotogramas, sino que las aspas tapan más área en unas
+ *   fases que en otras: el dron entero pulsaba un 9.8% de densidad en cada
+ *   vuelta del bucle. No se movía, parpadeaba.
+ *
+ * Se probó a difuminarlas promediando fotogramas, que es el motion blur que
+ * les falta: con ventana de cinco el pulso baja al 1.97% y deja de temblar,
+ * pero entonces las palas quedan como un disco y el giro casi no se ve. Como
+ * el giro era lo único que se ganaba, no compensa el tratamiento.
+ *
+ * Así que se quedan quietas y la vida la pone el balanceo, que es continuo y
+ * se ajusta a voluntad. Si algún día se reexportan los renders con motion blur
+ * en las palas, el bucle vuelve a tener sentido tal cual: fotogramas 115 a 120,
+ * desplazados para que el chasis coincida con el del 121 (el render trae 8.3 px
+ * de balanceo propio ahí dentro, y repetido varias veces por segundo es otro
+ * tembleque).
  */
-const HELICES_DESDE = 121;
-const HELICES_HASTA = 170;
-const HELICES_FPS = 30;
+
+/**
+ * El balanceo de flotar.
+ *
+ * Va por tiempo, no por scroll. El que había antes era Math.sin(p * 40): al
+ * dejar de hacer scroll se congelaba y el dron se quedaba clavado en el aire.
+ *
+ * Conviene quedarse corto: un dron parado se sostiene casi quieto, y en cuanto
+ * el recorrido se nota deja de leerse como que flota y empieza a leerse como
+ * que tiembla la imagen.
+ */
+const BALANCEO_PX = 2;        // cuánto sube y baja, a cada lado
+const BALANCEO_SEG = 4.5;     // lo que tarda en subir y bajar una vez
 
 /** Cuánto se acerca la cámara al final del acercamiento, antes de cruzar. */
 const ZOOM_ACERCA = 2.3;
@@ -260,6 +297,8 @@ const EntradaAlmacen = () => {
   const mundoRef = useRef(null);
   const interiorRef = useRef(null);
   const dronRef = useRef(null);
+  const balanceoRef = useRef(null); // envoltorio que flota, aparte del transform del scroll
+  const asientoRef = useRef(0);    // 1 flotando frente a la fachada, 0 una vez cruzada la puerta
   const velo = useRef(null);
   const cercaRef = useRef(null); // la toma de cerca de los racks
   const textosRef = useRef({}); // cada texto de la historia, por su clave
@@ -351,22 +390,25 @@ const EntradaAlmacen = () => {
   }, [avisarCarga]);
 
   /*
-   * El bucle de las hélices. Lee en cada cuadro dónde está el scroll de verdad
-   * (no un dato guardado por aplicar), para corregirse solo: si alguna vez se
-   * perdía una actualización —p. ej. un brinco de scroll en Safari—, el dron
-   * se quedaba con el fotograma de espaldas estando frente a la fachada.
+   * El cuadro a cuadro del dron: qué fotograma le toca y cuánto flota.
    */
   const leerRecorridoRef = useRef(() => 0);
   useEffect(() => {
     let raf = 0;
-    const vuelta = HELICES_HASTA - HELICES_DESDE + 1;
     const latido = (ahora) => {
       const p = leerRecorridoRef.current();
-      if (p >= GIRO[1]) {
-        const k = Math.floor((ahora / 1000) * HELICES_FPS) % vuelta;
-        fotograma.set((HELICES_DESDE + k) / 180);
-      } else {
-        fotograma.set((60 + 60 * suave(tramo(p, GIRO))) / 180);
+      /* Mientras gira lo manda el scroll; al terminar se sostiene ahí. Se lee
+         el scroll de verdad en cada cuadro, no un dato guardado, para que si
+         alguna vez se pierde una actualización —un brinco de scroll en
+         Safari— el dron no se quede con el fotograma de espaldas estando
+         frente a la fachada. */
+      fotograma.set(p >= GIRO[1] ? 120 / 180 : (60 + 60 * suave(tramo(p, GIRO))) / 180);
+      /* El balanceo, a su ritmo. Se apaga al cruzar la puerta igual que hacía
+         el anterior: ahí dentro la cámara ya va pegada al dron y un vaivén se
+         leería como que tiembla la imagen, no como que flota. */
+      if (balanceoRef.current) {
+        const y = Math.sin((ahora / 1000) * ((2 * Math.PI) / BALANCEO_SEG)) * BALANCEO_PX * asientoRef.current;
+        balanceoRef.current.style.transform = `translate3d(0, ${y.toFixed(2)}px, 0)`;
       }
       raf = requestAnimationFrame(latido);
     };
@@ -465,8 +507,9 @@ const EntradaAlmacen = () => {
     }
     // Se inclina hacia adelante mientras avanza, más en el centro del tramo.
     const cabeceo = Math.sin(Math.PI * tramo(p, [ACERCA[0], CRUZA[1]])) * 14;
-    // Un balanceo leve mientras flota, para que no parezca pegado.
-    const flota = Math.sin(p * 40) * 3 * (1 - tC);
+    // El balanceo ya no va aquí: lo lleva el bucle por tiempo (ver BALANCEO_PX).
+    // Esto solo le dice cuánto aplicarse, que es nada en cuanto se cruza.
+    asientoRef.current = 1 - tC;
     /* Por el pasillo: la cámara avanza y las palabras se le vienen encima. */
     const tPas = tramo(p, AVANZA);
     const camaraZ = tPas * CAMARA_RECORRE;
@@ -520,7 +563,7 @@ const EntradaAlmacen = () => {
     // De lado frente al rack: se ladea hacia donde avanza, más a media marcha.
     const ladeo = Math.sin(Math.PI * tramo(p, CUENTA)) * INCLINACION + ladeoEsquive;
     dron.style.transform =
-      `translate3d(${x.toFixed(1)}px, ${(y - vh / 2 + flota).toFixed(1)}px, 0) ` +
+      `translate3d(${x.toFixed(1)}px, ${(y - vh / 2).toFixed(1)}px, 0) ` +
       `scale(${escala.toFixed(4)}) rotateX(${cabeceo.toFixed(2)}deg) rotate(${ladeo.toFixed(2)}deg)`;
 
     /* Fotograma: durante el giro lo manda el scroll; en cuanto termina, el
@@ -702,7 +745,7 @@ const EntradaAlmacen = () => {
         {/* El dron. La perspectiva es la que deja ver el cabeceo hacia adelante. */}
         <div className="pointer-events-none absolute inset-0 z-[11] flex items-center justify-center" style={{ perspective: "900px" }}>
           <div ref={dronRef} style={{ willChange: "transform, opacity" }}>
-            <div className="relative" style={{ width: anchoDron, aspectRatio: "16 / 9", translate: "5.4% 0" }}>
+            <div ref={balanceoRef} className="relative" style={{ width: anchoDron, aspectRatio: "16 / 9", translate: "5.4% 0" }}>
               <ScrollSequence
                 progress={fotograma}
                 frameCount={frameCount}
