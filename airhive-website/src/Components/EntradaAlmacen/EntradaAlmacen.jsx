@@ -5,6 +5,7 @@ import DRONE_TRACK from "../DroneShowcase/droneTrack";
 import { TarjetaConteo } from "../DroneShowcase/WmsCards";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import useScrollGuiado from "./useScrollGuiado";
 import { ArrowRight } from "lucide-react";
 
 /**
@@ -46,24 +47,24 @@ const CUENTA = [0.65, 0.8]; // barrido lateral frente al rack
 const SISTEMA = [0.8, 0.85]; // se apaga el rack y entra el WMS
 
 /**
- * Paradas del scroll en pantallas táctiles, en fracción del recorrido.
+ * Escenas del scroll guiado en pantallas táctiles (ver useScrollGuiado), como
+ * tramos [desde, hasta] en fracción del recorrido.
  *
- * En celular un deslizón fuerte avanza varias pantallas y se brincaba
- * escenas enteras. En cada parada el scroll se detiene (scroll-snap con
- * scroll-snap-stop: always), así que un deslizón, por fuerte que sea, solo
- * llega a la siguiente; entre parada y parada la animación corre sola. Cada
- * valor es el momento en que esa escena se ve completa. En computadora no se
- * usan: con la rueda del mouse cada muesca brincaría una escena.
+ * Dentro de cada tramo el scroll es libre: es donde se lee. Lo que queda
+ * entre dos tramos es transición, y si se suelta el dedo ahí se termina sola
+ * hasta la escena siguiente. Un deslizón fuerte que cruza el centro de una
+ * escena se detiene en ella. Antes eran paradas rígidas (scroll-snap) y el
+ * scroll se sentía frenado; así se comporta como en hextronics.com.
  */
-const PARADAS = [
-  0, // gancho
-  0.1, // el problema, con sus tres datos ya fuera
-  0.175, // "Conoce al que cuenta por ti"
-  0.33, // el dron llegando a la puerta
-  0.51, // en el pasillo, esquivando
-  0.605, // "Tu turno sigue. Él también."
-  0.75, // conteo frente al rack
-  0.985, // las 3 diferencias ya resueltas
+const ESCENAS = [
+  [0, 0.03], // gancho
+  [0.07, 0.105], // el problema, con sus tres datos ya fuera
+  [0.14, 0.21], // "Conoce al que cuenta por ti"
+  [0.3, 0.34], // el dron llegando a la puerta
+  [0.44, 0.58], // el pasillo, esquivando palabras
+  [0.595, 0.615], // "Tu turno sigue. Él también."
+  [0.68, 0.78], // conteo frente al rack
+  [0.95, 1], // las diferencias resueltas
 ];
 
 /** La foto del pasillo (1536x1024): se ve por la puerta y luego se recorre. */
@@ -213,13 +214,9 @@ const EntradaAlmacen = () => {
   const [movil, setMovil] = useState(false);
   const [tactil, setTactil] = useState(false);
 
-  /* Las paradas viven en el html (es quien hace scroll), y solo en táctil.
-     Se quitan al salir del home para no afectar a las demás páginas. */
-  useEffect(() => {
-    if (!tactil) return undefined;
-    document.documentElement.classList.add("ah-paradas");
-    return () => document.documentElement.classList.remove("ah-paradas");
-  }, [tactil]);
+  // Scroll guiado solo en táctil: en computadora la rueda ya avanza poco a
+  // poco y lo guiado se sentiría como quitarle el control a quien lee.
+  useScrollGuiado(seccionRef, ESCENAS, tactil);
 
   useEffect(() => {
     const q = window.matchMedia("(max-width: 767px)");
@@ -537,21 +534,6 @@ const EntradaAlmacen = () => {
       className="relative bg-[#070b12] text-white"
       style={{ height: movil ? "750svh" : "1300vh" }}
     >
-      {/* Las paradas del scroll: marcas invisibles en la altura del recorrido
-          que corresponde a cada escena (ver PARADAS). */}
-      {PARADAS.map((p) => (
-        <span
-          key={p}
-          aria-hidden="true"
-          className="ah-parada pointer-events-none absolute left-0 h-px w-px"
-          style={{ top: `calc((100% - 100svh) * ${p})` }}
-        />
-      ))}
-      <style>{`
-        html.ah-paradas { scroll-snap-type: y mandatory; }
-        html.ah-paradas .ah-parada { scroll-snap-align: start; scroll-snap-stop: always; }
-        html.ah-paradas .ah-parada-final { scroll-snap-align: end; }
-      `}</style>
       <div className="sticky top-0 h-[100svh] overflow-hidden">
         {/* El mundo: fachada y, en el hueco de la puerta, el interior. */}
         <div
@@ -815,9 +797,9 @@ const EntradaAlmacen = () => {
 const Resultados = () => {
   const { t } = useTranslation();
   return (
-    /* data-ah-no-reveal: la animación de entrada movía la sección y, con las
-       paradas activas, el navegador recalculaba y se iba solo a otra parada. */
-    <section data-ah-no-reveal className="ah-parada bg-[#070b12] py-24 text-white sm:py-32">
+    /* data-ah-no-reveal: sin la animación de entrada, que la dejaba
+       transparente un instante y se veía el fondo blanco de la página. */
+    <section data-ah-no-reveal className="bg-[#070b12] py-24 text-white sm:py-32">
       <div className="ah-container">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">{t("inicio.resultado_kicker")}</p>
         <h2 className="mt-3 max-w-2xl text-3xl font-semibold leading-tight sm:text-5xl">{t("inicio.resultado_titulo")}</h2>
@@ -838,11 +820,9 @@ const Resultados = () => {
 const Llamado = () => {
   const { t } = useTranslation();
   return (
-  // Última parada: alineada al final, porque su inicio queda más abajo de
-  // donde la página puede llegar.
   // Mide al menos una pantalla y centra su contenido: más bajo que la
   // pantalla, al llegar al fondo se asomaba arriba el final de los resultados.
-  <section data-ah-no-reveal className="ah-parada ah-parada-final relative flex min-h-[100svh] items-center overflow-hidden bg-[#070b12] py-28 text-white sm:py-40">
+  <section data-ah-no-reveal className="relative flex min-h-[100svh] items-center overflow-hidden bg-[#070b12] py-28 text-white sm:py-40">
     {/* El pasillo de nuevo, muy apagado: cierra donde empezó la historia. */}
     <div className="absolute inset-0 bg-[url('/pasillo-racks.webp')] bg-cover bg-center opacity-20" />
     <div className="absolute inset-0 bg-[linear-gradient(180deg,#070b12_0%,rgba(7,11,18,0.6)_50%,#070b12_100%)]" />
