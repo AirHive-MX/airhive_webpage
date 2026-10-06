@@ -49,7 +49,8 @@ const Dato = ({ valor, etiqueta, ambar }) => (
   </div>
 );
 
-export const TarjetaConteo = () => (
+/** `porRevisar` deja que quien la usa cuadre la cifra con su propia historia. */
+export const TarjetaConteo = ({ porRevisar = 1 }) => (
   <article className={CARD}>
     <div className="flex items-start gap-3 px-5 pt-5">
       <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[linear-gradient(150deg,#3f6ddb,#2b50ac)]">
@@ -89,7 +90,7 @@ export const TarjetaConteo = () => (
     <div className="mt-4 grid grid-cols-2 gap-y-3 border-t border-[#101828]/8 px-5 pb-5 pt-4">
       <Dato valor="117" etiqueta="Etiquetas" />
       <Dato valor="41" etiqueta="Bins leídos" />
-      <Dato valor="1" etiqueta="Por revisar" ambar />
+      <Dato valor={String(porRevisar)} etiqueta="Por revisar" ambar />
       <Dato valor="0" etiqueta="Sin ubicar" />
     </div>
   </article>

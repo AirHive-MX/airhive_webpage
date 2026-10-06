@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import about1 from "/foto3entrevista.jpg";
-import fotoEquipo from "/foto equipo.JPG";
+import about1 from "/foto-entrevista.webp";
+import fotoEquipo from "/foto-equipo.webp";
 
 /*
  * Página oscura, con la misma paleta y la misma tipografía que el recorrido
