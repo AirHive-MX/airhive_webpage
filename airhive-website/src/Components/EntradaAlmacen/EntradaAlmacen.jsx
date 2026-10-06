@@ -189,10 +189,14 @@ const EntradaAlmacen = () => {
   const palabrasRef = useRef([]); // las palabras-obstáculo del pasillo
   const gradoRef = useRef(null); // entonado del interior visto desde la calle
   const [movil, setMovil] = useState(false);
+  const [tactil, setTactil] = useState(false);
 
   useEffect(() => {
     const q = window.matchMedia("(max-width: 767px)");
-    const sync = () => setMovil(q.matches);
+    const sync = () => {
+      setMovil(q.matches);
+      setTactil(window.matchMedia("(pointer: coarse)").matches);
+    };
     sync();
     q.addEventListener("change", sync);
     return () => q.removeEventListener("change", sync);
@@ -207,7 +211,7 @@ const EntradaAlmacen = () => {
   /* El fotograma del dron, como fracción de los 180 que se usan. */
   const fotograma = useMotionValue(60 / 180);
   /* Cuánto se tiñe el dron con la luz de la escena (0..1). */
-  const tinte = useMotionValue(0.85);
+  const tinte = useMotionValue(1);
   const enVueloRef = useRef(false);
 
   /*
@@ -299,16 +303,14 @@ const EntradaAlmacen = () => {
       gradoRef.current.style.opacity = (1 - suave(tramo(p, [CRUZA[0], CRUZA[0] + 0.06]))).toFixed(3);
     }
 
-    /* El render trae luz de estudio, neutra y más brillante que la escena.
-       Afuera se baja y se desatura para que pertenezca a la noche; adentro,
-       con luz de nave, vuelve casi a su tono. */
-    const brillo = mezcla(0.82, 0.86, tC);
-    const sat = mezcla(0.85, 1, tC);
-    dron.style.filter = `brightness(${brillo.toFixed(3)}) saturate(${sat.toFixed(3)})`;
-    /* Y encima, el color de la luz: azul del cielo arriba y naranja de la
-       puerta abajo, pintado solo sobre el dron (ver tint en ScrollSequence).
-       Adentro queda un resto, que es la luz de la nave y el naranja de vigas. */
-    tinte.set(mezcla(0.85, 0.3, tC));
+    /* El render trae luz de estudio, neutra y más brillante que la escena. El
+       tinte que se le multiplica en el lienzo (ver tint en ScrollSequence) lo
+       oscurece y le da el color de la luz: azul del cielo arriba, naranja de
+       la puerta abajo. Adentro queda un resto, la luz de la nave.
+       (Antes además llevaba un filter de brillo en CSS; en Safari reprocesaba
+       toda la imagen del dron en cada cuadro y trababa el scroll. Los colores
+       del tinte ya traen ese oscurecido.) */
+    tinte.set(mezcla(1, 0.45, tC));
 
     /* Toma de cerca: entra con un acercamiento corto (de 1.12 a 1), como un
        corte que sigue el mismo movimiento, y luego se corre de lado. */
@@ -373,11 +375,9 @@ const EntradaAlmacen = () => {
             // taparlo.
             tramo(z, [-3800, -2400]) * (1 - tramo(z, [DRON_Z - 800, DRON_Z - 150]))
           : 0;
-        const desenfoque = (1 - tramo(z, [-3800, -1800])) * 3 + tramo(z, [DRON_Z - 800, DRON_Z - 150]) * 6;
         el.style.opacity = (op * 0.95).toFixed(3);
         el.style.visibility = op > 0.001 ? "visible" : "hidden";
         el.style.transform = `translate3d(calc(-50% + ${(w.x * escalaMundo).toFixed(1)}px), calc(-50% + ${(w.y * escalaMundo).toFixed(1)}px), ${Math.min(z, PERSPECTIVA * 0.7).toFixed(1)}px)`;
-        el.style.filter = `blur(${desenfoque.toFixed(2)}px)`;
       }
       /* Se aparta con tiempo: empieza mientras la palabra aún viene lejos, se
          sostiene a un lado y vuelve cuando ya pasó (para entonces la palabra
@@ -495,8 +495,19 @@ const EntradaAlmacen = () => {
        animación (ScrollEffects) y, mientras están transparentes, se veía el
        fondo blanco de la página. */
     <main data-ah-oscuro className="bg-[#070b12]">
-    <section ref={seccionRef} data-ah-no-reveal className="relative bg-[#070b12] text-white" style={{ height: "1400vh" }}>
-      <div className="sticky top-0 h-screen overflow-hidden">
+    {/*
+      Alto del recorrido: cuánto scroll cuesta la historia entera. En celular
+      la mitad, porque ahí se desliza rápido y con 14 pantallas se sentía
+      eterno. svh y no vh: en Safari de iPhone vh cambia cuando la barra del
+      navegador aparece o se esconde, y la escena saltaba.
+    */}
+    <section
+      ref={seccionRef}
+      data-ah-no-reveal
+      className="relative bg-[#070b12] text-white"
+      style={{ height: movil ? "750svh" : "1300vh" }}
+    >
+      <div className="sticky top-0 h-[100svh] overflow-hidden">
         {/* El mundo: fachada y, en el hueco de la puerta, el interior. */}
         <div
           ref={mundoRef}
@@ -506,10 +517,13 @@ const EntradaAlmacen = () => {
             aspectRatio: `${FACHADA.w} / ${FACHADA.h}`,
             translate: "-50% -50%",
             transformOrigin: `${PUERTA_CX * 100}% ${PUERTA_CY * 100}%`,
-            /* Sin will-change a propósito: con él Chrome dibuja la foto una vez
-               y luego la estira como textura al escalar, y al acercarse se ve
-               borrosa junto a un dron nítido. Sin él la vuelve a dibujar a
-               cada tamaño. */
+            /* will-change solo en pantallas táctiles. Con él la foto se dibuja
+               una vez y se estira como textura al escalar: fluido, pero de
+               cerca algo borroso. Sin él se redibuja a cada tamaño: nítido,
+               pero en un iPhone (pantalla de alta densidad, Safari) trababa
+               el scroll. En pantalla chica la diferencia de nitidez casi no se
+               ve; en computadora se queda nítido. */
+            willChange: tactil ? "transform" : undefined,
           }}
         >
           <img src="/fachada-almacen.webp" alt="" className="absolute inset-0 h-full w-full" draggable="false" />
@@ -524,7 +538,7 @@ const EntradaAlmacen = () => {
           >
             {/* La foto del pasillo con su proporción real (3:2), centrada y
                 cubriendo el alto de la puerta. */}
-            <div ref={interiorRef} className="absolute inset-0">
+            <div ref={interiorRef} className="absolute inset-0" style={{ willChange: tactil ? "transform" : undefined }}>
               <div
                 className="absolute left-1/2 top-0 h-full -translate-x-1/2 bg-[url('/pasillo-racks.webp')] bg-[length:100%_100%]"
                 style={{ aspectRatio: `${PASILLO.w} / ${PASILLO.h}` }}
@@ -562,7 +576,7 @@ const EntradaAlmacen = () => {
 
         {/* El dron. La perspectiva es la que deja ver el cabeceo hacia adelante. */}
         <div className="pointer-events-none absolute inset-0 z-[11] flex items-center justify-center" style={{ perspective: "900px" }}>
-          <div ref={dronRef} style={{ willChange: "transform, filter" }}>
+          <div ref={dronRef} style={{ willChange: "transform, opacity" }}>
             <div className="relative" style={{ width: anchoDron, aspectRatio: "16 / 9", translate: "5.4% 0" }}>
               <ScrollSequence
                 progress={fotograma}
@@ -571,6 +585,8 @@ const EntradaAlmacen = () => {
                 cropFor={cropFor}
                 startFrame={movil ? 30 : 60}
                 tint={tinte}
+                tintTop="rgb(98, 123, 176)"
+                tintBottom="rgb(209, 139, 90)"
                 onLoadProgress={(f) => {
                   cargaRef.current.fotogramas = f;
                   avisarCarga();
@@ -602,7 +618,7 @@ const EntradaAlmacen = () => {
               key={w.texto}
               ref={(el) => (palabrasRef.current[i] = el)}
               className="absolute left-1/2 top-1/2 whitespace-nowrap text-[clamp(52px,10vw,150px)] font-semibold leading-none tracking-tight text-white [text-shadow:0_8px_40px_rgba(0,0,0,0.55)]"
-              style={{ opacity: 0, visibility: "hidden", willChange: "transform, opacity, filter" }}
+              style={{ opacity: 0, visibility: "hidden", willChange: "transform, opacity" }}
             >
               {w.texto}
             </div>
