@@ -1,4 +1,5 @@
 import { Camera, Clock, MapPin, Plane, Tag } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 /**
  * Los dos paneles del WMS, redibujados con HTML y CSS.
@@ -16,8 +17,10 @@ import { Camera, Clock, MapPin, Plane, Tag } from "lucide-react";
  * cuadra con el sistema. Los datos son los del vuelo real, y las etiquetas que
  * lista la segunda tarjeta son las mismas que se ven en el rack del fondo.
  *
- * El texto va en español y sin pasar por i18n a propósito: no es copy de la
- * web, es la interfaz del producto. Una captura tampoco se traduciría.
+ * La tarjeta de conteo pasa por i18n (wms_tarjeta): la usa el home, que se ve
+ * en inglés con el navegador en inglés, y una tarjeta en español en medio
+ * desentonaba. La de lecturas sigue en español: solo la usa el recorrido
+ * anterior, que no se traduce.
  */
 
 const CARD =
@@ -50,7 +53,9 @@ const Dato = ({ valor, etiqueta, ambar }) => (
 );
 
 /** `porRevisar` deja que quien la usa cuadre la cifra con su propia historia. */
-export const TarjetaConteo = ({ porRevisar = 1 }) => (
+export const TarjetaConteo = ({ porRevisar = 1 }) => {
+  const { t } = useTranslation();
+  return (
   <article className={CARD}>
     <div className="flex items-start gap-3 px-5 pt-5">
       <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[linear-gradient(150deg,#3f6ddb,#2b50ac)]">
@@ -61,7 +66,7 @@ export const TarjetaConteo = ({ porRevisar = 1 }) => (
         </span>
       </span>
       <div className="min-w-0">
-        <h3 className="text-[1.05rem] font-semibold leading-tight text-[#101828]">Conteo Cíclico</h3>
+        <h3 className="text-[1.05rem] font-semibold leading-tight text-[#101828]">{t("wms_tarjeta.titulo")}</h3>
         <span className="mt-1.5 inline-block rounded-md bg-[#e9ecfa] px-2 py-0.5 text-[0.6rem] font-semibold text-[#4a5a8c]">
           RFID
         </span>
@@ -82,19 +87,20 @@ export const TarjetaConteo = ({ porRevisar = 1 }) => (
         </span>
       </div>
       <div>
-        <p className="text-[0.8rem] font-medium text-[#101828]/75">Cobertura</p>
-        <p className="mt-0.5 text-[0.75rem] text-[#101828]/55">41 de 72 posiciones leídas</p>
+        <p className="text-[0.8rem] font-medium text-[#101828]/75">{t("wms_tarjeta.cobertura")}</p>
+        <p className="mt-0.5 text-[0.75rem] text-[#101828]/55">{t("wms_tarjeta.posiciones")}</p>
       </div>
     </div>
 
     <div className="mt-4 grid grid-cols-2 gap-y-3 border-t border-[#101828]/8 px-5 pb-5 pt-4">
-      <Dato valor="117" etiqueta="Etiquetas" />
-      <Dato valor="41" etiqueta="Bins leídos" />
-      <Dato valor={String(porRevisar)} etiqueta="Por revisar" ambar />
-      <Dato valor="0" etiqueta="Sin ubicar" />
+      <Dato valor="117" etiqueta={t("wms_tarjeta.etiquetas")} />
+      <Dato valor="41" etiqueta={t("wms_tarjeta.bins")} />
+      <Dato valor={String(porRevisar)} etiqueta={t("wms_tarjeta.por_revisar")} ambar />
+      <Dato valor="0" etiqueta={t("wms_tarjeta.sin_ubicar")} />
     </div>
   </article>
-);
+  );
+};
 
 /* Los mismos códigos que llevan las cajas del rack del fondo. */
 const ETIQUETAS = ["A1", "A2", "A3", "C1"];

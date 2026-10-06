@@ -4,6 +4,7 @@ import ScrollSequence from "../ScrollSequence/ScrollSequence";
 import DRONE_TRACK from "../DroneShowcase/droneTrack";
 import { TarjetaConteo } from "../DroneShowcase/WmsCards";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowRight } from "lucide-react";
 
 /**
@@ -94,9 +95,10 @@ const DRON_Z = -500;
 const PALABRAS = [
   // La primera arranca más allá de -3200, donde empieza el esquive: si no, el
   // dron ya se ladeaba afuera, frente a la fachada.
-  { texto: "Montacargas en ruta", x: 300, y: -30, z: -3600 },
-  { texto: "Personal surtiendo", x: -340, y: 10, z: -6200 },
-  { texto: "Pedidos saliendo", x: 20, y: 260, z: -8800 },
+  // Los textos de cada una están en translation.json (inicio.obstaculos).
+  { x: 300, y: -30, z: -3600 },
+  { x: -340, y: 10, z: -6200 },
+  { x: 20, y: 260, z: -8800 },
 ];
 const ESQUIVE = 0.2; // cuánto se aparta de lado, en fracción del ancho
 const SUBE = 0.14; // cuánto sube para pasar por encima, en fracción del alto
@@ -116,32 +118,28 @@ const TEXTOS = {
   sistema: [0.82, 0.85, 2, 2],
 };
 
-/** Las tres caras del problema, que aparecen una tras otra. */
-const PROBLEMAS = [
-  { dato: "Días", texto: "para contar un almacén a mano" },
-  { dato: "Pedidos en pausa", texto: "porque no se surte mientras se cuenta" },
-  { dato: "60–80%", texto: "de precisión, aun con todo ese esfuerzo" },
-];
 
 /**
  * Lo que va leyendo el dron frente al rack. Una sale distinta a lo que dice
  * el sistema: es la que luego resuelve el agente.
  */
 const LECTURAS = [
-  { ubicacion: "A-01-02", detalle: "24 piezas", bien: true },
-  { ubicacion: "A-01-03", detalle: "12 piezas", bien: true },
-  { ubicacion: "A-02-01", detalle: "8 cajas", bien: true },
-  { ubicacion: "A-03-01", detalle: "sistema 24 · físico 22", bien: false },
-  { ubicacion: "A-03-02", detalle: "40 piezas", bien: true },
+  // El detalle de cada una está en translation.json (inicio.lecturas).
+  { ubicacion: "A-01-02", bien: true },
+  { ubicacion: "A-01-03", bien: true },
+  { ubicacion: "A-02-01", bien: true },
+  { ubicacion: "A-03-01", bien: false },
+  { ubicacion: "A-03-02", bien: true },
 ];
 const TOTAL_ETIQUETAS = 117;
 const TOTAL_UBICACIONES = 41;
 
 /** Las diferencias del vuelo y lo que hizo el agente con cada una. */
 const DIFERENCIAS = [
-  { ubicacion: "A-03-01", problema: "Faltan 2 piezas", accion: "Ajuste aplicado en el WMS", resuelta: 0.89 },
-  { ubicacion: "B-02-04", problema: "Producto en ubicación equivocada", accion: "Reubicación asignada al turno", resuelta: 0.93 },
-  { ubicacion: "C-01-03", problema: "Etiqueta ilegible", accion: "Recuento programado para mañana", resuelta: 0.97 },
+  // Problema y acción de cada una: translation.json (inicio.diferencias).
+  { ubicacion: "A-03-01", resuelta: 0.89 },
+  { ubicacion: "B-02-04", resuelta: 0.93 },
+  { ubicacion: "C-01-03", resuelta: 0.97 },
 ];
 
 /**
@@ -192,6 +190,9 @@ const mezcla = (a, b, t) => a + (b - a) * t;
 const pad = (n) => String(n).padStart(4, "0");
 
 const EntradaAlmacen = () => {
+  const { t } = useTranslation();
+  const tx = (clave) => t(`inicio.${clave}`);
+  const lista = (clave) => t(`inicio.${clave}`, { returnObjects: true });
   const seccionRef = useRef(null);
   const mundoRef = useRef(null);
   const interiorRef = useRef(null);
@@ -659,12 +660,12 @@ const EntradaAlmacen = () => {
         >
           {PALABRAS.map((w, i) => (
             <div
-              key={w.texto}
+              key={i}
               ref={(el) => (palabrasRef.current[i] = el)}
               className="absolute left-1/2 top-1/2 whitespace-nowrap text-[clamp(52px,10vw,150px)] font-semibold leading-none tracking-tight text-white [text-shadow:0_8px_40px_rgba(0,0,0,0.55)]"
               style={{ opacity: 0, visibility: "hidden", willChange: "transform, opacity" }}
             >
-              {w.texto}
+              {lista("obstaculos")[i]}
             </div>
           ))}
         </div>
@@ -676,21 +677,21 @@ const EntradaAlmacen = () => {
           donde vuela el dron; "Tu turno sigue" centrado, como remate del pasillo.
         */}
         <div ref={(el) => (textosRef.current.gancho = el)} className="ah-container pointer-events-none absolute inset-x-0 bottom-14 z-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">Air Hive · Inventario con drones autónomos</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">{tx("kicker")}</p>
           {/* Una frase por renglón, sin partir: "10,000" solo en su línea
               pierde la comparación con "9,214". */}
           <h1 className="mt-4 text-[1.7rem] font-semibold leading-[1.1] sm:text-6xl">
-            <span className="block sm:whitespace-nowrap">Tu sistema dice 10,000.</span>
-            <span className="block text-white/50 sm:whitespace-nowrap">Tu almacén tiene 9,214.</span>
+            <span className="block sm:whitespace-nowrap">{tx("gancho_1")}</span>
+            <span className="block text-white/50 sm:whitespace-nowrap">{tx("gancho_2")}</span>
           </h1>
-          <p className="mt-4 max-w-md text-base text-white/70">Y nadie sabe dónde están las otras 786.</p>
+          <p className="mt-4 max-w-md text-base text-white/70">{tx("gancho_sub")}</p>
         </div>
 
         <div ref={(el) => (textosRef.current.problema = el)} className="ah-container pointer-events-none absolute inset-x-0 bottom-14 z-10" style={{ opacity: 0, visibility: "hidden" }}>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">Contar a mano cuesta</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">{tx("problema_kicker")}</p>
           <ul className="mt-5 grid max-w-5xl gap-5 sm:grid-cols-3 sm:gap-10">
-            {PROBLEMAS.map((item, i) => (
-              <li key={item.dato} ref={(el) => (problemasRef.current[i] = el)} className="border-l-2 border-[#f5b549]/70 pl-4" style={{ opacity: 0 }}>
+            {lista("problemas").map((item, i) => (
+              <li key={i} ref={(el) => (problemasRef.current[i] = el)} className="border-l-2 border-[#f5b549]/70 pl-4" style={{ opacity: 0 }}>
                 <p className="text-2xl font-semibold leading-tight sm:whitespace-nowrap sm:text-3xl">{item.dato}</p>
                 <p className="mt-1 text-sm leading-snug text-white/65">{item.texto}</p>
               </li>
@@ -699,35 +700,35 @@ const EntradaAlmacen = () => {
         </div>
 
         <div ref={(el) => (textosRef.current.conoce = el)} className="ah-container pointer-events-none absolute inset-x-0 bottom-14 z-10 flex flex-col items-end text-right" style={{ opacity: 0, visibility: "hidden" }}>
-          <h2 className="max-w-xl text-3xl font-semibold leading-tight sm:text-5xl">Conoce al que cuenta por ti.</h2>
-          <p className="mt-3 max-w-md text-base text-white/70">Vuela solo dentro del almacén y lee cada ubicación.</p>
+          <h2 className="max-w-xl text-3xl font-semibold leading-tight sm:text-5xl">{tx("conoce_titulo")}</h2>
+          <p className="mt-3 max-w-md text-base text-white/70">{tx("conoce_texto")}</p>
         </div>
 
         <div ref={(el) => (textosRef.current.sinParar = el)} className="ah-container pointer-events-none absolute inset-x-0 bottom-14 z-10 flex flex-col items-center text-center" style={{ opacity: 0, visibility: "hidden" }}>
-          <h2 className="text-4xl font-semibold leading-tight sm:text-6xl">Tu turno sigue. Él también.</h2>
-          <p className="mt-3 max-w-md text-base text-white/70">Nada se detiene por contar: ni pasillos, ni personal, ni pedidos.</p>
+          <h2 className="text-4xl font-semibold leading-tight sm:text-6xl">{tx("sin_parar_titulo")}</h2>
+          <p className="mt-3 max-w-md text-base text-white/70">{tx("sin_parar_texto")}</p>
         </div>
 
         {/* Conteo: el titular abajo, los contadores arriba a la derecha y cada
             lectura brotando junto al dron. */}
         <div ref={(el) => (textosRef.current.cuenta = el)} className="pointer-events-none absolute inset-0 z-10" style={{ opacity: 0, visibility: "hidden" }}>
           <div className="ah-container absolute inset-x-0 bottom-14">
-            <h2 className="max-w-xl text-3xl font-semibold leading-tight sm:text-5xl">Rack por rack. Etiqueta por etiqueta.</h2>
+            <h2 className="max-w-xl text-3xl font-semibold leading-tight sm:text-5xl">{tx("cuenta_titulo")}</h2>
           </div>
           <div className="absolute inset-x-4 top-20 rounded-2xl bg-[#070b12]/85 p-4 ring-1 ring-white/10 md:left-auto md:right-8 md:top-24 md:w-[15rem]">
-            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-white/50">Rack R-14 · Pasillo 3</p>
+            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-white/50">{tx("cuenta_rack")}</p>
             <div className="mt-3 grid grid-cols-2 gap-3">
               <div>
                 <p ref={etiquetasRef} className="font-mono text-3xl font-semibold tabular-nums">0</p>
-                <p className="text-[0.7rem] text-white/55">etiquetas leídas</p>
+                <p className="text-[0.7rem] text-white/55">{tx("cuenta_etiquetas")}</p>
               </div>
               <div>
                 <p ref={ubicacionesRef} className="font-mono text-3xl font-semibold tabular-nums">0</p>
-                <p className="text-[0.7rem] text-white/55">ubicaciones</p>
+                <p className="text-[0.7rem] text-white/55">{tx("cuenta_ubicaciones")}</p>
               </div>
             </div>
             <p ref={alertaRef} className="mt-3 border-t border-white/10 pt-3 text-[0.75rem] font-medium text-[#f5b549]" style={{ opacity: 0 }}>
-              ⚠ 1 diferencia contra el sistema
+              {tx("cuenta_alerta")}
             </p>
           </div>
           {/* Las lecturas salen arriba a la derecha del dron, que en esta
@@ -747,7 +748,7 @@ const EntradaAlmacen = () => {
               >
                 <span className="font-mono">{l.ubicacion}</span>
                 <span className="text-white/60">·</span>
-                <span>{l.detalle}</span>
+                <span>{lista("lecturas")[i]}</span>
                 <span>{l.bien ? "✓" : "⚠"}</span>
               </div>
             ))}
@@ -758,16 +759,16 @@ const EntradaAlmacen = () => {
         <div ref={sistemaRef} className="pointer-events-none absolute inset-0 z-10 overflow-y-auto" style={{ opacity: 0, visibility: "hidden" }}>
           <div className="ah-container flex min-h-full flex-col justify-center gap-5 py-16 sm:gap-8 sm:py-24">
             <div ref={(el) => (textosRef.current.sistema = el)}>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">Del vuelo al sistema</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">{tx("sistema_kicker")}</p>
               <h2 className="mt-3 max-w-2xl text-[1.7rem] font-semibold leading-tight sm:text-5xl">
-                Encontró 3 diferencias.
+                {tx("sistema_titulo_1")}
                 <br />
-                <span className="text-[#7fa2ff]">Ya las resolvió.</span>
+                <span className="text-[#7fa2ff]">{tx("sistema_titulo_2")}</span>
               </h2>
               {/* En pantallas bajas se omite: sin él la escena cabe en cualquier
                   teléfono, y el titular y la tarjeta ya cuentan la idea. */}
               <p className="mt-3 max-w-lg text-sm text-white/70 sm:text-base [@media(max-height:760px)]:hidden">
-                El WMS de Air Hive compara cada lectura contra el sistema, y sus agentes de IA actúan sin esperar a nadie.
+                {tx("sistema_texto")}
               </p>
             </div>
             <div className="flex flex-wrap items-start gap-6">
@@ -778,8 +779,8 @@ const EntradaAlmacen = () => {
                 <div className="flex items-center gap-3">
                   <span className="grid h-9 w-9 place-items-center rounded-xl bg-[linear-gradient(150deg,#3f6ddb,#2b50ac)] text-sm font-semibold">IA</span>
                   <div>
-                    <p className="text-sm font-semibold">Agente de inventario</p>
-                    <p className="text-[0.7rem] text-white/50">Revisando el vuelo de las 16:45</p>
+                    <p className="text-sm font-semibold">{tx("agente_nombre")}</p>
+                    <p className="text-[0.7rem] text-white/50">{tx("agente_vuelo")}</p>
                   </div>
                 </div>
                 <ul className="mt-4 space-y-3">
@@ -787,11 +788,11 @@ const EntradaAlmacen = () => {
                     <li key={d.ubicacion} ref={(el) => (diferenciasRef.current[i] = el)} data-hecha="false" className="group rounded-xl bg-white/[0.04] p-3 ring-1 ring-white/5">
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-mono text-[0.78rem] text-white/85">{d.ubicacion}</span>
-                        <span className="rounded-md bg-[#f5b549]/15 px-2 py-0.5 text-[0.65rem] font-semibold text-[#f5b549] group-data-[hecha=true]:hidden">Detectada</span>
-                        <span className="hidden rounded-md bg-[#54b385]/15 px-2 py-0.5 text-[0.65rem] font-semibold text-[#6fd3a2] group-data-[hecha=true]:inline">Resuelta</span>
+                        <span className="rounded-md bg-[#f5b549]/15 px-2 py-0.5 text-[0.65rem] font-semibold text-[#f5b549] group-data-[hecha=true]:hidden">{tx("detectada")}</span>
+                        <span className="hidden rounded-md bg-[#54b385]/15 px-2 py-0.5 text-[0.65rem] font-semibold text-[#6fd3a2] group-data-[hecha=true]:inline">{tx("resuelta")}</span>
                       </div>
-                      <p className="mt-1 text-[0.78rem] text-white/60">{d.problema}</p>
-                      <p className="mt-1 hidden text-[0.78rem] text-[#6fd3a2] group-data-[hecha=true]:block">→ {d.accion}</p>
+                      <p className="mt-1 text-[0.78rem] text-white/60">{lista("diferencias")[i].problema}</p>
+                      <p className="mt-1 hidden text-[0.78rem] text-[#6fd3a2] group-data-[hecha=true]:block">→ {lista("diferencias")[i].accion}</p>
                     </li>
                   ))}
                 </ul>
@@ -810,37 +811,33 @@ const EntradaAlmacen = () => {
 
 /* ---------- Después del recorrido: la prueba y el siguiente paso ---------- */
 
-/**
- * Resultados. Son rangos de la industria, no de un cliente: se dice así en la
- * nota, y el número propio se ofrece en el diagnóstico.
- */
-const RESULTADOS = [
-  { antes: "Días", despues: "Horas", que: "Tiempo para contar el almacén" },
-  { antes: "60–80%", despues: "99%+", que: "Precisión del inventario" },
-  { antes: "Paro", despues: "Sin paro", que: "La operación sigue mientras se cuenta" },
-];
-
-const Resultados = () => (
-  /* data-ah-no-reveal: la animación de entrada movía la sección y, con las
-     paradas activas, el navegador recalculaba y se iba solo a otra parada. */
-  <section data-ah-no-reveal className="ah-parada bg-[#070b12] py-24 text-white sm:py-32">
-    <div className="ah-container">
-      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">El resultado</p>
-      <h2 className="mt-3 max-w-2xl text-3xl font-semibold leading-tight sm:text-5xl">De días a horas. De adivinar a saber.</h2>
-      <div className="mt-14 grid gap-px overflow-hidden rounded-2xl bg-white/10 sm:grid-cols-3">
-        {RESULTADOS.map((r) => (
-          <div key={r.que} className="bg-[#0a101b] p-8">
-            <p className="text-sm text-white/45 line-through decoration-white/30">{r.antes}</p>
-            <p className="mt-1 text-5xl font-semibold tracking-tight text-[#7fa2ff]">{r.despues}</p>
-            <p className="mt-4 text-sm text-white/70">{r.que}</p>
-          </div>
-        ))}
+/** Resultados: rangos de la industria, no de un cliente. */
+const Resultados = () => {
+  const { t } = useTranslation();
+  return (
+    /* data-ah-no-reveal: la animación de entrada movía la sección y, con las
+       paradas activas, el navegador recalculaba y se iba solo a otra parada. */
+    <section data-ah-no-reveal className="ah-parada bg-[#070b12] py-24 text-white sm:py-32">
+      <div className="ah-container">
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">{t("inicio.resultado_kicker")}</p>
+        <h2 className="mt-3 max-w-2xl text-3xl font-semibold leading-tight sm:text-5xl">{t("inicio.resultado_titulo")}</h2>
+        <div className="mt-14 grid gap-px overflow-hidden rounded-2xl bg-white/10 sm:grid-cols-3">
+          {t("inicio.resultados", { returnObjects: true }).map((r) => (
+            <div key={r.que} className="bg-[#0a101b] p-8">
+              <p className="text-sm text-white/45 line-through decoration-white/30">{r.antes}</p>
+              <p className="mt-1 text-5xl font-semibold tracking-tight text-[#7fa2ff]">{r.despues}</p>
+              <p className="mt-4 text-sm text-white/70">{r.que}</p>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
-const Llamado = () => (
+const Llamado = () => {
+  const { t } = useTranslation();
+  return (
   // Última parada: alineada al final, porque su inicio queda más abajo de
   // donde la página puede llegar.
   <section data-ah-no-reveal className="ah-parada ah-parada-final relative overflow-hidden bg-[#070b12] py-28 text-white sm:py-40">
@@ -848,16 +845,16 @@ const Llamado = () => (
     <div className="absolute inset-0 bg-[url('/pasillo-racks.webp')] bg-cover bg-center opacity-20" />
     <div className="absolute inset-0 bg-[linear-gradient(180deg,#070b12_0%,rgba(7,11,18,0.6)_50%,#070b12_100%)]" />
     <div className="ah-container relative text-center">
-      <h2 className="mx-auto max-w-3xl text-4xl font-semibold leading-tight sm:text-6xl">¿Cuánto inventario estás perdiendo de vista?</h2>
+      <h2 className="mx-auto max-w-3xl text-4xl font-semibold leading-tight sm:text-6xl">{t("inicio.llamado_titulo")}</h2>
       <p className="mx-auto mt-5 max-w-xl text-base text-white/70">
-        En una llamada corta revisamos cómo cuentan hoy y te decimos qué automatizar primero.
+        {t("inicio.llamado_texto")}
       </p>
       <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
         <Link
           to="/diagnostico-gratis"
           className="inline-flex items-center gap-2 rounded-full bg-[#2A47F6] px-7 py-3.5 text-sm font-semibold shadow-[0_10px_30px_rgba(42,71,246,0.45)] transition hover:bg-[#3d5aff]"
         >
-          Agenda tu diagnóstico gratis <ArrowRight size={16} />
+          {t("inicio.llamado_boton")} <ArrowRight size={16} />
         </Link>
         <a
           href="https://wa.me/528116070330"
@@ -865,11 +862,12 @@ const Llamado = () => (
           rel="noopener noreferrer"
           className="rounded-full px-6 py-3.5 text-sm font-semibold text-white/80 ring-1 ring-white/20 transition hover:bg-white/5"
         >
-          Escríbenos por WhatsApp
+          {t("inicio.llamado_whatsapp")}
         </a>
       </div>
     </div>
   </section>
-);
+  );
+};
 
 export default EntradaAlmacen;

@@ -567,5 +567,101 @@
                 "text": "Si un conteo no cuadra, se revisa la imagen desde el escritorio en vez de volver al pasillo a verificarlo."
             }
         }
+    },
+    "inicio": {
+        "kicker": "Air Hive · Inventario con drones autónomos",
+        "gancho_1": "Tu sistema dice 10,000.",
+        "gancho_2": "Tu almacén tiene 9,214.",
+        "gancho_sub": "Y nadie sabe dónde están las otras 786.",
+        "problema_kicker": "Contar a mano cuesta",
+        "problemas": [
+            {
+                "dato": "Días",
+                "texto": "para contar un almacén a mano"
+            },
+            {
+                "dato": "Pedidos en pausa",
+                "texto": "porque no se surte mientras se cuenta"
+            },
+            {
+                "dato": "60–80%",
+                "texto": "de precisión, aun con todo ese esfuerzo"
+            }
+        ],
+        "conoce_titulo": "Conoce al que cuenta por ti.",
+        "conoce_texto": "Vuela solo dentro del almacén y lee cada ubicación.",
+        "obstaculos": [
+            "Montacargas en ruta",
+            "Personal surtiendo",
+            "Pedidos saliendo"
+        ],
+        "sin_parar_titulo": "Tu turno sigue. Él también.",
+        "sin_parar_texto": "Nada se detiene por contar: ni pasillos, ni personal, ni pedidos.",
+        "cuenta_titulo": "Rack por rack. Etiqueta por etiqueta.",
+        "cuenta_rack": "Rack R-14 · Pasillo 3",
+        "cuenta_etiquetas": "etiquetas leídas",
+        "cuenta_ubicaciones": "ubicaciones",
+        "cuenta_alerta": "⚠ 1 diferencia contra el sistema",
+        "lecturas": [
+            "24 piezas",
+            "12 piezas",
+            "8 cajas",
+            "sistema 24 · físico 22",
+            "40 piezas"
+        ],
+        "sistema_kicker": "Del vuelo al sistema",
+        "sistema_titulo_1": "Encontró 3 diferencias.",
+        "sistema_titulo_2": "Ya las resolvió.",
+        "sistema_texto": "El WMS de Air Hive compara cada lectura contra el sistema, y sus agentes de IA actúan sin esperar a nadie.",
+        "agente_nombre": "Agente de inventario",
+        "agente_vuelo": "Revisando el vuelo de las 16:45",
+        "detectada": "Detectada",
+        "resuelta": "Resuelta",
+        "diferencias": [
+            {
+                "problema": "Faltan 2 piezas",
+                "accion": "Ajuste aplicado en el WMS"
+            },
+            {
+                "problema": "Producto en ubicación equivocada",
+                "accion": "Reubicación asignada al turno"
+            },
+            {
+                "problema": "Etiqueta ilegible",
+                "accion": "Recuento programado para mañana"
+            }
+        ],
+        "resultado_kicker": "El resultado",
+        "resultado_titulo": "De días a horas. De adivinar a saber.",
+        "resultados": [
+            {
+                "antes": "Días",
+                "despues": "Horas",
+                "que": "Tiempo para contar el almacén"
+            },
+            {
+                "antes": "60–80%",
+                "despues": "99%+",
+                "que": "Precisión del inventario"
+            },
+            {
+                "antes": "Paro",
+                "despues": "Sin paro",
+                "que": "La operación sigue mientras se cuenta"
+            }
+        ],
+        "llamado_titulo": "¿Cuánto inventario estás perdiendo de vista?",
+        "llamado_texto": "En una llamada corta revisamos cómo cuentan hoy y te decimos qué automatizar primero.",
+        "llamado_boton": "Agenda tu diagnóstico gratis",
+        "llamado_whatsapp": "Escríbenos por WhatsApp"
+    },
+    "wms_tarjeta": {
+        "titulo": "Conteo Cíclico",
+        "cobertura": "Cobertura",
+        "posiciones": "41 de 72 posiciones leídas",
+        "etiquetas": "Etiquetas",
+        "bins": "Bins leídos",
+        "por_revisar": "Por revisar",
+        "sin_ubicar": "Sin ubicar"
     }
 }

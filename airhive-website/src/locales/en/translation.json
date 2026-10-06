@@ -567,5 +567,101 @@
                 "text": "When a count doesn't add up, you check the image from your desk instead of walking back to the aisle."
             }
         }
+    },
+    "inicio": {
+        "kicker": "Air Hive · Autonomous drone inventory",
+        "gancho_1": "Your system says 10,000.",
+        "gancho_2": "Your warehouse has 9,214.",
+        "gancho_sub": "And nobody knows where the other 786 are.",
+        "problema_kicker": "Counting by hand costs you",
+        "problemas": [
+            {
+                "dato": "Days",
+                "texto": "to count a warehouse by hand"
+            },
+            {
+                "dato": "Orders on hold",
+                "texto": "because nothing ships while you count"
+            },
+            {
+                "dato": "60–80%",
+                "texto": "accuracy, even after all that effort"
+            }
+        ],
+        "conoce_titulo": "Meet the one that counts for you.",
+        "conoce_texto": "It flies on its own inside the warehouse and reads every location.",
+        "obstaculos": [
+            "Forklifts moving",
+            "Pickers at work",
+            "Orders shipping"
+        ],
+        "sin_parar_titulo": "Your shift keeps going. So does it.",
+        "sin_parar_texto": "Nothing stops to count: not aisles, not people, not orders.",
+        "cuenta_titulo": "Rack by rack. Label by label.",
+        "cuenta_rack": "Rack R-14 · Aisle 3",
+        "cuenta_etiquetas": "labels read",
+        "cuenta_ubicaciones": "locations",
+        "cuenta_alerta": "⚠ 1 mismatch with the system",
+        "lecturas": [
+            "24 units",
+            "12 units",
+            "8 boxes",
+            "system 24 · physical 22",
+            "40 units"
+        ],
+        "sistema_kicker": "From flight to system",
+        "sistema_titulo_1": "It found 3 mismatches.",
+        "sistema_titulo_2": "It already fixed them.",
+        "sistema_texto": "The Air Hive WMS checks every read against the system, and its AI agents act without waiting on anyone.",
+        "agente_nombre": "Inventory agent",
+        "agente_vuelo": "Reviewing the 4:45 pm flight",
+        "detectada": "Detected",
+        "resuelta": "Resolved",
+        "diferencias": [
+            {
+                "problema": "2 units missing",
+                "accion": "Adjustment applied in the WMS"
+            },
+            {
+                "problema": "Product in the wrong location",
+                "accion": "Relocation assigned to the shift"
+            },
+            {
+                "problema": "Unreadable label",
+                "accion": "Recount scheduled for tomorrow"
+            }
+        ],
+        "resultado_kicker": "The result",
+        "resultado_titulo": "From days to hours. From guessing to knowing.",
+        "resultados": [
+            {
+                "antes": "Days",
+                "despues": "Hours",
+                "que": "Time to count the warehouse"
+            },
+            {
+                "antes": "60–80%",
+                "despues": "99%+",
+                "que": "Inventory accuracy"
+            },
+            {
+                "antes": "Downtime",
+                "despues": "No downtime",
+                "que": "Operations keep running while you count"
+            }
+        ],
+        "llamado_titulo": "How much inventory are you losing track of?",
+        "llamado_texto": "In a short call we review how you count today and tell you what to automate first.",
+        "llamado_boton": "Book your free diagnostic",
+        "llamado_whatsapp": "Message us on WhatsApp"
+    },
+    "wms_tarjeta": {
+        "titulo": "Cycle Count",
+        "cobertura": "Coverage",
+        "posiciones": "41 of 72 positions read",
+        "etiquetas": "Labels",
+        "bins": "Bins read",
+        "por_revisar": "To review",
+        "sin_ubicar": "Unlocated"
     }
 }
