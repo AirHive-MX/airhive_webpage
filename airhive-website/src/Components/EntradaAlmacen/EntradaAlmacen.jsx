@@ -295,10 +295,11 @@ const CENTRADO_RENDER = "0.73% -11%"; // medido en pantalla: el centro del dron 
 
 /**
  * Tamaño del dron: al inicio, al llegar a la puerta y ya adentro (1). Arranca
- * en 0.7 y arriba de la puerta para no taparla: la puerta es el punto de la
- * escena y con el dron a tamaño completo la batería quedaba justo encima.
+ * grande y arriba de la puerta, que es lo primero que se ve; al acercarse a la
+ * puerta se achica porque se aleja de la cámara.
  */
-const DRON_INICIO = 0.85;
+const DRON_INICIO = 1.5; // ~34% del ancho, como el dron de hextronics
+const DRON_INICIO_MOVIL = 1.05; // en celular el cuadro ya mide 230vw: así queda en ~65vw
 /*
  * Al llegar a la puerta apenas se achica: la cámara lo sigue a
  * distancia fija y lo que crece es el edificio. Antes bajaba a 0.3 y al cruzar
@@ -538,7 +539,7 @@ const EntradaAlmacen = () => {
       // dron quedaba al 51%, sobre la viga.
       y -= vh * 0.07 * tR;
     } else {
-      escala = mezcla(DRON_INICIO, DRON_LEJOS, tA);
+      escala = mezcla(movil ? DRON_INICIO_MOVIL : DRON_INICIO, DRON_LEJOS, tA);
       y = mezcla(reposoY, lejosY, tA);
     }
     // Se inclina hacia adelante mientras avanza, más en el centro del tramo.
