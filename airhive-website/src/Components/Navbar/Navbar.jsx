@@ -33,6 +33,16 @@ const Navbar = () => {
   const { t } = useTranslation();
   const isHome = location.pathname === "/";
 
+  /* Ya en el home, el enlace no cambia la ruta y nadie sube la página. Se
+     sube aquí, de golpe: deslizando se repetiría la historia del dron al
+     revés. */
+  const alInicio = (e) => {
+    setIsOpen(false);
+    if (!isHome || location.hash) return;
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: "instant" });
+  };
+
   useEffect(() => {
     setIsOpen(false);
     setProductsOpen(false);
@@ -108,7 +118,7 @@ const Navbar = () => {
             onDark ? "text-white" : "text-[#162A42]"
           }`}
         >
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" onClick={alInicio} className="flex items-center gap-2">
             {/* Monograma en vez del wordmark: ~103px de ancho contra ~263px.
                 Sobre el home va en blanco para igualar los enlaces; en las
                 páginas claras se queda en el azul de marca. */}
@@ -121,7 +131,7 @@ const Navbar = () => {
 
           <ul className="hidden items-center gap-6 text-sm font-medium lg:flex">
             <li>
-              <Link to="/" className="transition duration-300 hover:-translate-y-0.5 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">
+              <Link to="/" onClick={alInicio} className="transition duration-300 hover:-translate-y-0.5 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">
                 {t("navbar.home_short")}
               </Link>
             </li>
@@ -214,7 +224,7 @@ const Navbar = () => {
         <div className="fixed inset-0 z-40 flex flex-col bg-[#0a1322]/[0.97] px-6 pb-10 pt-24 text-white backdrop-blur-xl lg:hidden">
           <ul className="flex flex-col gap-1">
             <li>
-              <Link to="/" onClick={() => setIsOpen(false)} className={enlaceMovil}>
+              <Link to="/" onClick={alInicio} className={enlaceMovil}>
                 {t("navbar.home_short")}
               </Link>
             </li>

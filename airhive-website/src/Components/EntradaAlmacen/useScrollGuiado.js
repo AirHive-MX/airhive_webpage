@@ -130,8 +130,12 @@ export default function useScrollGuiado(seccionRef, escenas, activo) {
       if (Math.abs(dy) > 0.5) direccion = Math.sign(dy);
       velocidad = (dy / window.innerHeight) / (dt / 1000);
 
+      /* Un brinco de varias pantallas de un evento a otro no es un deslizón:
+         es un salto hecho por código (el botón de Inicio). No se atrapa. */
+      const salto = Math.abs(dy) > window.innerHeight * 2;
+
       /* En inercia y rápido: si se cruzó el centro de una escena, atrapar. */
-      if (!tocando && !animacion && Math.abs(velocidad) > VELOCIDAD_ATRAPA) {
+      if (!salto && !tocando && !animacion && Math.abs(velocidad) > VELOCIDAD_ATRAPA) {
         const m = medidas();
         if (m) {
           const p0 = avanceDe(anteriorY, m);
