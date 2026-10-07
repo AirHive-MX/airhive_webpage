@@ -238,9 +238,14 @@ const INCLINACION = 5; // grados que se ladea el dron hacia donde avanza
  * Durante el giro las hélices se ven girar porque el scroll va pasando
  * fotogramas y cada uno trae las aspas en otro ángulo. Al terminar el giro el
  * dron se sostiene en una pose, y sin más se quedaban paradas. Así que ahí se
- * recorre en bucle, por tiempo, el tramo 112-121: el cuerpo no se mueve (su
- * centro varía menos de 1 px, medido en las patas y la caja) y solo cambian
- * las aspas.
+ * recorre en bucle, por tiempo, el tramo 117-120: ahí el cuerpo está en la
+ * misma pose y solo cambian las aspas.
+ *
+ * El tramo es corto a propósito. Del 112 al 116 el dron todavía termina el
+ * giro (su silueta, sin aspas, difiere de la del 120 entre un 13.6% y un 4.1%)
+ * y desde el 121 empieza a girar para entrar; con esos fotogramas en el bucle
+ * el dron iba y venía en yaw. Del 117 al 120 la diferencia es de 2.2% o
+ * menos.
  *
  * Una versión anterior lo descartó: alternando fotogramas, las aspas negras y
  * finas parpadeaban y el dron "pulsaba" de densidad. Por eso aquí no se salta
@@ -249,11 +254,11 @@ const INCLINACION = 5; // grados que se ladea el dron hacia donde avanza
  * Lo ideal sigue siendo reexportar con motion blur en las palas; con eso el
  * mismo bucle se ve como video.
  *
- * En móvil la secuencia trae uno de cada dos fotogramas, así que el tramo son
- * cinco (113-121) a la mitad de velocidad.
+ * En móvil la secuencia trae uno de cada dos fotogramas: del tramo solo están
+ * el 117 y el 119, y se suma el 121 (3.7%) para tener tres fases de aspa.
  */
-const BUCLE_ESCRITORIO = { desde: 111, hasta: 120, fps: 20 }; // índices = fotograma - 1
-const BUCLE_MOVIL = { desde: 56, hasta: 60, fps: 10 }; // índice i = fotograma 2i + 1
+const BUCLE_ESCRITORIO = { desde: 116, hasta: 119, fps: 16 }; // índices = fotograma - 1
+const BUCLE_MOVIL = { desde: 58, hasta: 60, fps: 12 }; // índice i = fotograma 2i + 1
 
 /**
  * El balanceo de flotar.
