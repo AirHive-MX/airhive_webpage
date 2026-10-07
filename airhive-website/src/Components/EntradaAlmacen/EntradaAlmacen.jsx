@@ -683,7 +683,7 @@ const EntradaAlmacen = () => {
      una carpeta nueva: con el mismo nombre, quien ya visitó vería los
      fotogramas viejos recortados con las cajas nuevas. */
   const srcFor = useCallback(
-    (i) => (movil ? `/renders/atlas2/mobile/${pad(i * 2 + 1)}.webp` : `/renders/atlas2/desktop/${pad(i + 1)}.webp`),
+    (i) => (movil ? `/renders/atlas2/movil/${pad(i * 2 + 1)}.webp` : `/renders/atlas2/desktop/${pad(i + 1)}.webp`),
     [movil]
   );
   const cropFor = useCallback((i) => DRONE_TRACK[movil ? i * 2 : i], [movil]);

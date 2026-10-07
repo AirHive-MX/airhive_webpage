@@ -217,7 +217,13 @@ const ScrollSequence = ({
     let cancelled = false;
     framesRef.current = new Array(frameCount);
     drawnRef.current = -1;
-    targetRef.current = Math.max(targetRef.current, startFrame);
+    /* El destino se recalcula con el progreso, no se arrastra: al cambiar
+       frameCount (el home arranca como escritorio, 180, y en celular pasa a
+       90) el índice viejo apunta a otro fotograma. El 58 de 180 es el dron de
+       frente; el 58 de 90 ya es de espaldas, y ahí se quedaba hasta el
+       primer scroll. */
+    const inicial = Math.min(Math.max(progress?.get?.() ?? 0, 0), 0.9999);
+    targetRef.current = Math.max(startFrame, Math.floor(inicial * frameCount));
     setFirstReady(false);
 
     /*
@@ -340,7 +346,7 @@ const ScrollSequence = ({
       framesRef.current.forEach((frame) => frame?.bitmap?.close?.());
       framesRef.current = [];
     };
-  }, [frameCount, height, reduceMotion, schedule, sourceHeight, sourceWidth, startFrame, width]);
+  }, [frameCount, height, progress, reduceMotion, schedule, sourceHeight, sourceWidth, startFrame, width]);
 
   /* Scroll -> frame. */
   useMotionValueEvent(progress, "change", (value) => {
