@@ -298,7 +298,7 @@ const CENTRADO_RENDER = "0.73% -11%"; // medido en pantalla: el centro del dron 
  * grande y arriba de la puerta, que es lo primero que se ve; al acercarse a la
  * puerta se achica porque se aleja de la cámara.
  */
-const DRON_INICIO = 1.5; // ~34% del ancho, como el dron de hextronics
+const DRON_INICIO = 1.0; // ~23% del ancho: se nota sin tapar la puerta
 const DRON_INICIO_MOVIL = 1.05; // en celular el cuadro ya mide 230vw: así queda en ~65vw
 /*
  * Al llegar a la puerta apenas se achica: la cámara lo sigue a
