@@ -268,19 +268,29 @@ const ZOOM_ACERCA = 2.3;
 const PROFUNDIDAD = 0.85;
 
 /**
+ * Dónde cae el dron dentro de su render y cómo corregirlo para que su centro
+ * quede en el eje de la pantalla. Medido del alpha del Atlas 2.0: el cuerpo
+ * está en x = 0.495 y y = 0.61 del cuadro (más abajo que el Atlas 1, que iba
+ * en 0.50). El Atlas 1 venía cargado a la izquierda (0.446) y se corría 5.4%
+ * a la derecha; con el Atlas 2, ya centrado, ese corrimiento lo dejaba ~80 px
+ * a la derecha de la puerta.
+ */
+const CENTRADO_RENDER = "0.5% -11%";
+
+/**
  * Tamaño del dron: al inicio, al llegar a la puerta y ya adentro (1). Arranca
  * en 0.7 y arriba de la puerta para no taparla: la puerta es el punto de la
  * escena y con el dron a tamaño completo la batería quedaba justo encima.
  */
-const DRON_INICIO = 0.7;
+const DRON_INICIO = 0.85;
 /*
- * Al llegar a la puerta apenas se achica (0.64): la cámara lo sigue a
+ * Al llegar a la puerta apenas se achica: la cámara lo sigue a
  * distancia fija y lo que crece es el edificio. Antes bajaba a 0.3 y al cruzar
  * volvía a crecer, y se leía como un dron que cambia de tamaño, no que avanza.
  */
-const DRON_LEJOS = 0.64;
+const DRON_LEJOS = 0.78;
 /** Tamaño en el pasillo; frente al rack crece a 1 para la toma de cerca. */
-const DRON_PASILLO = 0.7;
+const DRON_PASILLO = 0.82;
 
 const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
 const tramo = (p, [a, b]) => clamp01((p - a) / (b - a));
@@ -357,8 +367,6 @@ const EntradaAlmacen = () => {
 
   /* El fotograma del dron, como fracción de los 180 que se usan. */
   const fotograma = useMotionValue(60 / 180);
-  /* Cuánto se tiñe el dron con la luz de la escena (0..1). */
-  const tinte = useMotionValue(1);
   const enVueloRef = useRef(false);
 
   /*
@@ -464,14 +472,10 @@ const EntradaAlmacen = () => {
       gradoRef.current.style.opacity = (1 - suave(tramo(p, CRUZA))).toFixed(3);
     }
 
-    /* El render trae luz de estudio, neutra y más brillante que la escena. El
-       tinte que se le multiplica en el lienzo (ver tint en ScrollSequence) lo
-       oscurece y le da el color de la luz: azul del cielo arriba, naranja de
-       la puerta abajo. Adentro queda un resto, la luz de la nave.
-       (Antes además llevaba un filter de brillo en CSS; en Safari reprocesaba
-       toda la imagen del dron en cada cuadro y trababa el scroll. Los colores
-       del tinte ya traen ese oscurecido.) */
-    tinte.set(mezcla(1, 0.45, tC));
+    /* Sin tinte ni luz agregada: el Atlas 2.0 se queda con la iluminación de
+       su propio render. El tinte que oscurecía al Atlas 1 (blanco, con luz
+       de estudio) a este, que es de fibra de carbono, lo dejaba hecho una
+       silueta negra; y una luz de contorno agregada se veía artificial. */
 
     /* Toma de cerca: entra con un acercamiento corto (de 1.12 a 1), como un
        corte que sigue el mismo movimiento, y luego se corre de lado. */
@@ -627,7 +631,7 @@ const EntradaAlmacen = () => {
       const hecha = p >= DIFERENCIAS[i].resuelta;
       if (el.dataset.hecha !== String(hecha)) el.dataset.hecha = String(hecha);
     });
-  }, [fotograma, tinte, movil]);
+  }, [fotograma, movil]);
 
   const avance = tactil ? scrollYProgress : resorte;
   // En táctil el scroll pasa por el ritmo antes de mover la escena.
@@ -745,16 +749,13 @@ const EntradaAlmacen = () => {
         {/* El dron. La perspectiva es la que deja ver el cabeceo hacia adelante. */}
         <div className="pointer-events-none absolute inset-0 z-[11] flex items-center justify-center" style={{ perspective: "900px" }}>
           <div ref={dronRef} style={{ willChange: "transform, opacity" }}>
-            <div ref={balanceoRef} className="relative" style={{ width: anchoDron, aspectRatio: "16 / 9", translate: "5.4% 0" }}>
+            <div ref={balanceoRef} className="relative" style={{ width: anchoDron, aspectRatio: "16 / 9", translate: CENTRADO_RENDER }}>
               <ScrollSequence
                 progress={fotograma}
                 frameCount={frameCount}
                 srcFor={srcFor}
                 cropFor={cropFor}
                 startFrame={movil ? 30 : 60}
-                tint={tinte}
-                tintTop="rgb(98, 123, 176)"
-                tintBottom="rgb(209, 139, 90)"
                 onLoadProgress={(f) => {
                   cargaRef.current.fotogramas = f;
                   avisarCarga();
