@@ -30,8 +30,34 @@ import { ArrowRight } from "lucide-react";
  */
 
 /** La foto de la fachada y su puerta de carga, en píxeles de la imagen. */
-const FACHADA = { w: 1376, h: 768 };
-const PUERTA = { x0: 552, y0: 396, x1: 824, y1: 598 };
+/*
+ * Tres fachadas para comparar con el Atlas 2.0, que es negro: de noche se
+ * pierde contra el azul oscuro, y sobre un cielo claro se recorta. Se elige
+ * con ?fachada=dia o ?fachada=atardecer en la dirección; sin nada, noche.
+ * Cada foto tiene su puerta en otro sitio, medida a mano sobre la imagen.
+ */
+const FACHADAS = {
+  noche: {
+    src: "/fachada-almacen.webp", w: 1376, h: 768, puerta: { x0: 552, y0: 396, x1: 824, y1: 598 },
+    pasillo: "/pasillo-racks.webp", rack: "/racks-cerca.webp", oscurecerInterior: true,
+  },
+  /* Con estas dos el pasillo va en su versión clara (sombras levantadas,
+     brillo medio 101 contra 65) y sin oscurecer desde la calle: el Atlas 2.0
+     es negro y sobre el pasillo oscuro se perdía justo al cruzar la puerta. */
+  dia: {
+    src: "/fachada-dia.webp", w: 1376, h: 768, puerta: { x0: 553, y0: 322, x1: 823, y1: 553 },
+    pasillo: "/pasillo-racks-claro.webp", rack: "/racks-cerca-claro.webp", oscurecerInterior: false,
+  },
+  atardecer: {
+    src: "/fachada-atardecer.webp", w: 1376, h: 768, puerta: { x0: 606, y0: 379, x1: 770, y1: 529 },
+    pasillo: "/pasillo-racks-claro.webp", rack: "/racks-cerca-claro.webp", oscurecerInterior: false,
+  },
+};
+const ELEGIDA =
+  FACHADAS[typeof window !== "undefined" && new URLSearchParams(window.location.search).get("fachada")] ??
+  FACHADAS.noche;
+const FACHADA = { src: ELEGIDA.src, w: ELEGIDA.w, h: ELEGIDA.h };
+const PUERTA = ELEGIDA.puerta;
 const PUERTA_CX = (PUERTA.x0 + PUERTA.x1) / 2 / FACHADA.w;
 const PUERTA_CY = (PUERTA.y0 + PUERTA.y1) / 2 / FACHADA.h;
 const PUERTA_W = (PUERTA.x1 - PUERTA.x0) / FACHADA.w;
@@ -394,7 +420,7 @@ const EntradaAlmacen = () => {
     };
     img.onload = listo;
     img.onerror = listo; // si falla, no vale la pena retener la pantalla
-    img.src = "/fachada-almacen.webp";
+    img.src = FACHADA.src;
   }, [avisarCarga]);
 
   /*
@@ -693,7 +719,7 @@ const EntradaAlmacen = () => {
             willChange: tactil ? "transform" : undefined,
           }}
         >
-          <img src="/fachada-almacen.webp" alt="" className="absolute inset-0 h-full w-full" draggable="false" />
+          <img src={FACHADA.src} alt="" className="absolute inset-0 h-full w-full" draggable="false" />
           <div
             className="absolute overflow-hidden"
             style={{
@@ -707,8 +733,8 @@ const EntradaAlmacen = () => {
                 cubriendo el alto de la puerta. */}
             <div ref={interiorRef} className="absolute inset-0" style={{ willChange: tactil ? "transform" : undefined }}>
               <div
-                className="absolute left-1/2 top-0 h-full -translate-x-1/2 bg-[url('/pasillo-racks.webp')] bg-[length:100%_100%]"
-                style={{ aspectRatio: `${PASILLO.w} / ${PASILLO.h}` }}
+                className="absolute left-1/2 top-0 h-full -translate-x-1/2 bg-[length:100%_100%]"
+                style={{ backgroundImage: `url('${ELEGIDA.pasillo}')`, aspectRatio: `${PASILLO.w} / ${PASILLO.h}` }}
               >
               </div>
             </div>
@@ -729,7 +755,11 @@ const EntradaAlmacen = () => {
             <div
               ref={gradoRef}
               className="absolute inset-0 mix-blend-multiply"
-              style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 22%), #c4c4c4" }}
+              style={{
+                background: ELEGIDA.oscurecerInterior
+                  ? "linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 22%), #c4c4c4"
+                  : "linear-gradient(180deg, rgba(0,0,0,0.45) 0%, transparent 18%)",
+              }}
             />
           </div>
         </div>
@@ -738,8 +768,8 @@ const EntradaAlmacen = () => {
             pantalla para poder correrla de lado. */}
         <div
           ref={cercaRef}
-          className="absolute left-1/2 top-1/2 bg-[url('/racks-cerca.webp')] bg-cover bg-center"
-          style={{ aspectRatio: "3 / 2", opacity: 0, willChange: "transform, opacity" }}
+          className="absolute left-1/2 top-1/2 bg-cover bg-center"
+          style={{ backgroundImage: `url('${ELEGIDA.rack}')`, aspectRatio: "3 / 2", opacity: 0, willChange: "transform, opacity" }}
         />
 
         {/* Al cruzar, la escena se oscurece un poco: ya no es la calle. */}
