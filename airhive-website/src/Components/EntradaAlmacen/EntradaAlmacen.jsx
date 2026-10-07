@@ -251,13 +251,13 @@ const INCLINACION = 5; // grados que se ladea el dron hacia donde avanza
  * blur, que empiece y termine en el mismo ángulo de aspa. Cuando llegue:
  * apuntar BUCLE_ESCRITORIO / BUCLE_MOVIL a esos fotogramas y poner esto en true.
  */
-const HELICES_EN_BUCLE = false;
+const HELICES_EN_BUCLE = true;
 
 /** Índices (fotograma - 1) donde empieza y termina el giro de 180°. */
 const GIRO_DESDE = 58;
 const GIRO_HASTA = 119;
-const BUCLE_ESCRITORIO = { desde: 116, hasta: 119, fps: 16 }; // índices = fotograma - 1
-const BUCLE_MOVIL = { desde: 58, hasta: 60, fps: 12 }; // índice i = fotograma 2i + 1
+const BUCLE_ESCRITORIO = { desde: 115, hasta: 120, fps: 6 }; // índices = fotograma - 1
+const BUCLE_MOVIL = { desde: 58, hasta: 60, fps: 3 }; // índice i = fotograma 2i + 1
 
 /**
  * El balanceo de flotar.
