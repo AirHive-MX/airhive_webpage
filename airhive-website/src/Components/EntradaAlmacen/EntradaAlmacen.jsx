@@ -529,8 +529,10 @@ const EntradaAlmacen = () => {
       y = mezcla(lejosY, vh * 0.5, suave(tramo(p, CRUZA)));
       const enPasillo = suave(tramo(p, [CRUZA[1] - 0.04, CRUZA[1] + 0.02])) * (1 - tR);
       y += vh * 0.03 * enPasillo;
-      // Frente al rack baja un poco, a la altura del nivel que va a leer.
-      y += vh * 0.06 * tR;
+      // Frente al rack se centra en el hueco que va a leer: el centro del
+      // nivel de en medio de la toma de cerca cae al 38% del alto, y antes el
+      // dron quedaba al 51%, sobre la viga.
+      y -= vh * 0.07 * tR;
     } else {
       escala = mezcla(DRON_INICIO, DRON_LEJOS, tA);
       y = mezcla(reposoY, lejosY, tA);
