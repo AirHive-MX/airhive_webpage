@@ -257,6 +257,16 @@ const INCLINACION = 5; // grados que se ladea el dron hacia donde avanza
  * En móvil la secuencia trae uno de cada dos fotogramas: del tramo solo están
  * el 117 y el 119, y se suma el 121 (3.7%) para tener tres fases de aspa.
  */
+/*
+ * APAGADO hasta tener renders nuevos. Con 117-120 las aspas no completan una
+ * vuelta: al regresar del 120 al 117 saltan hacia atrás y se ven ir y venir,
+ * no girar; con más fotogramas el dron entero gira en yaw. Se pidió un render
+ * del Atlas 2.0 quieto en la pose del 120 con las hélices girando y motion
+ * blur, que empiece y termine en el mismo ángulo de aspa. Cuando llegue:
+ * apuntar BUCLE_ESCRITORIO / BUCLE_MOVIL a esos fotogramas y poner esto en true.
+ */
+const HELICES_EN_BUCLE = false;
+
 /** Índices (fotograma - 1) donde empieza y termina el giro de 180°. */
 const GIRO_DESDE = 58;
 const GIRO_HASTA = 119;
@@ -796,7 +806,7 @@ const EntradaAlmacen = () => {
                 srcFor={srcFor}
                 cropFor={cropFor}
                 startFrame={movil ? Math.floor(GIRO_DESDE / 2) : GIRO_DESDE}
-                bucle={bucleHelices}
+                bucle={HELICES_EN_BUCLE ? bucleHelices : null}
                 onLoadProgress={(f) => {
                   cargaRef.current.fotogramas = f;
                   avisarCarga();
