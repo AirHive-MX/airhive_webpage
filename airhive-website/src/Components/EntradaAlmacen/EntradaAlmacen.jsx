@@ -257,6 +257,9 @@ const INCLINACION = 5; // grados que se ladea el dron hacia donde avanza
  * En móvil la secuencia trae uno de cada dos fotogramas: del tramo solo están
  * el 117 y el 119, y se suma el 121 (3.7%) para tener tres fases de aspa.
  */
+/** Índices (fotograma - 1) donde empieza y termina el giro de 180°. */
+const GIRO_DESDE = 58;
+const GIRO_HASTA = 119;
 const BUCLE_ESCRITORIO = { desde: 116, hasta: 119, fps: 16 }; // índices = fotograma - 1
 const BUCLE_MOVIL = { desde: 58, hasta: 60, fps: 12 }; // índice i = fotograma 2i + 1
 
@@ -292,7 +295,7 @@ const PROFUNDIDAD = 0.85;
  * a la derecha; con el Atlas 2, ya centrado, ese corrimiento lo dejaba ~80 px
  * a la derecha de la puerta.
  */
-const CENTRADO_RENDER = "0.5% -11%";
+const CENTRADO_RENDER = "0.73% -11%"; // medido en pantalla: el centro del dron cae sobre el de la puerta
 
 /**
  * Tamaño del dron: al inicio, al llegar a la puerta y ya adentro (1). Arranca
@@ -383,7 +386,14 @@ const EntradaAlmacen = () => {
   const resorte = useSpring(scrollYProgress, { stiffness: 300, damping: 20, mass: 0.3, restDelta: 0.0002 });
 
   /* El fotograma del dron, como fracción de los 180 que se usan. */
-  const fotograma = useMotionValue(60 / 180);
+  /*
+   * El giro va del fotograma 59 al 120 (índices 58 a 119). El 59 es donde el
+   * Atlas 2.0 está de frente exacto: su silueta es simétrica en un 92%; en el
+   * 61, donde arrancaba antes, ya está girado (33% de asimetría) y se veía
+   * chueco aunque estuviera centrado. Y termina en el 120, la pose del bucle
+   * de hélices; antes se quedaba en el 121, que ya empieza a girar.
+   */
+  const fotograma = useMotionValue(GIRO_DESDE / 180);
   /* 1 mientras las hélices giran solas (después del giro). */
   const helicesActivas = useMotionValue(0);
   const bucleHelices = useMemo(
@@ -433,7 +443,7 @@ const EntradaAlmacen = () => {
          alguna vez se pierde una actualización —un brinco de scroll en
          Safari— el dron no se quede con el fotograma de espaldas estando
          frente a la fachada. */
-      fotograma.set(p >= GIRO[1] ? 120 / 180 : (60 + 60 * suave(tramo(p, GIRO))) / 180);
+      fotograma.set(p >= GIRO[1] ? GIRO_HASTA / 180 : (GIRO_DESDE + (GIRO_HASTA - GIRO_DESDE) * suave(tramo(p, GIRO))) / 180);
       helicesActivas.set(p >= GIRO[1] ? 1 : 0);
       /* El balanceo, a su ritmo. Se apaga al cruzar la puerta igual que hacía
          el anterior: ahí dentro la cámara ya va pegada al dron y un vaivén se
@@ -601,7 +611,7 @@ const EntradaAlmacen = () => {
        lo hace la cámara, para que el dron no se vaya a la esquina como en los
        renders. */
     enVueloRef.current = p >= GIRO[1];
-    if (!enVueloRef.current) fotograma.set((60 + 60 * suave(tramo(p, GIRO))) / 180);
+    if (!enVueloRef.current) fotograma.set((GIRO_DESDE + (GIRO_HASTA - GIRO_DESDE) * suave(tramo(p, GIRO))) / 180);
 
     /* Textos: entran subiendo un poco y salen desvaneciéndose. */
     for (const [clave, [a, b, c, d]] of Object.entries(TEXTOS)) {
@@ -785,7 +795,7 @@ const EntradaAlmacen = () => {
                 frameCount={frameCount}
                 srcFor={srcFor}
                 cropFor={cropFor}
-                startFrame={movil ? 30 : 60}
+                startFrame={movil ? Math.floor(GIRO_DESDE / 2) : GIRO_DESDE}
                 bucle={bucleHelices}
                 onLoadProgress={(f) => {
                   cargaRef.current.fotogramas = f;
