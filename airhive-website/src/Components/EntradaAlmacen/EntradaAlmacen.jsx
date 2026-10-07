@@ -30,8 +30,20 @@ import { ArrowRight } from "lucide-react";
  */
 
 /** La foto de la fachada y su puerta de carga, en píxeles de la imagen. */
-const FACHADA = { w: 1376, h: 768 };
-const PUERTA = { x0: 552, y0: 396, x1: 824, y1: 598 };
+/*
+ * La fachada: atardecer. El Atlas 2.0 es negro y de noche se perdía contra
+ * el azul oscuro; sobre el cielo dorado se recorta. (Se compararon noche, día
+ * nublado y atardecer.) La puerta está medida a mano sobre la imagen.
+ *
+ * El pasillo y la toma del rack van en su versión clara (sombras levantadas,
+ * brillo medio 101 contra 65 y 93 contra 63), y el interior no se oscurece
+ * desde la calle: sobre el pasillo oscuro el dron negro se perdía justo al
+ * cruzar la puerta.
+ */
+const FACHADA = { src: "/fachada-atardecer.webp", w: 1376, h: 768 };
+const PUERTA = { x0: 606, y0: 379, x1: 770, y1: 529 };
+const PASILLO_IMG = "/pasillo-racks-claro.webp";
+const RACK_IMG = "/racks-cerca-claro.webp";
 const PUERTA_CX = (PUERTA.x0 + PUERTA.x1) / 2 / FACHADA.w;
 const PUERTA_CY = (PUERTA.y0 + PUERTA.y1) / 2 / FACHADA.h;
 const PUERTA_W = (PUERTA.x1 - PUERTA.x0) / FACHADA.w;
@@ -207,17 +219,58 @@ const ANCHO_CERCA = 1.45;
 const INCLINACION = 5; // grados que se ladea el dron hacia donde avanza
 
 /**
- * Hélices en marcha.
+ * Hélices en marcha mientras vuela.
  *
- * Los renders ya traen las hélices animadas: del fotograma 121 al 170 el dron
- * no cambia de pose y lo único que se mueve son las aspas. Así que mientras
- * vuela se reproducen esos fotogramas en bucle, por tiempo y no por scroll:
- * las hélices giran aunque nadie esté haciendo scroll, como en un dron que
- * flota. El salto del 170 al 121 no se nota con las aspas a esta velocidad.
+ * Durante el giro las hélices se ven girar porque el scroll va pasando
+ * fotogramas y cada uno trae las aspas en otro ángulo. Al terminar el giro el
+ * dron se sostiene en una pose, y sin más se quedaban paradas. Así que ahí se
+ * recorre en bucle, por tiempo, el tramo 117-120: ahí el cuerpo está en la
+ * misma pose y solo cambian las aspas.
+ *
+ * El tramo es corto a propósito. Del 112 al 116 el dron todavía termina el
+ * giro (su silueta, sin aspas, difiere de la del 120 entre un 13.6% y un 4.1%)
+ * y desde el 121 empieza a girar para entrar; con esos fotogramas en el bucle
+ * el dron iba y venía en yaw. Del 117 al 120 la diferencia es de 2.2% o
+ * menos.
+ *
+ * Una versión anterior lo descartó: alternando fotogramas, las aspas negras y
+ * finas parpadeaban y el dron "pulsaba" de densidad. Por eso aquí no se salta
+ * de uno al siguiente, se funden (ver bucle en ScrollSequence), que es lo que
+ * le falta al render: un poco de estela entre una posición de aspa y la otra.
+ * Lo ideal sigue siendo reexportar con motion blur en las palas; con eso el
+ * mismo bucle se ve como video.
+ *
+ * En móvil la secuencia trae uno de cada dos fotogramas: del tramo solo están
+ * el 117 y el 119, y se suma el 121 (3.7%) para tener tres fases de aspa.
  */
-const HELICES_DESDE = 121;
-const HELICES_HASTA = 170;
-const HELICES_FPS = 30;
+/*
+ * APAGADO hasta tener renders nuevos. Con 117-120 las aspas no completan una
+ * vuelta: al regresar del 120 al 117 saltan hacia atrás y se ven ir y venir,
+ * no girar; con más fotogramas el dron entero gira en yaw. Se pidió un render
+ * del Atlas 2.0 quieto en la pose del 120 con las hélices girando y motion
+ * blur, que empiece y termine en el mismo ángulo de aspa. Cuando llegue:
+ * apuntar BUCLE_ESCRITORIO / BUCLE_MOVIL a esos fotogramas y poner esto en true.
+ */
+const HELICES_EN_BUCLE = true;
+
+/** Índices (fotograma - 1) donde empieza y termina el giro de 180°. */
+const GIRO_DESDE = 58;
+const GIRO_HASTA = 119;
+const BUCLE_ESCRITORIO = { desde: 115, hasta: 120, fps: 6 }; // índices = fotograma - 1
+const BUCLE_MOVIL = { desde: 58, hasta: 60, fps: 3 }; // índice i = fotograma 2i + 1
+
+/**
+ * El balanceo de flotar.
+ *
+ * Va por tiempo, no por scroll. El que había antes era Math.sin(p * 40): al
+ * dejar de hacer scroll se congelaba y el dron se quedaba clavado en el aire.
+ *
+ * Conviene quedarse corto: un dron parado se sostiene casi quieto, y en cuanto
+ * el recorrido se nota deja de leerse como que flota y empieza a leerse como
+ * que tiembla la imagen.
+ */
+const BALANCEO_PX = 2;        // cuánto sube y baja, a cada lado
+const BALANCEO_SEG = 4.5;     // lo que tarda en subir y bajar una vez
 
 /** Cuánto se acerca la cámara al final del acercamiento, antes de cruzar. */
 const ZOOM_ACERCA = 2.3;
@@ -231,19 +284,29 @@ const ZOOM_ACERCA = 2.3;
 const PROFUNDIDAD = 0.85;
 
 /**
+ * Dónde cae el dron dentro de su render y cómo corregirlo para que su centro
+ * quede en el eje de la pantalla. Medido del alpha del Atlas 2.0: el cuerpo
+ * está en x = 0.495 y y = 0.61 del cuadro (más abajo que el Atlas 1, que iba
+ * en 0.50). El Atlas 1 venía cargado a la izquierda (0.446) y se corría 5.4%
+ * a la derecha; con el Atlas 2, ya centrado, ese corrimiento lo dejaba ~80 px
+ * a la derecha de la puerta.
+ */
+const CENTRADO_RENDER = "0.73% -11%"; // medido en pantalla: el centro del dron cae sobre el de la puerta
+
+/**
  * Tamaño del dron: al inicio, al llegar a la puerta y ya adentro (1). Arranca
  * en 0.7 y arriba de la puerta para no taparla: la puerta es el punto de la
  * escena y con el dron a tamaño completo la batería quedaba justo encima.
  */
-const DRON_INICIO = 0.7;
+const DRON_INICIO = 0.85;
 /*
- * Al llegar a la puerta apenas se achica (0.64): la cámara lo sigue a
+ * Al llegar a la puerta apenas se achica: la cámara lo sigue a
  * distancia fija y lo que crece es el edificio. Antes bajaba a 0.3 y al cruzar
  * volvía a crecer, y se leía como un dron que cambia de tamaño, no que avanza.
  */
-const DRON_LEJOS = 0.64;
+const DRON_LEJOS = 0.78;
 /** Tamaño en el pasillo; frente al rack crece a 1 para la toma de cerca. */
-const DRON_PASILLO = 0.7;
+const DRON_PASILLO = 0.82;
 
 const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
 const tramo = (p, [a, b]) => clamp01((p - a) / (b - a));
@@ -260,6 +323,8 @@ const EntradaAlmacen = () => {
   const mundoRef = useRef(null);
   const interiorRef = useRef(null);
   const dronRef = useRef(null);
+  const balanceoRef = useRef(null); // envoltorio que flota, aparte del transform del scroll
+  const asientoRef = useRef(0);    // 1 flotando frente a la fachada, 0 una vez cruzada la puerta
   const velo = useRef(null);
   const cercaRef = useRef(null); // la toma de cerca de los racks
   const textosRef = useRef({}); // cada texto de la historia, por su clave
@@ -317,9 +382,20 @@ const EntradaAlmacen = () => {
   const resorte = useSpring(scrollYProgress, { stiffness: 300, damping: 20, mass: 0.3, restDelta: 0.0002 });
 
   /* El fotograma del dron, como fracción de los 180 que se usan. */
-  const fotograma = useMotionValue(60 / 180);
-  /* Cuánto se tiñe el dron con la luz de la escena (0..1). */
-  const tinte = useMotionValue(1);
+  /*
+   * El giro va del fotograma 59 al 120 (índices 58 a 119). El 59 es donde el
+   * Atlas 2.0 está de frente exacto: su silueta es simétrica en un 92%; en el
+   * 61, donde arrancaba antes, ya está girado (33% de asimetría) y se veía
+   * chueco aunque estuviera centrado. Y termina en el 120, la pose del bucle
+   * de hélices; antes se quedaba en el 121, que ya empieza a girar.
+   */
+  const fotograma = useMotionValue(GIRO_DESDE / 180);
+  /* 1 mientras las hélices giran solas (después del giro). */
+  const helicesActivas = useMotionValue(0);
+  const bucleHelices = useMemo(
+    () => ({ ...(movil ? BUCLE_MOVIL : BUCLE_ESCRITORIO), activo: helicesActivas }),
+    [movil, helicesActivas]
+  );
   const enVueloRef = useRef(false);
 
   /*
@@ -347,32 +423,36 @@ const EntradaAlmacen = () => {
     };
     img.onload = listo;
     img.onerror = listo; // si falla, no vale la pena retener la pantalla
-    img.src = "/fachada-almacen.webp";
+    img.src = FACHADA.src;
   }, [avisarCarga]);
 
   /*
-   * El bucle de las hélices. Lee en cada cuadro dónde está el scroll de verdad
-   * (no un dato guardado por aplicar), para corregirse solo: si alguna vez se
-   * perdía una actualización —p. ej. un brinco de scroll en Safari—, el dron
-   * se quedaba con el fotograma de espaldas estando frente a la fachada.
+   * El cuadro a cuadro del dron: qué fotograma le toca y cuánto flota.
    */
   const leerRecorridoRef = useRef(() => 0);
   useEffect(() => {
     let raf = 0;
-    const vuelta = HELICES_HASTA - HELICES_DESDE + 1;
     const latido = (ahora) => {
       const p = leerRecorridoRef.current();
-      if (p >= GIRO[1]) {
-        const k = Math.floor((ahora / 1000) * HELICES_FPS) % vuelta;
-        fotograma.set((HELICES_DESDE + k) / 180);
-      } else {
-        fotograma.set((60 + 60 * suave(tramo(p, GIRO))) / 180);
+      /* Mientras gira lo manda el scroll; al terminar se sostiene ahí. Se lee
+         el scroll de verdad en cada cuadro, no un dato guardado, para que si
+         alguna vez se pierde una actualización —un brinco de scroll en
+         Safari— el dron no se quede con el fotograma de espaldas estando
+         frente a la fachada. */
+      fotograma.set(p >= GIRO[1] ? GIRO_HASTA / 180 : (GIRO_DESDE + (GIRO_HASTA - GIRO_DESDE) * suave(tramo(p, GIRO))) / 180);
+      helicesActivas.set(p >= GIRO[1] ? 1 : 0);
+      /* El balanceo, a su ritmo. Se apaga al cruzar la puerta igual que hacía
+         el anterior: ahí dentro la cámara ya va pegada al dron y un vaivén se
+         leería como que tiembla la imagen, no como que flota. */
+      if (balanceoRef.current) {
+        const y = Math.sin((ahora / 1000) * ((2 * Math.PI) / BALANCEO_SEG)) * BALANCEO_PX * asientoRef.current;
+        balanceoRef.current.style.transform = `translate3d(0, ${y.toFixed(2)}px, 0)`;
       }
       raf = requestAnimationFrame(latido);
     };
     raf = requestAnimationFrame(latido);
     return () => cancelAnimationFrame(raf);
-  }, [fotograma]);
+  }, [fotograma, helicesActivas]);
 
   const aplicar = useCallback((p) => {
     const vw = window.innerWidth;
@@ -422,14 +502,10 @@ const EntradaAlmacen = () => {
       gradoRef.current.style.opacity = (1 - suave(tramo(p, CRUZA))).toFixed(3);
     }
 
-    /* El render trae luz de estudio, neutra y más brillante que la escena. El
-       tinte que se le multiplica en el lienzo (ver tint en ScrollSequence) lo
-       oscurece y le da el color de la luz: azul del cielo arriba, naranja de
-       la puerta abajo. Adentro queda un resto, la luz de la nave.
-       (Antes además llevaba un filter de brillo en CSS; en Safari reprocesaba
-       toda la imagen del dron en cada cuadro y trababa el scroll. Los colores
-       del tinte ya traen ese oscurecido.) */
-    tinte.set(mezcla(1, 0.45, tC));
+    /* Sin tinte ni luz agregada: el Atlas 2.0 se queda con la iluminación de
+       su propio render. El tinte que oscurecía al Atlas 1 (blanco, con luz
+       de estudio) a este, que es de fibra de carbono, lo dejaba hecho una
+       silueta negra; y una luz de contorno agregada se veía artificial. */
 
     /* Toma de cerca: entra con un acercamiento corto (de 1.12 a 1), como un
        corte que sigue el mismo movimiento, y luego se corre de lado. */
@@ -457,16 +533,19 @@ const EntradaAlmacen = () => {
       y = mezcla(lejosY, vh * 0.5, suave(tramo(p, CRUZA)));
       const enPasillo = suave(tramo(p, [CRUZA[1] - 0.04, CRUZA[1] + 0.02])) * (1 - tR);
       y += vh * 0.03 * enPasillo;
-      // Frente al rack baja un poco, a la altura del nivel que va a leer.
-      y += vh * 0.06 * tR;
+      // Frente al rack se centra en el hueco que va a leer: el centro del
+      // nivel de en medio de la toma de cerca cae al 38% del alto, y antes el
+      // dron quedaba al 51%, sobre la viga.
+      y -= vh * 0.07 * tR;
     } else {
       escala = mezcla(DRON_INICIO, DRON_LEJOS, tA);
       y = mezcla(reposoY, lejosY, tA);
     }
     // Se inclina hacia adelante mientras avanza, más en el centro del tramo.
     const cabeceo = Math.sin(Math.PI * tramo(p, [ACERCA[0], CRUZA[1]])) * 14;
-    // Un balanceo leve mientras flota, para que no parezca pegado.
-    const flota = Math.sin(p * 40) * 3 * (1 - tC);
+    // El balanceo ya no va aquí: lo lleva el bucle por tiempo (ver BALANCEO_PX).
+    // Esto solo le dice cuánto aplicarse, que es nada en cuanto se cruza.
+    asientoRef.current = 1 - tC;
     /* Por el pasillo: la cámara avanza y las palabras se le vienen encima. */
     const tPas = tramo(p, AVANZA);
     const camaraZ = tPas * CAMARA_RECORRE;
@@ -520,7 +599,7 @@ const EntradaAlmacen = () => {
     // De lado frente al rack: se ladea hacia donde avanza, más a media marcha.
     const ladeo = Math.sin(Math.PI * tramo(p, CUENTA)) * INCLINACION + ladeoEsquive;
     dron.style.transform =
-      `translate3d(${x.toFixed(1)}px, ${(y - vh / 2 + flota).toFixed(1)}px, 0) ` +
+      `translate3d(${x.toFixed(1)}px, ${(y - vh / 2).toFixed(1)}px, 0) ` +
       `scale(${escala.toFixed(4)}) rotateX(${cabeceo.toFixed(2)}deg) rotate(${ladeo.toFixed(2)}deg)`;
 
     /* Fotograma: durante el giro lo manda el scroll; en cuanto termina, el
@@ -528,7 +607,7 @@ const EntradaAlmacen = () => {
        lo hace la cámara, para que el dron no se vaya a la esquina como en los
        renders. */
     enVueloRef.current = p >= GIRO[1];
-    if (!enVueloRef.current) fotograma.set((60 + 60 * suave(tramo(p, GIRO))) / 180);
+    if (!enVueloRef.current) fotograma.set((GIRO_DESDE + (GIRO_HASTA - GIRO_DESDE) * suave(tramo(p, GIRO))) / 180);
 
     /* Textos: entran subiendo un poco y salen desvaneciéndose. */
     for (const [clave, [a, b, c, d]] of Object.entries(TEXTOS)) {
@@ -584,7 +663,7 @@ const EntradaAlmacen = () => {
       const hecha = p >= DIFERENCIAS[i].resuelta;
       if (el.dataset.hecha !== String(hecha)) el.dataset.hecha = String(hecha);
     });
-  }, [fotograma, tinte, movil]);
+  }, [fotograma, movil]);
 
   const avance = tactil ? scrollYProgress : resorte;
   // En táctil el scroll pasa por el ritmo antes de mover la escena.
@@ -646,7 +725,7 @@ const EntradaAlmacen = () => {
             willChange: tactil ? "transform" : undefined,
           }}
         >
-          <img src="/fachada-almacen.webp" alt="" className="absolute inset-0 h-full w-full" draggable="false" />
+          <img src={FACHADA.src} alt="" className="absolute inset-0 h-full w-full" draggable="false" />
           <div
             className="absolute overflow-hidden"
             style={{
@@ -660,29 +739,26 @@ const EntradaAlmacen = () => {
                 cubriendo el alto de la puerta. */}
             <div ref={interiorRef} className="absolute inset-0" style={{ willChange: tactil ? "transform" : undefined }}>
               <div
-                className="absolute left-1/2 top-0 h-full -translate-x-1/2 bg-[url('/pasillo-racks.webp')] bg-[length:100%_100%]"
-                style={{ aspectRatio: `${PASILLO.w} / ${PASILLO.h}` }}
+                className="absolute left-1/2 top-0 h-full -translate-x-1/2 bg-[length:100%_100%]"
+                style={{ backgroundImage: `url('${PASILLO_IMG}')`, aspectRatio: `${PASILLO.w} / ${PASILLO.h}` }}
               >
               </div>
             </div>
             {/*
-              Entonado desde la calle: un poco más oscuro, para que no brille
-              más que la noche de afuera, y una sombra bajo el dintel, que es
-              lo que hace que se lea como un hueco en la pared y no como una
-              estampa. Se va poco a poco mientras se cruza la puerta.
-            */}
-            {/*
-              Una sola capa que multiplica directo sobre el pasillo: gris (lo
-              oscurece sin cambiarle el color) y negro arriba (la sombra del
-              dintel). Va sola y con su propia opacidad a propósito: cuando
-              estas capas vivían dentro de un contenedor con opacity, el
-              navegador las mezclaba dentro del contenedor y no con el pasillo,
-              y a media transición se veían como un velo gris o café encima.
+              La sombra bajo el dintel, que es lo que hace que la puerta se lea
+              como un hueco en la pared y no como una estampa. Multiplica
+              directo sobre el pasillo y se va mientras se cruza la puerta.
+              (Va sola, sin un contenedor con opacity: dentro de uno, el
+              navegador mezclaba la capa con el contenedor y no con el
+              pasillo, y se veía un velo encima.)
             */}
             <div
               ref={gradoRef}
               className="absolute inset-0 mix-blend-multiply"
-              style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 22%), #c4c4c4" }}
+              style={{
+                // Solo la sombra del dintel (ver arriba por qué no se oscurece).
+                background: "linear-gradient(180deg, rgba(0,0,0,0.45) 0%, transparent 18%)",
+              }}
             />
           </div>
         </div>
@@ -691,8 +767,8 @@ const EntradaAlmacen = () => {
             pantalla para poder correrla de lado. */}
         <div
           ref={cercaRef}
-          className="absolute left-1/2 top-1/2 bg-[url('/racks-cerca.webp')] bg-cover bg-center"
-          style={{ aspectRatio: "3 / 2", opacity: 0, willChange: "transform, opacity" }}
+          className="absolute left-1/2 top-1/2 bg-cover bg-center"
+          style={{ backgroundImage: `url('${RACK_IMG}')`, aspectRatio: "3 / 2", opacity: 0, willChange: "transform, opacity" }}
         />
 
         {/* Al cruzar, la escena se oscurece un poco: ya no es la calle. */}
@@ -702,16 +778,14 @@ const EntradaAlmacen = () => {
         {/* El dron. La perspectiva es la que deja ver el cabeceo hacia adelante. */}
         <div className="pointer-events-none absolute inset-0 z-[11] flex items-center justify-center" style={{ perspective: "900px" }}>
           <div ref={dronRef} style={{ willChange: "transform, opacity" }}>
-            <div className="relative" style={{ width: anchoDron, aspectRatio: "16 / 9", translate: "5.4% 0" }}>
+            <div ref={balanceoRef} className="relative" style={{ width: anchoDron, aspectRatio: "16 / 9", translate: CENTRADO_RENDER }}>
               <ScrollSequence
                 progress={fotograma}
                 frameCount={frameCount}
                 srcFor={srcFor}
                 cropFor={cropFor}
-                startFrame={movil ? 30 : 60}
-                tint={tinte}
-                tintTop="rgb(98, 123, 176)"
-                tintBottom="rgb(209, 139, 90)"
+                startFrame={movil ? Math.floor(GIRO_DESDE / 2) : GIRO_DESDE}
+                bucle={HELICES_EN_BUCLE ? bucleHelices : null}
                 onLoadProgress={(f) => {
                   cargaRef.current.fotogramas = f;
                   avisarCarga();
