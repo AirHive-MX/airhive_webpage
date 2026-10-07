@@ -1247,7 +1247,7 @@ const DroneShowcase = () => {
   const srcFor = useCallback(
     (index) =>
       isMobile
-        ? `/renders/atlas2/mobile/${pad(index * 2 + 1)}.webp`
+        ? `/renders/atlas2/movil/${pad(index * 2 + 1)}.webp`
         : `/renders/atlas2/desktop/${pad(index + 1)}.webp`,
     [isMobile]
   );
