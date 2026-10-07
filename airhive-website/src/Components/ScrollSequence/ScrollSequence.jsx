@@ -51,6 +51,7 @@ const ScrollSequence = ({
   srcFor,
   cropFor,
   startFrame = 0, // los anteriores no se muestran nunca, así que ni se bajan
+  bucle = null, // bucle de hélices por tiempo (ver el efecto más abajo)
   tint, // MotionValue 0..1 opcional: cuánto se tiñe el render con la luz de la escena
   tintTop = "rgb(120, 150, 215)", // cielo de noche
   tintBottom = "rgb(255, 170, 110)", // luz cálida de la puerta
@@ -78,6 +79,8 @@ const ScrollSequence = ({
   const onLayoutRef = useRef(onLayout);
   srcForRef.current = srcFor;
   const tintRef = useRef(tint);
+  const bucleRef = useRef(bucle);
+  bucleRef.current = bucle;
   const tintTopRef = useRef(tintTop);
   const tintBottomRef = useRef(tintBottom);
   tintRef.current = tint;
@@ -105,6 +108,8 @@ const ScrollSequence = ({
     rafRef.current = 0;
     const canvas = canvasRef.current;
     if (!canvas) return;
+    // Mientras corre el bucle de hélices, él pinta; el scroll no lo pisa.
+    if (bucleRef.current?.activo?.get?.() > 0) return;
 
     const index = nearestLoaded(targetRef.current);
     if (index < 0 || index === drawnRef.current) return;
@@ -346,6 +351,60 @@ const ScrollSequence = ({
     targetRef.current = next;
     schedule();
   });
+
+  /*
+   * Bucle de hélices: { desde, hasta, fps, activo } (desde/hasta en índices
+   * de esta secuencia; activo, MotionValue 0/1).
+   *
+   * Recorre por tiempo un tramo donde el cuerpo no se mueve y solo cambian las
+   * aspas, para que las hélices giren mientras el dron vuela, igual que giran
+   * durante el giro cuando el scroll pasa los fotogramas. No salta de un
+   * fotograma al siguiente: los funde (el siguiente encima, con opacidad que
+   * sube de 0 a 1). Saltando, las aspas parpadeaban; fundidas pasan de un
+   * ángulo al otro con algo de estela, como en video. El cuerpo queda igual
+   * porque es el mismo en todos los fotogramas del tramo.
+   */
+  useEffect(() => {
+    if (!bucle) return undefined;
+    let raf = 0;
+    let antes = false;
+    const n = bucle.hasta - bucle.desde + 1;
+    const lazo = (ahora) => {
+      const activo = bucle.activo.get() > 0;
+      const canvas = canvasRef.current;
+      if (activo && canvas) {
+        const t = (ahora / 1000) * bucle.fps;
+        const i = Math.floor(t) % n;
+        const f = t - Math.floor(t);
+        const a = framesRef.current[bucle.desde + i];
+        const b = framesRef.current[bucle.desde + ((i + 1) % n)];
+        if (a && b) {
+          const ctx = canvas.getContext("2d");
+          const cw = canvas.width;
+          const ch = canvas.height;
+          const scale = Math.min(cw / width, ch / height);
+          const ox = (cw - width * scale) / 2;
+          const oy = (ch - height * scale) / 2;
+          const dibuja = (fr, alpha) => {
+            ctx.globalAlpha = alpha;
+            ctx.drawImage(fr.bitmap, ox + fr.x * scale, oy + fr.y * scale, fr.w * scale, fr.h * scale);
+          };
+          ctx.clearRect(0, 0, cw, ch);
+          dibuja(a, 1);
+          dibuja(b, f * f * (3 - 2 * f));
+          ctx.globalAlpha = 1;
+          drawnRef.current = -1; // al salir del bucle, el scroll vuelve a pintar
+        }
+      } else if (antes && !activo) {
+        drawnRef.current = -1;
+        schedule();
+      }
+      antes = activo;
+      raf = requestAnimationFrame(lazo);
+    };
+    raf = requestAnimationFrame(lazo);
+    return () => cancelAnimationFrame(raf);
+  }, [bucle, schedule, width, height]);
 
   /* Si cambia el tinte hay que repintar aunque el fotograma sea el mismo. */
   useEffect(() => {

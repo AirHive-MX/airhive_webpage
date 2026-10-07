@@ -233,41 +233,27 @@ const ANCHO_CERCA = 1.45;
 const INCLINACION = 5; // grados que se ladea el dron hacia donde avanza
 
 /**
- * El dron flotando frente a la fachada.
+ * Hélices en marcha mientras vuela.
  *
- * No cambia de pose: se queda en el fotograma donde lo deja el giro, y lo
- * único que se mueve es el balanceo de abajo. Las hélices están paradas a
- * propósito; conviene leer esto antes de "arreglarlo", porque ya se intentó.
+ * Durante el giro las hélices se ven girar porque el scroll va pasando
+ * fotogramas y cada uno trae las aspas en otro ángulo. Al terminar el giro el
+ * dron se sostiene en una pose, y sin más se quedaban paradas. Así que ahí se
+ * recorre en bucle, por tiempo, el tramo 112-121: el cuerpo no se mueve (su
+ * centro varía menos de 1 px, medido en las patas y la caja) y solo cambian
+ * las aspas.
  *
- * Los renders del Atlas 2.0 traen las hélices animadas, y la idea era
- * reproducir en bucle un tramo donde el dron no cambia de postura para que
- * giraran solas. Con estos renders no sale:
+ * Una versión anterior lo descartó: alternando fotogramas, las aspas negras y
+ * finas parpadeaban y el dron "pulsaba" de densidad. Por eso aquí no se salta
+ * de uno al siguiente, se funden (ver bucle en ScrollSequence), que es lo que
+ * le falta al render: un poco de estela entre una posición de aspa y la otra.
+ * Lo ideal sigue siendo reexportar con motion blur en las palas; con eso el
+ * mismo bucle se ve como video.
  *
- * - El tramo útil son seis fotogramas (115-120). No se puede alargar: tiene
- *   que terminar donde lo deja el giro o da un tirón al entrar, y solo once
- *   fotogramas comparten esa pose. Medido, el dron no la recupera en ningún
- *   otro punto: del 125 en adelante su silueta difiere entre un 22% y un 44%,
- *   porque ya giró para entrar al almacén.
- * - Seis fotogramas son media vuelta de pala, y las aspas salen del render
- *   como siluetas negras, finas y muy contrastadas. Alternarlas no se lee como
- *   giro: deprisa parpadea, despacio se leen los saltos.
- * - Y lo que más se notaba no era ni siquiera el movimiento de las palas, que
- *   es mínimo entre fotogramas, sino que las aspas tapan más área en unas
- *   fases que en otras: el dron entero pulsaba un 9.8% de densidad en cada
- *   vuelta del bucle. No se movía, parpadeaba.
- *
- * Se probó a difuminarlas promediando fotogramas, que es el motion blur que
- * les falta: con ventana de cinco el pulso baja al 1.97% y deja de temblar,
- * pero entonces las palas quedan como un disco y el giro casi no se ve. Como
- * el giro era lo único que se ganaba, no compensa el tratamiento.
- *
- * Así que se quedan quietas y la vida la pone el balanceo, que es continuo y
- * se ajusta a voluntad. Si algún día se reexportan los renders con motion blur
- * en las palas, el bucle vuelve a tener sentido tal cual: fotogramas 115 a 120,
- * desplazados para que el chasis coincida con el del 121 (el render trae 8.3 px
- * de balanceo propio ahí dentro, y repetido varias veces por segundo es otro
- * tembleque).
+ * En móvil la secuencia trae uno de cada dos fotogramas, así que el tramo son
+ * cinco (113-121) a la mitad de velocidad.
  */
+const BUCLE_ESCRITORIO = { desde: 111, hasta: 120, fps: 20 }; // índices = fotograma - 1
+const BUCLE_MOVIL = { desde: 56, hasta: 60, fps: 10 }; // índice i = fotograma 2i + 1
 
 /**
  * El balanceo de flotar.
@@ -393,6 +379,12 @@ const EntradaAlmacen = () => {
 
   /* El fotograma del dron, como fracción de los 180 que se usan. */
   const fotograma = useMotionValue(60 / 180);
+  /* 1 mientras las hélices giran solas (después del giro). */
+  const helicesActivas = useMotionValue(0);
+  const bucleHelices = useMemo(
+    () => ({ ...(movil ? BUCLE_MOVIL : BUCLE_ESCRITORIO), activo: helicesActivas }),
+    [movil, helicesActivas]
+  );
   const enVueloRef = useRef(false);
 
   /*
@@ -437,6 +429,7 @@ const EntradaAlmacen = () => {
          Safari— el dron no se quede con el fotograma de espaldas estando
          frente a la fachada. */
       fotograma.set(p >= GIRO[1] ? 120 / 180 : (60 + 60 * suave(tramo(p, GIRO))) / 180);
+      helicesActivas.set(p >= GIRO[1] ? 1 : 0);
       /* El balanceo, a su ritmo. Se apaga al cruzar la puerta igual que hacía
          el anterior: ahí dentro la cámara ya va pegada al dron y un vaivén se
          leería como que tiembla la imagen, no como que flota. */
@@ -448,7 +441,7 @@ const EntradaAlmacen = () => {
     };
     raf = requestAnimationFrame(latido);
     return () => cancelAnimationFrame(raf);
-  }, [fotograma]);
+  }, [fotograma, helicesActivas]);
 
   const aplicar = useCallback((p) => {
     const vw = window.innerWidth;
@@ -788,6 +781,7 @@ const EntradaAlmacen = () => {
                 srcFor={srcFor}
                 cropFor={cropFor}
                 startFrame={movil ? 30 : 60}
+                bucle={bucleHelices}
                 onLoadProgress={(f) => {
                   cargaRef.current.fotogramas = f;
                   avisarCarga();
