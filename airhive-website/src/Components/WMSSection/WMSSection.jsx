@@ -4,6 +4,15 @@ import { useTranslation } from 'react-i18next';
 import { Package, Warehouse, ArrowDownToLine, ArrowUpFromLine, MapPin, GitBranch, Activity, Bell, BarChart3, TrendingUp, Box, AlertCircle, CheckCircle2, Clock, Layers, Eye, Zap, Shield, Radio, Boxes } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+/*
+ * OJO si vuelves a montar este componente: enlaza a /contact.
+ *
+ * Esas rutas ya no existen. El sitio se redujo a dos páginas —el recorrido del
+ * dron (/) y el formulario (/diagnostico-gratis)— y las demás se borraron, así
+ * que esos enlaces caen en el 404. El componente se conserva a propósito para
+ * reaprovecharlo, pero habría que reapuntarlos antes de volver a usarlo.
+ */
+
 export default function WMSSection() {
   const { t } = useTranslation();
   const [accuracy, setAccuracy] = useState(94.2);

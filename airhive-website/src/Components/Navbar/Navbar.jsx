@@ -14,19 +14,15 @@ const NAV_H = 64; // alto aproximado del header, para la franja que vigila
  * páginas intactas, porque se van a volver a usar. Para devolver uno al menú
  * basta con sacar su clave de esta lista; no hay que tocar el JSX.
  */
-const OCULTOS = new Set(["products", "how_we_work", "schedule_diagnostic", "about"]);
+const OCULTOS = new Set(["schedule_diagnostic"]);
 
 const enlaceMovil =
   "block border-b border-white/[0.07] py-4 text-3xl font-semibold tracking-[-0.02em] transition hover:text-[#9fb0ff]";
 
-const productItems = [
-  { key: "drone_inventory", to: "/products#drone-inventory" },
-];
 
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [productsOpen, setProductsOpen] = useState(false);
   const [onLight, setOnLight] = useState(false);
   const [paginaOscura, setPaginaOscura] = useState(false);
   const location = useLocation();
@@ -35,7 +31,6 @@ const Navbar = () => {
 
   useEffect(() => {
     setIsOpen(false);
-    setProductsOpen(false);
   }, [location.pathname, location.hash]);
 
   /*
@@ -88,7 +83,7 @@ const Navbar = () => {
   }, [isOpen]);
 
   const visible = useAutoHideHeader({
-    pinned: isOpen || productsOpen,
+    pinned: isOpen,
     resetKey: location.pathname,
   });
 
@@ -126,52 +121,7 @@ const Navbar = () => {
               </Link>
             </li>
 
-            {!OCULTOS.has("products") && (
-            <li
-              className="relative"
-              onMouseEnter={() => setProductsOpen(true)}
-              onMouseLeave={() => setProductsOpen(false)}
-            >
-              <Link
-                to="/products"
-                className="flex items-center gap-1 transition duration-300 hover:-translate-y-0.5 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]"
-              >
-                {t("navbar.cases")}
-                <span className={`text-xs transition duration-300 ${productsOpen ? "rotate-180" : ""}`}>▼</span>
-              </Link>
 
-              <div
-                className={`absolute left-0 top-full mt-3 w-72 rounded-xl border border-[#162A42]/10 bg-white p-2 pt-4 text-[#162A42] shadow-2xl transition-all duration-300 before:absolute before:-top-3 before:left-0 before:h-3 before:w-full ${
-                  productsOpen ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-2 opacity-0"
-                }`}
-              >
-                {productItems.map((item) => (
-                  <Link
-                    key={item.key}
-                    to={item.to}
-                    className="block rounded-lg px-3 py-2.5 text-sm transition hover:bg-[#162A42]/5 hover:text-[#2A47F6]"
-                  >
-                    {t(`products.${item.key}.title`)}
-                  </Link>
-                ))}
-              </div>
-            </li>
-            )}
-
-            {!OCULTOS.has("how_we_work") && (
-            <li>
-              <Link to="/services#como-trabajamos" className="transition duration-300 hover:-translate-y-0.5 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">
-                {t("navbar.how_we_work")}
-              </Link>
-            </li>
-            )}
-            {!OCULTOS.has("about") && (
-            <li>
-              <Link to="/about" className="transition duration-300 hover:-translate-y-0.5 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">
-                {t("navbar.about")}
-              </Link>
-            </li>
-            )}
             <li>
               <Link to="/diagnostico-gratis" className="transition duration-300 hover:-translate-y-0.5 hover:text-[#2A47F6] hover:[text-shadow:0_0_14px_rgba(42,71,246,0.35)]">
                 {t("navbar.free_diagnostic")}
@@ -218,27 +168,6 @@ const Navbar = () => {
                 {t("navbar.home_short")}
               </Link>
             </li>
-            {!OCULTOS.has("products") && productItems.map((item) => (
-              <li key={item.key}>
-                <Link to={item.to} onClick={() => setIsOpen(false)} className={enlaceMovil}>
-                  {t(`products.${item.key}.title`)}
-                </Link>
-              </li>
-            ))}
-            {!OCULTOS.has("how_we_work") && (
-            <li>
-              <Link to="/services#como-trabajamos" onClick={() => setIsOpen(false)} className={enlaceMovil}>
-                {t("navbar.how_we_work")}
-              </Link>
-            </li>
-            )}
-            {!OCULTOS.has("about") && (
-            <li>
-              <Link to="/about" onClick={() => setIsOpen(false)} className={enlaceMovil}>
-                {t("navbar.about")}
-              </Link>
-            </li>
-            )}
             <li>
               <Link to="/diagnostico-gratis" onClick={() => setIsOpen(false)} className={enlaceMovil}>
                 {t("navbar.free_diagnostic")}

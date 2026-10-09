@@ -15,6 +15,15 @@ import ScrollSequence from "../ScrollSequence/ScrollSequence";
 import DRONE_TRACK from "./droneTrack";
 import { TarjetaConteo, TarjetaLecturas } from "./WmsCards";
 
+/*
+ * OJO si vuelves a montar este componente: su botón (MOSTRAR_CTA) enlaza a /products.
+ *
+ * Esas rutas ya no existen. El sitio se redujo a dos páginas —el recorrido del
+ * dron (/) y el formulario (/diagnostico-gratis)— y las demás se borraron, así
+ * que esos enlaces caen en el 404. El componente se conserva a propósito para
+ * reaprovecharlo, pero habría que reapuntarlos antes de volver a usarlo.
+ */
+
 /**
  * Recorrido del dron Air Hive controlado por el scroll.
  *

@@ -10,8 +10,6 @@ import { useTranslation } from "react-i18next";
  * porque se van a volver a usar. Para devolver uno basta con sacar su clave de
  * esta lista; no hay que tocar el JSX.
  */
-const OCULTOS = new Set(["products", "how_we_work", "about"]);
-
 const enlace = "transition duration-300 hover:text-white";
 
 /*
@@ -39,9 +37,6 @@ const Footer = () => {
         </div>
 
         <nav className="flex items-center gap-5">
-          {!OCULTOS.has("products") && <Link to="/products" className={enlace}>{t("navbar.cases")}</Link>}
-          {!OCULTOS.has("how_we_work") && <Link to="/services#como-trabajamos" className={enlace}>{t("navbar.how_we_work")}</Link>}
-          {!OCULTOS.has("about") && <Link to="/about" className={enlace}>{t("navbar.about")}</Link>}
           <Link to="/diagnostico-gratis" className={enlace}>{t("navbar.free_diagnostic")}</Link>
           <span className="flex items-center gap-3 pl-1">
             {redes.map(({ href, icon, label }) => (
