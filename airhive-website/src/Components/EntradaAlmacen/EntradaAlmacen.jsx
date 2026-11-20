@@ -77,7 +77,6 @@ const ESCENAS = [
   [0, 0.035], // gancho
   [0.07, 0.105], // el problema: sus tres datos terminan de salir en 0.07
   [0.14, 0.21], // "Conoce al que cuenta por ti"
-  [0.3, 0.34], // el dron llegando a la puerta
   [0.44, 0.595], // el pasillo: la tercera palabra se va en 0.593
   [0.595, 0.615], // "Tu turno sigue. Él también."
   [0.68, 0.78], // conteo frente al rack
@@ -100,9 +99,11 @@ const RITMO_TACTIL = [
   [0.105, 0.7], // problema
   [0.14, 0.25],
   [0.21, 0.6], // conoce
-  [0.3, 0.4], // vuelo hacia la puerta
-  [0.34, 0.3], // la puerta
-  [0.44, 0.45], // cruce
+  /* Sin texto: el vuelo, la puerta y el cruce. Pesaban 1.15 y medido en un
+     teléfono eran dos deslizones enteros mirando solo el edificio. */
+  [0.3, 0.25], // vuelo hacia la puerta
+  [0.34, 0.15], // la puerta
+  [0.44, 0.3], // cruce
   [0.595, 1.3], // pasillo con palabras: tres esquives
   [0.615, 0.5], // "Tu turno sigue"
   [0.68, 0.3],
@@ -160,6 +161,17 @@ const PASILLO = { w: 1536, h: 1024 };
 const PERSPECTIVA = 900;
 const CAMARA_RECORRE = 9400;
 const DRON_Z = -500;
+/*
+ * En celular las palabras van centradas y por encima del dron, más grandes:
+ * con la perspectiva, a 52 px se veían de 14 a 21 px, encimadas en el dron, y
+ * las de los lados se salían de la pantalla ("Personal surtiend"). Arriba no
+ * estorban al dron, así que ahí no esquiva.
+ */
+const PALABRAS_MOVIL = [
+  { x: 0, y: -520, z: -3600 },
+  { x: 0, y: -480, z: -6200 },
+  { x: 0, y: -540, z: -8800 },
+];
 const PALABRAS = [
   // La primera arranca más allá de -3200, donde empieza el esquive: si no, el
   // dron ya se ladeaba afuera, frente a la fachada.
@@ -321,6 +333,8 @@ const EntradaAlmacen = () => {
   const tx = (clave) => t(`inicio.${clave}`);
   const lista = (clave) => t(`inicio.${clave}`, { returnObjects: true });
   const seccionRef = useRef(null);
+  const escenarioRef = useRef(null); // el cuadro fijo (sticky) donde pasa todo
+  const snapRef = useRef([]); // anclas del snap nativo en táctil
   const mundoRef = useRef(null);
   const interiorRef = useRef(null);
   const dronRef = useRef(null);
@@ -359,6 +373,24 @@ const EntradaAlmacen = () => {
     };
   }, []);
 
+  /*
+   * El fondo de la página va oscuro mientras se está en el home, y sin rebote.
+   * El body es blanco (lo usa el 404), y en iPhone el rebote elástico al
+   * llegar arriba o abajo dejaba ver ese blanco detrás del recorrido.
+   */
+  useEffect(() => {
+    const html = document.documentElement;
+    const antes = { fondo: html.style.backgroundColor, cuerpo: document.body.style.backgroundColor, rebote: html.style.overscrollBehaviorY };
+    html.style.backgroundColor = "#070b12";
+    document.body.style.backgroundColor = "#070b12";
+    html.style.overscrollBehaviorY = "none";
+    return () => {
+      html.style.backgroundColor = antes.fondo;
+      document.body.style.backgroundColor = antes.cuerpo;
+      html.style.overscrollBehaviorY = antes.rebote;
+    };
+  }, []);
+
   const escenasScroll = useMemo(
     () => ESCENAS.map(([a, b]) => [RITMO.scrollDe(a), RITMO.scrollDe(b)]),
     []
@@ -371,6 +403,35 @@ const EntradaAlmacen = () => {
    * Para volver a probarlo, cambiar false por `tactil`.
    */
   useScrollGuiado(seccionRef, escenasScroll, false);
+
+  /*
+   * En su lugar, snap nativo y por proximidad: si se suelta cerca del inicio
+   * de una escena, el propio navegador termina de acomodarla con su física de
+   * siempre; si se suelta lejos, no hace nada. No hay JavaScript peleándose
+   * con el dedo. Sin esto, uno de cada tres deslizones dejaba dos textos a
+   * medio fundir. Las anclas son divs vacíos dentro de la sección.
+   */
+  useEffect(() => {
+    if (!tactil) return undefined;
+    const html = document.documentElement;
+    const colocar = () => {
+      const seccion = seccionRef.current;
+      const escenario = escenarioRef.current;
+      if (!seccion || !escenario) return;
+      const rango = seccion.offsetHeight - escenario.offsetHeight;
+      escenasScroll.forEach(([desde], i) => {
+        const el = snapRef.current[i];
+        if (el) el.style.top = `${Math.round(desde * rango)}px`;
+      });
+    };
+    colocar();
+    html.style.scrollSnapType = "y proximity";
+    window.addEventListener("resize", colocar);
+    return () => {
+      html.style.scrollSnapType = "";
+      window.removeEventListener("resize", colocar);
+    };
+  }, [tactil, escenasScroll]);
 
   useEffect(() => {
     const q = window.matchMedia("(max-width: 767px)");
@@ -470,7 +531,9 @@ const EntradaAlmacen = () => {
 
   const aplicar = useCallback((p) => {
     const vw = window.innerWidth;
-    const vh = window.innerHeight;
+    /* El alto del escenario (100lvh), no innerHeight: en Safari innerHeight
+       cambia cuando la barra aparece o se esconde y todo brincaba ~80 px. */
+    const vh = escenarioRef.current?.clientHeight || window.innerHeight;
     const mundo = mundoRef.current;
     const dron = dronRef.current;
     if (!mundo || !dron) return;
@@ -571,7 +634,7 @@ const EntradaAlmacen = () => {
     let esquive = 0;
     let subida = 0;
     let ladeoEsquive = 0;
-    PALABRAS.forEach((w, i) => {
+    (movil ? PALABRAS_MOVIL : PALABRAS).forEach((w, i) => {
       const z = w.z + camaraZ; // profundidad respecto a la cámara
       const el = palabrasRef.current[i];
       if (el) {
@@ -585,8 +648,10 @@ const EntradaAlmacen = () => {
           : 0;
         el.style.opacity = (op * 0.95).toFixed(3);
         el.style.visibility = op > 0.001 ? "visible" : "hidden";
-        el.style.transform = `translate3d(calc(-50% + ${(w.x * escalaMundo).toFixed(1)}px), calc(-50% + ${(w.y * escalaMundo).toFixed(1)}px), ${Math.min(z, PERSPECTIVA * 0.7).toFixed(1)}px)`;
+        const ex = movil ? 1 : escalaMundo;
+        el.style.transform = `translate3d(calc(-50% + ${(w.x * ex).toFixed(1)}px), calc(-50% + ${(w.y * ex).toFixed(1)}px), ${Math.min(z, PERSPECTIVA * 0.7).toFixed(1)}px)`;
       }
+      if (movil) return; // arriba del dron: no hay nada que esquivar
       /* Se aparta con tiempo: empieza mientras la palabra aún viene lejos, se
          sostiene a un lado y vuelve cuando ya pasó (para entonces la palabra
          ya se desvaneció). Antes esperaba a tenerla encima y se veía la
@@ -654,7 +719,7 @@ const EntradaAlmacen = () => {
       const t = tramo(tCuenta, [ti, ti + 0.16]);
       const op = t <= 0 || t >= 1 ? 0 : Math.min(tramo(t, [0, 0.15]), 1 - tramo(t, [0.7, 1]));
       el.style.opacity = op.toFixed(3);
-      el.style.transform = `translate3d(0, ${(-70 * t).toFixed(1)}px, 0)`;
+      el.style.transform = `translate3d(0, ${((movil ? -22 : -70) * t).toFixed(1)}px, 0)`;
     });
     if (alertaRef.current) {
       const aparece = (3 + 0.4) / (LECTURAS.length + 0.6);
@@ -723,7 +788,18 @@ const EntradaAlmacen = () => {
       className="relative bg-[#070b12] text-white"
       style={{ height: movil ? "750svh" : "1300vh" }}
     >
-      <div className="sticky top-0 h-[100svh] overflow-hidden">
+      {/*
+        100lvh: el alto con la barra de Safari escondida. Con 100svh, al
+        esconderse la barra la pantalla crecía y el escenario no: abajo quedaba
+        una franja negra y se veía que la escena "se levantaba". Lo que va
+        pegado abajo se sube lo que mide la barra (100lvh - 100svh), para que
+        con la barra visible no quede tapado.
+      */}
+      {tactil &&
+        escenasScroll.map((_, i) => (
+          <div key={i} ref={(el) => (snapRef.current[i] = el)} aria-hidden="true" className="pointer-events-none absolute inset-x-0 h-px [scroll-snap-align:start]" />
+        ))}
+      <div ref={escenarioRef} className="sticky top-0 h-[100lvh] overflow-hidden">
         {/* El mundo: fachada y, en el hueco de la puerta, el interior. */}
         <div
           ref={mundoRef}
@@ -771,7 +847,9 @@ const EntradaAlmacen = () => {
             */}
             <div
               ref={gradoRef}
-              className="absolute inset-0 mix-blend-multiply"
+              /* En táctil sin mix-blend: Safari compone el modo de fusión en cada
+                 cuadro del zoom; con alfa normal sobre el pasillo se ve casi igual. */
+              className={`absolute inset-0 ${tactil ? "" : "mix-blend-multiply"}`}
               style={{
                 // Solo la sombra del dintel (ver arriba por qué no se oscurece).
                 background: "linear-gradient(180deg, rgba(0,0,0,0.45) 0%, transparent 18%)",
@@ -833,7 +911,7 @@ const EntradaAlmacen = () => {
             <div
               key={i}
               ref={(el) => (palabrasRef.current[i] = el)}
-              className="absolute left-1/2 top-1/2 whitespace-nowrap text-[clamp(52px,10vw,150px)] font-semibold leading-none tracking-tight text-white [text-shadow:0_8px_40px_rgba(0,0,0,0.55)]"
+              className="absolute left-1/2 top-1/2 whitespace-nowrap text-[92px] font-semibold leading-none tracking-tight text-white [text-shadow:0_4px_14px_rgba(0,0,0,0.6)] md:text-[clamp(52px,10vw,150px)] md:[text-shadow:0_8px_40px_rgba(0,0,0,0.55)]"
               style={{ opacity: 0, visibility: "hidden", willChange: "transform, opacity" }}
             >
               {lista("obstaculos")[i]}
@@ -847,8 +925,8 @@ const EntradaAlmacen = () => {
           izquierda sobre el piso; "Conoce…" a la derecha, del lado contrario a
           donde vuela el dron; "Tu turno sigue" centrado, como remate del pasillo.
         */}
-        <div ref={(el) => (textosRef.current.gancho = el)} className="ah-container pointer-events-none absolute inset-x-0 bottom-14 z-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">{tx("kicker")}</p>
+        <div ref={(el) => (textosRef.current.gancho = el)} className="ah-container pointer-events-none absolute inset-x-0 bottom-[calc(3.5rem_+_100lvh_-_100svh)] z-10">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/75">{tx("kicker")}</p>
           {/* Una frase por renglón, sin partir: "10,000" solo en su línea
               pierde la comparación con "9,214". */}
           <h1 className="mt-4 text-[1.7rem] font-semibold leading-[1.1] sm:text-6xl">
@@ -858,8 +936,8 @@ const EntradaAlmacen = () => {
           <p className="mt-4 max-w-md text-base text-white/70">{tx("gancho_sub")}</p>
         </div>
 
-        <div ref={(el) => (textosRef.current.problema = el)} className="ah-container pointer-events-none absolute inset-x-0 bottom-14 z-10" style={{ opacity: 0, visibility: "hidden" }}>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">{tx("problema_kicker")}</p>
+        <div ref={(el) => (textosRef.current.problema = el)} className="ah-container pointer-events-none absolute inset-x-0 bottom-[calc(3.5rem_+_100lvh_-_100svh)] z-10" style={{ opacity: 0, visibility: "hidden" }}>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/75">{tx("problema_kicker")}</p>
           <ul className="mt-5 grid max-w-5xl gap-5 sm:grid-cols-3 sm:gap-10">
             {lista("problemas").map((item, i) => (
               <li key={i} ref={(el) => (problemasRef.current[i] = el)} className="border-l-2 border-[#f5b549]/70 pl-4" style={{ opacity: 0 }}>
@@ -870,12 +948,12 @@ const EntradaAlmacen = () => {
           </ul>
         </div>
 
-        <div ref={(el) => (textosRef.current.conoce = el)} className="ah-container pointer-events-none absolute inset-x-0 bottom-14 z-10 flex flex-col items-end text-right" style={{ opacity: 0, visibility: "hidden" }}>
+        <div ref={(el) => (textosRef.current.conoce = el)} className="ah-container pointer-events-none absolute inset-x-0 bottom-[calc(3.5rem_+_100lvh_-_100svh)] z-10 flex flex-col items-end text-right" style={{ opacity: 0, visibility: "hidden" }}>
           <h2 className="max-w-xl text-3xl font-semibold leading-tight sm:text-5xl">{tx("conoce_titulo")}</h2>
           <p className="mt-3 max-w-md text-base text-white/70">{tx("conoce_texto")}</p>
         </div>
 
-        <div ref={(el) => (textosRef.current.sinParar = el)} className="ah-container pointer-events-none absolute inset-x-0 bottom-14 z-10 flex flex-col items-center text-center" style={{ opacity: 0, visibility: "hidden" }}>
+        <div ref={(el) => (textosRef.current.sinParar = el)} className="ah-container pointer-events-none absolute inset-x-0 bottom-[calc(3.5rem_+_100lvh_-_100svh)] z-10 flex flex-col items-center text-center" style={{ opacity: 0, visibility: "hidden" }}>
           <h2 className="text-4xl font-semibold leading-tight sm:text-6xl">{tx("sin_parar_titulo")}</h2>
           <p className="mt-3 max-w-md text-base text-white/70">{tx("sin_parar_texto")}</p>
         </div>
@@ -883,7 +961,7 @@ const EntradaAlmacen = () => {
         {/* Conteo: el titular abajo, los contadores arriba a la derecha y cada
             lectura brotando junto al dron. */}
         <div ref={(el) => (textosRef.current.cuenta = el)} className="pointer-events-none absolute inset-0 z-10" style={{ opacity: 0, visibility: "hidden" }}>
-          <div className="ah-container absolute inset-x-0 bottom-14">
+          <div className="ah-container absolute inset-x-0 bottom-[calc(3.5rem_+_100lvh_-_100svh)]">
             <h2 className="max-w-xl text-3xl font-semibold leading-tight sm:text-5xl">{tx("cuenta_titulo")}</h2>
           </div>
           <div className="absolute inset-x-4 top-20 rounded-2xl bg-[#070b12]/85 p-4 ring-1 ring-white/10 md:left-auto md:right-8 md:top-24 md:w-[15rem]">
@@ -907,7 +985,9 @@ const EntradaAlmacen = () => {
           {/* En celular salen centradas bajo el panel de contadores: a la
               derecha del dron se encimaban con el panel y se salían de la
               pantalla. */}
-          <div className="absolute left-1/2 top-[37%] md:top-[34%] md:ml-[9vw]">
+          {/* En celular van en la franja libre entre el dron y el título: arriba, a
+              la altura del panel, la lectura con la diferencia lo tapaba. */}
+          <div className="absolute bottom-[calc(11.5rem_+_100lvh_-_100svh)] left-1/2 md:bottom-auto md:top-[34%] md:ml-[9vw]">
             {LECTURAS.map((l, i) => (
               <div
                 key={l.ubicacion}
@@ -927,10 +1007,10 @@ const EntradaAlmacen = () => {
         </div>
 
         {/* Del vuelo al sistema. */}
-        <div ref={sistemaRef} className="pointer-events-none absolute inset-0 z-10 overflow-y-auto" style={{ opacity: 0, visibility: "hidden" }}>
+        <div ref={sistemaRef} className="pointer-events-none absolute inset-x-0 top-0 bottom-[calc(100lvh_-_100svh)] z-10 overflow-y-auto" style={{ opacity: 0, visibility: "hidden" }}>
           <div className="ah-container flex min-h-full flex-col justify-center gap-5 py-16 sm:gap-8 sm:py-24">
             <div ref={(el) => (textosRef.current.sistema = el)}>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">{tx("sistema_kicker")}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/75">{tx("sistema_kicker")}</p>
               <h2 className="mt-3 max-w-2xl text-[1.7rem] font-semibold leading-tight sm:text-5xl">
                 {tx("sistema_titulo_1")}
                 <br />
@@ -990,7 +1070,7 @@ const Resultados = () => {
        transparente un instante y se veía el fondo blanco de la página. */
     <section data-ah-no-reveal className="bg-[#070b12] py-24 text-white sm:py-32">
       <div className="ah-container">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">{t("inicio.resultado_kicker")}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/75">{t("inicio.resultado_kicker")}</p>
         <h2 className="mt-3 max-w-2xl text-3xl font-semibold leading-tight sm:text-5xl">{t("inicio.resultado_titulo")}</h2>
         <div className="mt-14 grid gap-px overflow-hidden rounded-2xl bg-white/10 sm:grid-cols-3">
           {t("inicio.resultados", { returnObjects: true }).map((r) => (
