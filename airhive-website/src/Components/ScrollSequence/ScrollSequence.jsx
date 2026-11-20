@@ -186,7 +186,12 @@ const ScrollSequence = ({
        * se pinta igual de nítido con un 40% menos de píxeles.
        */
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const encaje = Math.min(rect.width / width, rect.height / height);
+      /* Contra los píxeles reales de la fuente, no contra el encuadre lógico
+         (width/height): en celular la fuente mide 960x540 y, midiendo contra
+         1920, el buffer salía de 1794 px de ancho para una foto de 960. Eran
+         3.5 veces los píxeles necesarios en cada fotograma y en cada cuadro
+         del bucle de hélices. */
+      const encaje = Math.min(rect.width / sourceWidth, rect.height / sourceHeight);
       const justa = encaje > 0 ? 1 / encaje : dpr;
       const densidad = Math.max(1, Math.min(dpr, justa));
 
@@ -210,7 +215,7 @@ const ScrollSequence = ({
     const observer = new ResizeObserver(resize);
     observer.observe(canvas);
     return () => observer.disconnect();
-  }, [height, paint, width]);
+  }, [height, paint, sourceHeight, sourceWidth, width]);
 
   /* Precarga progresiva. */
   useEffect(() => {

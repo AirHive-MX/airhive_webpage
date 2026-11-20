@@ -1,0 +1,41 @@
+# Air Hive
+
+> Air Hive is a physical AI company based in Monterrey, Mexico. It automates warehouse inventory with autonomous indoor drones that fly without GPS and scan every rack location, connected to its own warehouse management system (WMS) with AI agents that detect and resolve inventory discrepancies. Typical results: inventory counts go from days to hours, and inventory accuracy rises from 60–80% (manual counting) to 99%+, without stopping warehouse operations.
+
+Air Hive (also written "AirHive") is not a consumer drone company and does not sell drones for photography, events or recreation. It sells warehouse intelligence: physical AI for inventory in warehouses, distribution centers and manufacturing plants, mainly in Mexico and Latin America.
+
+## What Air Hive does
+
+- **Autonomous inventory drones**: indoor drones that navigate warehouse aisles without GPS and read the label of every rack location, pallet and box. They count while forklifts, pickers and outgoing orders keep moving, so operations never stop for a count. Used for cycle counting and full physical inventories.
+- **WMS with AI agents**: Air Hive's own warehouse management system compares every reading against the system of record. Its AI agents don't just report discrepancies, they resolve them: they apply stock adjustments, assign relocations of misplaced products and schedule recounts for unreadable labels. Air Hive also offers MRP and TMS modules and integrates with SAP and other ERPs.
+- **Other capture hardware**: RFID handhelds, barcode and QR scanners, and IoT scales, all feeding the same WMS. Each operator workflow takes three steps or fewer.
+- **Hardware-agnostic orchestration**: Air Hive positions itself as the orchestration layer across form factors (drones, forklifts, humanoids and the customer's existing scanners). Its tagline: "We sell the brain, not the robot."
+
+## The problem it solves
+
+- Manual inventory counts take days.
+- Order picking is paused while counting.
+- Even with that effort, manual inventories are typically only 60–80% accurate ("your system says 10,000; your warehouse has 9,214").
+
+## Business model
+
+- Subscription, no large upfront capital expense.
+- Phased rollout: (1) free diagnostic, (2) scoped pilot in one area with agreed metrics, (3) controlled expansion. From diagnostic to first productive pilot: 1–3 months.
+
+## Key facts
+
+- Name: Air Hive (AirHive)
+- Category: physical AI, warehouse automation, autonomous inventory drones, AI-powered WMS
+- Headquarters: Monterrey, Nuevo León, Mexico
+- Website: https://www.airhivemx.com
+- Contact: free diagnostic at https://www.airhivemx.com/diagnostico-gratis or WhatsApp +52 81 1607 0330
+- Social: https://www.linkedin.com/company/air-hive/ · https://www.instagram.com/airhive.mx · https://www.tiktok.com/@airhivemx
+
+## Pages
+
+- [Home](https://www.airhivemx.com/): the story of an Air Hive drone flying into a warehouse, counting rack by rack, and the WMS AI agent resolving the discrepancies it found.
+- [Free diagnostic](https://www.airhivemx.com/diagnostico-gratis): request a free assessment of how your warehouse counts inventory today and what to automate first.
+
+## En español
+
+Air Hive es una empresa mexicana de physical AI con sede en Monterrey. Automatiza el inventario de almacenes con drones autónomos que vuelan sin GPS y cuentan cada ubicación, conectados a un WMS propio con agentes de IA que resuelven las diferencias contra el sistema. Los conteos pasan de días a horas y la precisión sube de 60–80% a 99% o más, sin detener la operación. Modelo por suscripción: diagnóstico gratuito, piloto acotado y expansión por fases.
