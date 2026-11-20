@@ -51,6 +51,7 @@ const ScrollSequence = ({
   srcFor,
   cropFor,
   startFrame = 0, // los anteriores no se muestran nunca, así que ni se bajan
+  endFrame, // igual, los posteriores (por omisión, hasta el último)
   bucle = null, // bucle de hélices por tiempo (ver el efecto más abajo)
   tint, // MotionValue 0..1 opcional: cuánto se tiñe el render con la luz de la escena
   tintTop = "rgb(120, 150, 215)", // cielo de noche
@@ -323,7 +324,8 @@ const ScrollSequence = ({
         return;
       }
 
-      const queue = buildLoadOrder(frameCount, startFrame).filter((i) => i !== startFrame);
+      const ultimo = Math.min(endFrame ?? frameCount - 1, frameCount - 1);
+      const queue = buildLoadOrder(ultimo + 1, startFrame).filter((i) => i !== startFrame);
       let cursor = 0;
       let done = 1;
 
@@ -334,7 +336,7 @@ const ScrollSequence = ({
           await load(index);
           done += 1;
           if (cancelled) return;
-          onLoadProgressRef.current?.(done / (frameCount - startFrame));
+          onLoadProgressRef.current?.(done / (ultimo + 1 - startFrame));
           schedule();
         }
       };
@@ -351,7 +353,7 @@ const ScrollSequence = ({
       framesRef.current.forEach((frame) => frame?.bitmap?.close?.());
       framesRef.current = [];
     };
-  }, [frameCount, height, progress, reduceMotion, schedule, sourceHeight, sourceWidth, startFrame, width]);
+  }, [endFrame, frameCount, height, progress, reduceMotion, schedule, sourceHeight, sourceWidth, startFrame, width]);
 
   /* Scroll -> frame. */
   useMotionValueEvent(progress, "change", (value) => {
