@@ -162,16 +162,18 @@ const PERSPECTIVA = 900;
 const CAMARA_RECORRE = 9400;
 const DRON_Z = -500;
 /*
- * En celular las palabras van centradas y por encima del dron, más grandes:
- * con la perspectiva, a 52 px se veían de 14 a 21 px, encimadas en el dron, y
- * las de los lados se salían de la pantalla ("Personal surtiend"). Arriba no
- * estorban al dron, así que ahí no esquiva.
+ * En celular las palabras van centradas y más grandes: con la perspectiva, a
+ * 52 px se veían de 14 a 21 px, y las de los lados se salían de la pantalla
+ * ("Personal surtiend"). A los lados no hay espacio para esquivar, así que el
+ * esquive (el obstacle avoidance) es vertical: cada palabra viene de frente,
+ * un poco abajo o arriba del dron, y él se aparta al lado contrario.
  */
 const PALABRAS_MOVIL = [
-  { x: 0, y: -520, z: -3600 },
-  { x: 0, y: -480, z: -6200 },
-  { x: 0, y: -540, z: -8800 },
+  { x: 0, y: 240, z: -3600 }, // viene baja: el dron sube
+  { x: 0, y: -300, z: -6200 }, // viene alta: el dron baja
+  { x: 0, y: 240, z: -8800 },
 ];
+const SUBE_MOVIL = 0.13; // cuánto se aparta en vertical, en fracción del alto
 const PALABRAS = [
   // La primera arranca más allá de -3200, donde empieza el esquive: si no, el
   // dron ya se ladeaba afuera, frente a la fachada.
@@ -269,7 +271,8 @@ const HELICES_EN_BUCLE = true;
 const GIRO_DESDE = 58;
 const GIRO_HASTA = 119;
 const BUCLE_ESCRITORIO = { desde: 115, hasta: 120, fps: 6 }; // índices = fotograma - 1
-const BUCLE_MOVIL = { desde: 58, hasta: 60, fps: 3 }; // índice i = fotograma 2i + 1
+/* En celular se usan ya los mismos índices que en escritorio (ver srcFor). */
+const BUCLE_MOVIL = BUCLE_ESCRITORIO;
 
 /**
  * El balanceo de flotar.
@@ -334,7 +337,6 @@ const EntradaAlmacen = () => {
   const lista = (clave) => t(`inicio.${clave}`, { returnObjects: true });
   const seccionRef = useRef(null);
   const escenarioRef = useRef(null); // el cuadro fijo (sticky) donde pasa todo
-  const snapRef = useRef([]); // anclas del snap nativo en táctil
   const mundoRef = useRef(null);
   const interiorRef = useRef(null);
   const dronRef = useRef(null);
@@ -396,42 +398,18 @@ const EntradaAlmacen = () => {
     []
   );
   /*
-   * APAGADO. En celular se sentía trabado: cortar la inercia (overflow:
-   * hidden) y terminar las transiciones solo le quitaba el scroll al dedo,
-   * justo lo que se quejaba quien lo probaba. Ahora el scroll es el nativo del
-   * teléfono; RITMO sigue repartiendo el recorrido para que los textos duren.
-   * Para volver a probarlo, cambiar false por `tactil`.
+   * Scroll guiado a medias, solo en táctil: si se suelta el dedo a mitad de
+   * una transición, se termina sola hacia donde se iba. Dentro de una escena
+   * no toca nada, y nunca corta la inercia (atrapar: false).
+   *
+   * Historia, para no repetirla:
+   * - El guiado completo cortaba la inercia con overflow: hidden: freno.
+   * - El snap nativo por proximidad (scroll-snap-type) atrapaba: medido en un
+   *   iPhone emulado, después de acomodarse en una escena, diez deslizones
+   *   cortos seguidos lo regresaban al mismo punto sin avanzar.
+   * - Sin nada, uno de cada tres deslizones dejaba dos textos a medio fundir.
    */
-  useScrollGuiado(seccionRef, escenasScroll, false);
-
-  /*
-   * En su lugar, snap nativo y por proximidad: si se suelta cerca del inicio
-   * de una escena, el propio navegador termina de acomodarla con su física de
-   * siempre; si se suelta lejos, no hace nada. No hay JavaScript peleándose
-   * con el dedo. Sin esto, uno de cada tres deslizones dejaba dos textos a
-   * medio fundir. Las anclas son divs vacíos dentro de la sección.
-   */
-  useEffect(() => {
-    if (!tactil) return undefined;
-    const html = document.documentElement;
-    const colocar = () => {
-      const seccion = seccionRef.current;
-      const escenario = escenarioRef.current;
-      if (!seccion || !escenario) return;
-      const rango = seccion.offsetHeight - escenario.offsetHeight;
-      escenasScroll.forEach(([desde], i) => {
-        const el = snapRef.current[i];
-        if (el) el.style.top = `${Math.round(desde * rango)}px`;
-      });
-    };
-    colocar();
-    html.style.scrollSnapType = "y proximity";
-    window.addEventListener("resize", colocar);
-    return () => {
-      html.style.scrollSnapType = "";
-      window.removeEventListener("resize", colocar);
-    };
-  }, [tactil, escenasScroll]);
+  useScrollGuiado(seccionRef, escenasScroll, tactil, { atrapar: false });
 
   useEffect(() => {
     const q = window.matchMedia("(max-width: 767px)");
@@ -471,6 +449,19 @@ const EntradaAlmacen = () => {
   const enVueloRef = useRef(false);
 
   /*
+   * Cuánto va del giro (0..1). En táctil va pegado al dedo: lineal en pixeles
+   * de scroll y desde el primero. Antes no se movía nada en los primeros
+   * ~260 px (el giro empezaba en 0.03), cambiaba de velocidad cada que
+   * cruzaba un tramo de RITMO (hasta 2.8x) y la curva suave lo hacía arrancar
+   * casi quieto: el primer scroll se sentía trabado. En computadora sigue
+   * igual que antes.
+   */
+  const avanceGiro = useCallback(
+    (p) => (tactil ? clamp01(RITMO.scrollDe(p) / RITMO.scrollDe(GIRO[1])) : suave(tramo(p, GIRO))),
+    [tactil]
+  );
+
+  /*
    * Pantalla de carga (vive en index.html). Se retira cuando está la fachada y
    * una cuarta parte de los fotogramas: con eso el giro ya se ve completo y el
    * resto entra por detrás mientras se lee el gancho.
@@ -480,7 +471,9 @@ const EntradaAlmacen = () => {
     const c = cargaRef.current;
     const carga = window.__ahCarga;
     if (!carga || c.cerrada) return;
-    const listos = Math.min(1, c.fotogramas * 4);
+    /* El giro entero, no una cuarta parte: con fotogramas faltantes el primer
+       scroll saltaba entre los que habían llegado y se sentía trabado. */
+    const listos = Math.min(1, c.fotogramas);
     carga.progreso((c.fachada ? 0.2 : 0) + listos * 0.8);
     if (c.fachada && listos >= 1) {
       c.cerrada = true;
@@ -511,7 +504,7 @@ const EntradaAlmacen = () => {
          alguna vez se pierde una actualización —un brinco de scroll en
          Safari— el dron no se quede con el fotograma de espaldas estando
          frente a la fachada. */
-      fotograma.set(p >= GIRO[1] ? GIRO_HASTA / 180 : (GIRO_DESDE + (GIRO_HASTA - GIRO_DESDE) * suave(tramo(p, GIRO))) / 180);
+      fotograma.set(p >= GIRO[1] ? GIRO_HASTA / 180 : (GIRO_DESDE + (GIRO_HASTA - GIRO_DESDE) * avanceGiro(p)) / 180);
       /* Las hélices solo giran mientras el dron se ve: desde que entra el
          sistema el dron está transparente y el bucle repintaba el canvas 60
          veces por segundo para nada, también ya pasado el recorrido. */
@@ -527,7 +520,7 @@ const EntradaAlmacen = () => {
     };
     raf = requestAnimationFrame(latido);
     return () => cancelAnimationFrame(raf);
-  }, [fotograma, helicesActivas]);
+  }, [avanceGiro, fotograma, helicesActivas]);
 
   const aplicar = useCallback((p) => {
     const vw = window.innerWidth;
@@ -651,7 +644,6 @@ const EntradaAlmacen = () => {
         const ex = movil ? 1 : escalaMundo;
         el.style.transform = `translate3d(calc(-50% + ${(w.x * ex).toFixed(1)}px), calc(-50% + ${(w.y * ex).toFixed(1)}px), ${Math.min(z, PERSPECTIVA * 0.7).toFixed(1)}px)`;
       }
-      if (movil) return; // arriba del dron: no hay nada que esquivar
       /* Se aparta con tiempo: empieza mientras la palabra aún viene lejos, se
          sostiene a un lado y vuelve cuando ya pasó (para entonces la palabra
          ya se desvaneció). Antes esperaba a tenerla encima y se veía la
@@ -661,6 +653,11 @@ const EntradaAlmacen = () => {
       // Solo dentro del pasillo: fuera de su tramo el dron no esquiva nada.
       const enPasillo = p > AVANZA[0] && p < AVANZA[1] ? 1 : 0;
       const empuje = aparta * (1 - regresa) * enPasillo;
+      if (movil) {
+        // Al lado contrario de la palabra; se cabecea un poco al apartarse.
+        subida += (w.y > 0 ? 1 : -1) * empuje * SUBE_MOVIL * vh;
+        return;
+      }
       if (Math.abs(w.x) < 120) {
         subida += empuje * SUBE * vh;
         return;
@@ -686,7 +683,7 @@ const EntradaAlmacen = () => {
        lo hace la cámara, para que el dron no se vaya a la esquina como en los
        renders. */
     enVueloRef.current = p >= GIRO[1];
-    if (!enVueloRef.current) fotograma.set((GIRO_DESDE + (GIRO_HASTA - GIRO_DESDE) * suave(tramo(p, GIRO))) / 180);
+    if (!enVueloRef.current) fotograma.set((GIRO_DESDE + (GIRO_HASTA - GIRO_DESDE) * avanceGiro(p)) / 180);
 
     /* Textos: entran subiendo un poco y salen desvaneciéndose. */
     for (const [clave, [a, b, c, d]] of Object.entries(TEXTOS)) {
@@ -742,7 +739,7 @@ const EntradaAlmacen = () => {
       const hecha = p >= DIFERENCIAS[i].resuelta;
       if (el.dataset.hecha !== String(hecha)) el.dataset.hecha = String(hecha);
     });
-  }, [fotograma, movil]);
+  }, [avanceGiro, fotograma, movil]);
 
   const avance = tactil ? scrollYProgress : resorte;
   // En táctil el scroll pasa por el ritmo antes de mover la escena.
@@ -756,15 +753,22 @@ const EntradaAlmacen = () => {
     return () => window.removeEventListener("resize", r);
   }, [aplicar, avance, recorrido]);
 
-  const frameCount = movil ? 90 : 180;
+  /*
+   * Los mismos 180 índices en celular y en computadora; cambia solo la carpeta
+   * (960 px contra 1920). Antes el celular tomaba uno de cada dos y el giro
+   * quedaba en 31 fotogramas para 180°: 6° de golpe cada ~29 px de scroll, que
+   * se veía cuadro por cuadro. Los de celular pesan ~13 KB, así que el giro
+   * completo son ~0.8 MB.
+   */
+  const frameCount = 180;
   /* Las imágenes se cachean 30 días (vercel.json). Si cambia el render, va en
      una carpeta nueva: con el mismo nombre, quien ya visitó vería los
      fotogramas viejos recortados con las cajas nuevas. */
   const srcFor = useCallback(
-    (i) => (movil ? `/renders/atlas2/movil/${pad(i * 2 + 1)}.webp` : `/renders/atlas2/desktop/${pad(i + 1)}.webp`),
+    (i) => `/renders/atlas2/${movil ? "movil" : "desktop"}/${pad(i + 1)}.webp`,
     [movil]
   );
-  const cropFor = useCallback((i) => DRONE_TRACK[movil ? i * 2 : i], [movil]);
+  const cropFor = useCallback((i) => DRONE_TRACK[i], []);
 
   /* El render trae al dron algo a la izquierda del centro (0.446); se corrige
      para que su centro, y no el del cuadro, quede en el eje de la pantalla. */
@@ -795,10 +799,6 @@ const EntradaAlmacen = () => {
         pegado abajo se sube lo que mide la barra (100lvh - 100svh), para que
         con la barra visible no quede tapado.
       */}
-      {tactil &&
-        escenasScroll.map((_, i) => (
-          <div key={i} ref={(el) => (snapRef.current[i] = el)} aria-hidden="true" className="pointer-events-none absolute inset-x-0 h-px [scroll-snap-align:start]" />
-        ))}
       <div ref={escenarioRef} className="sticky top-0 h-[100lvh] overflow-hidden">
         {/* El mundo: fachada y, en el hueco de la puerta, el interior. */}
         <div
@@ -879,7 +879,10 @@ const EntradaAlmacen = () => {
                 frameCount={frameCount}
                 srcFor={srcFor}
                 cropFor={cropFor}
-                startFrame={movil ? Math.floor(GIRO_DESDE / 2) : GIRO_DESDE}
+                startFrame={GIRO_DESDE}
+                /* Después del 121 no se muestra ninguno (el bucle va del 116 al
+                   121): no se bajan. Eran 60 fotogramas de más. */
+                endFrame={BUCLE_ESCRITORIO.hasta}
                 bucle={HELICES_EN_BUCLE ? bucleHelices : null}
                 onLoadProgress={(f) => {
                   cargaRef.current.fotogramas = f;
