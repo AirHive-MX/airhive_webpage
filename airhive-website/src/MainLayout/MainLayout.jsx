@@ -40,13 +40,23 @@ const FooterSlot = () => {
   return pathname === "/" ? null : <Footer />;
 };
 
+/**
+ * Los globos de fondo llevan blur y se mueven con cada scroll. En el home no se
+ * ven (el recorrido tiene fondo opaco encima), pero el celular los seguía
+ * desenfocando y recomponiendo en cada cuadro. Solo se montan donde se ven.
+ */
+const ParallaxSlot = () => {
+  const { pathname } = useLocation();
+  return pathname === "/" ? null : <PageParallax />;
+};
+
 const MainLayout = () => {
   return (
     <BrowserRouter>
       <CierreDeCarga />
       <ScrollToTop />
       <ScrollEffects />
-      <PageParallax />
+      <ParallaxSlot />
       <Navbar />
       {/* <LanguageSwitcher /> */}
       <Suspense fallback={<div className="min-h-screen" />}>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 /*
@@ -21,6 +21,22 @@ import { useTranslation } from "react-i18next";
 const Diagnostic = () => {
   const { t } = useTranslation();
   const [submitted, setSubmitted] = useState(false);
+
+  /* Título y descripción propios: sin esto la pestaña y el resultado en
+     buscadores repetían los del home. Al salir se devuelven. */
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="description"]');
+    const canon = document.querySelector('link[rel="canonical"]');
+    const antes = { titulo: document.title, desc: meta?.content, canon: canon?.href };
+    document.title = "Diagnóstico gratis de inventario | Air Hive";
+    meta?.setAttribute("content", "Cuéntanos cómo cuentan hoy el inventario de tu almacén y te decimos qué automatizar primero con drones autónomos y un WMS con agentes de IA. Gratis y sin compromiso.");
+    canon?.setAttribute("href", "https://www.airhivemx.com/diagnostico-gratis");
+    return () => {
+      document.title = antes.titulo;
+      if (antes.desc) meta?.setAttribute("content", antes.desc);
+      if (antes.canon) canon?.setAttribute("href", antes.canon);
+    };
+  }, []);
 
   const onSubmit = () => {
     setSubmitted(true);

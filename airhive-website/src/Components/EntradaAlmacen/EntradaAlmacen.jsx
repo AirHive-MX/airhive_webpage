@@ -339,8 +339,11 @@ const EntradaAlmacen = () => {
   const diferenciasRef = useRef([]);
   const palabrasRef = useRef([]); // las palabras-obstáculo del pasillo
   const gradoRef = useRef(null); // entonado del interior visto desde la calle
-  const [movil, setMovil] = useState(false);
-  const [tactil, setTactil] = useState(false);
+  /* Se leen al primer render y no en un efecto: arrancando en false, el
+     celular empezaba a bajar los fotogramas de escritorio (8.6 MB) y a los
+     pocos milisegundos los tiraba para pedir los de móvil. */
+  const [movil, setMovil] = useState(() => window.matchMedia("(max-width: 767px)").matches);
+  const [tactil, setTactil] = useState(() => window.matchMedia("(pointer: coarse)").matches);
 
   // Scroll guiado solo en táctil: en computadora la rueda ya avanza poco a
   // poco y lo guiado se sentiría como quitarle el control a quien lee.
@@ -360,7 +363,14 @@ const EntradaAlmacen = () => {
     () => ESCENAS.map(([a, b]) => [RITMO.scrollDe(a), RITMO.scrollDe(b)]),
     []
   );
-  useScrollGuiado(seccionRef, escenasScroll, tactil);
+  /*
+   * APAGADO. En celular se sentía trabado: cortar la inercia (overflow:
+   * hidden) y terminar las transiciones solo le quitaba el scroll al dedo,
+   * justo lo que se quejaba quien lo probaba. Ahora el scroll es el nativo del
+   * teléfono; RITMO sigue repartiendo el recorrido para que los textos duren.
+   * Para volver a probarlo, cambiar false por `tactil`.
+   */
+  useScrollGuiado(seccionRef, escenasScroll, false);
 
   useEffect(() => {
     const q = window.matchMedia("(max-width: 767px)");
@@ -441,7 +451,10 @@ const EntradaAlmacen = () => {
          Safari— el dron no se quede con el fotograma de espaldas estando
          frente a la fachada. */
       fotograma.set(p >= GIRO[1] ? GIRO_HASTA / 180 : (GIRO_DESDE + (GIRO_HASTA - GIRO_DESDE) * suave(tramo(p, GIRO))) / 180);
-      helicesActivas.set(p >= GIRO[1] ? 1 : 0);
+      /* Las hélices solo giran mientras el dron se ve: desde que entra el
+         sistema el dron está transparente y el bucle repintaba el canvas 60
+         veces por segundo para nada, también ya pasado el recorrido. */
+      helicesActivas.set(p >= GIRO[1] && p < SISTEMA[1] ? 1 : 0);
       /* El balanceo, a su ritmo. Se apaga al cruzar la puerta igual que hacía
          el anterior: ahí dentro la cámara ya va pegada al dron y un vaivén se
          leería como que tiembla la imagen, no como que flota. */
