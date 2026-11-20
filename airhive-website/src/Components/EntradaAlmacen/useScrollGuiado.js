@@ -27,7 +27,12 @@ const VELOCIDAD_ATRAPA = 1.1; // pantallas por segundo a partir de la que se atr
 
 const suave = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
-export default function useScrollGuiado(seccionRef, escenas, activo) {
+/*
+ * `atrapar`: el punto 2 de arriba. Se puede apagar: cortar la inercia con
+ * overflow: hidden se sentía como un freno en el iPhone. Sin él solo queda el
+ * punto 1, que nunca toca el scroll mientras hay dedo o inercia.
+ */
+export default function useScrollGuiado(seccionRef, escenas, activo, { atrapar: conAtrapar = true } = {}) {
   useEffect(() => {
     if (!activo) return undefined;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
@@ -135,7 +140,7 @@ export default function useScrollGuiado(seccionRef, escenas, activo) {
       const salto = Math.abs(dy) > window.innerHeight * 2;
 
       /* En inercia y rápido: si se cruzó el centro de una escena, atrapar. */
-      if (!salto && !tocando && !animacion && Math.abs(velocidad) > VELOCIDAD_ATRAPA) {
+      if (conAtrapar && !salto && !tocando && !animacion && Math.abs(velocidad) > VELOCIDAD_ATRAPA) {
         const m = medidas();
         if (m) {
           const p0 = avanceDe(anteriorY, m);
@@ -183,5 +188,5 @@ export default function useScrollGuiado(seccionRef, escenas, activo) {
       window.removeEventListener("touchend", alSoltar);
       window.removeEventListener("touchcancel", alSoltar);
     };
-  }, [seccionRef, escenas, activo]);
+  }, [seccionRef, escenas, activo, conAtrapar]);
 }
