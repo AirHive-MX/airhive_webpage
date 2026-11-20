@@ -6,7 +6,97 @@
     <link rel="icon" type="image/png" href="/AH DEFINITIVO.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#121D4A" />
-    <title>Air Hive</title>
+
+    <!--
+      SEO y lectura para IAs. La página es una app de React: sin esto, quien no
+      ejecuta JavaScript (la mayoría de los crawlers de LLMs: GPTBot, ClaudeBot,
+      PerplexityBot) recibía un HTML vacío con el título "Air Hive" y nada más.
+      Lo que se diga aquí tiene que coincidir con /llms.txt.
+    -->
+    <title>Air Hive | Physical AI para almacenes: drones autónomos de inventario y WMS con agentes de IA</title>
+    <meta name="description" content="Air Hive es una empresa de physical AI de Monterrey, México. Drones autónomos que vuelan dentro del almacén sin GPS y cuentan el inventario rack por rack, conectados a un WMS con agentes de IA que resuelven las diferencias. Conteos de días a horas y 99%+ de precisión." />
+    <meta name="keywords" content="physical AI, drones de inventario, inventario con drones, conteo de inventario con drones, drones para almacenes, warehouse drones, inventory drones, WMS con IA, agentes de IA para almacén, inventario cíclico, RFID, automatización de almacenes, Monterrey, México" />
+    <meta name="author" content="Air Hive" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <link rel="canonical" href="https://www.airhivemx.com/" />
+    <link rel="alternate" hreflang="es-MX" href="https://www.airhivemx.com/" />
+    <link rel="alternate" hreflang="x-default" href="https://www.airhivemx.com/" />
+    <link rel="alternate" type="text/plain" title="LLM summary" href="/llms.txt" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Air Hive" />
+    <meta property="og:locale" content="es_MX" />
+    <meta property="og:url" content="https://www.airhivemx.com/" />
+    <meta property="og:title" content="Air Hive | Physical AI: drones autónomos que cuentan tu inventario" />
+    <meta property="og:description" content="Drones autónomos que vuelan dentro del almacén y cuentan cada ubicación, más un WMS con agentes de IA que resuelve las diferencias. De días a horas, con 99%+ de precisión." />
+    <meta property="og:image" content="https://www.airhivemx.com/og-airhive.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Dron autónomo de Air Hive volando en el pasillo de un almacén" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Air Hive | Physical AI: drones autónomos que cuentan tu inventario" />
+    <meta name="twitter:description" content="Drones autónomos de inventario para almacenes y un WMS con agentes de IA. Monterrey, México." />
+    <meta name="twitter:image" content="https://www.airhivemx.com/og-airhive.jpg" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://www.airhivemx.com/#org",
+            "name": "Air Hive",
+            "alternateName": ["AirHive", "Air Hive MX"],
+            "url": "https://www.airhivemx.com/",
+            "logo": "https://www.airhivemx.com/AH%20DEFINITIVO.png",
+            "image": "https://www.airhivemx.com/og-airhive.jpg",
+            "description": "Air Hive is a physical AI company from Monterrey, Mexico. It builds autonomous indoor drones that count warehouse inventory without GPS, plus RFID, barcode scanning and IoT scales, all orchestrated by its own WMS with AI agents that detect and resolve inventory discrepancies.",
+            "slogan": "Vendemos el cerebro, no el robot.",
+            "foundingLocation": { "@type": "Place", "name": "Monterrey, Nuevo León, México" },
+            "address": { "@type": "PostalAddress", "addressLocality": "Monterrey", "addressRegion": "Nuevo León", "addressCountry": "MX" },
+            "areaServed": ["MX", "Latin America"],
+            "knowsAbout": ["Physical AI", "Autonomous indoor drones", "Warehouse inventory counting", "Cycle counting", "Warehouse management systems (WMS)", "AI agents", "RFID", "Indoor navigation without GPS", "Warehouse automation"],
+            "contactPoint": { "@type": "ContactPoint", "contactType": "sales", "telephone": "+52-81-1607-0330", "url": "https://www.airhivemx.com/diagnostico-gratis", "availableLanguage": ["Spanish", "English"] },
+            "sameAs": ["https://www.linkedin.com/company/air-hive/", "https://www.instagram.com/airhive.mx", "https://www.tiktok.com/@airhivemx"]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://www.airhivemx.com/#web",
+            "url": "https://www.airhivemx.com/",
+            "name": "Air Hive",
+            "inLanguage": "es-MX",
+            "publisher": { "@id": "https://www.airhivemx.com/#org" }
+          },
+          {
+            "@type": "Service",
+            "name": "Conteo de inventario con drones autónomos",
+            "serviceType": "Autonomous drone inventory counting for warehouses",
+            "provider": { "@id": "https://www.airhivemx.com/#org" },
+            "areaServed": "MX",
+            "description": "Drones autónomos que vuelan dentro del almacén sin GPS, leen cada ubicación y etiqueta rack por rack mientras la operación sigue, y envían las lecturas al WMS. Reduce el conteo de días a horas y lleva la precisión del inventario de 60–80% a 99%+.",
+            "offers": { "@type": "Offer", "description": "Suscripción sin inversión inicial grande. Diagnóstico gratuito, piloto acotado y expansión por fases.", "url": "https://www.airhivemx.com/diagnostico-gratis" }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "name": "Air Hive WMS",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web",
+            "description": "Sistema de gestión de almacén (WMS) con agentes de IA que comparan cada lectura de los drones, RFID y escáneres contra el sistema y resuelven las diferencias: ajustes, reubicaciones y recuentos. Se integra con SAP y otros ERP.",
+            "publisher": { "@id": "https://www.airhivemx.com/#org" }
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              { "@type": "Question", "name": "¿Qué hace Air Hive?", "acceptedAnswer": { "@type": "Answer", "text": "Air Hive es una empresa de physical AI de Monterrey, México. Automatiza el inventario de almacenes con drones autónomos que vuelan sin GPS y cuentan cada ubicación, y con un WMS propio con agentes de IA que resuelven las diferencias contra el sistema." } },
+              { "@type": "Question", "name": "¿Cómo cuenta inventario un dron en un almacén?", "acceptedAnswer": { "@type": "Answer", "text": "El dron vuela solo por los pasillos, sin GPS, y lee las etiquetas de cada rack y ubicación. Las lecturas llegan al WMS, que las compara contra el sistema; los agentes de IA ajustan, reubican o programan un recuento según la diferencia." } },
+              { "@type": "Question", "name": "¿Hay que detener la operación para contar?", "acceptedAnswer": { "@type": "Answer", "text": "No. El dron cuenta mientras siguen los montacargas, el personal surtiendo y los pedidos saliendo." } },
+              { "@type": "Question", "name": "¿Qué resultados se obtienen?", "acceptedAnswer": { "@type": "Answer", "text": "El conteo de un almacén pasa de días a horas y la precisión del inventario sube del 60–80% típico de un conteo manual a 99% o más." } },
+              { "@type": "Question", "name": "¿Cómo se empieza con Air Hive?", "acceptedAnswer": { "@type": "Answer", "text": "Con un diagnóstico gratuito, luego un piloto acotado en un área con métricas pactadas y después una expansión por fases. El modelo es por suscripción." } }
+            ]
+          }
+        ]
+      }
+    </script>
 
     <!--
       Estos dos no se pedían hasta que React montaba. Adelantándolos aquí bajan
@@ -96,7 +186,98 @@
       <p id="ah-carga-pct">0%</p>
     </div>
 
-    <div id="root"></div>
+    <!-- Sin JavaScript la pantalla de carga nunca se cerraría y taparía el texto. -->
+    <noscript><style>#ah-carga { display: none; }</style></noscript>
+
+    <!--
+      Lo que va dentro de #root es la versión en texto de la página, para
+      buscadores y LLMs que no ejecutan JavaScript. React la reemplaza en cuanto
+      monta (createRoot vacía el contenedor) y mientras tanto la tapa la
+      pantalla de carga, así que quien navega nunca la ve. Debe decir lo mismo
+      que el recorrido: si cambia el mensaje del home, se cambia aquí también.
+    -->
+    <div id="root">
+      <header>
+        <a href="/">Air Hive</a>
+        <nav><a href="/">Inicio</a> · <a href="/diagnostico-gratis">Diagnóstico gratis</a></nav>
+      </header>
+      <main>
+        <article>
+          <h1>Air Hive: physical AI para almacenes. Drones autónomos que cuentan tu inventario.</h1>
+          <p>
+            Air Hive es una empresa mexicana de <strong>physical AI</strong> con sede en Monterrey, Nuevo León.
+            Automatizamos el inventario de almacenes, centros de distribución y warehouses con
+            <strong>drones autónomos indoor</strong> que vuelan sin GPS y cuentan cada ubicación, y con un
+            <strong>WMS propio con agentes de IA</strong> que no solo reporta las diferencias contra el sistema: las resuelve.
+          </p>
+
+          <section>
+            <h2>El problema: tu sistema dice 10,000 y tu almacén tiene 9,214</h2>
+            <ul>
+              <li>Contar un almacén a mano toma días.</li>
+              <li>Los pedidos se pausan porque no se surte mientras se cuenta.</li>
+              <li>Aun con todo ese esfuerzo, un inventario manual tiene entre 60% y 80% de precisión.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Cómo funciona el inventario con drones de Air Hive</h2>
+            <ol>
+              <li><strong>Vuela solo dentro del almacén.</strong> El dron navega los pasillos sin GPS, con posicionamiento indoor.</li>
+              <li><strong>Cuenta sin detener la operación.</strong> Montacargas en ruta, personal surtiendo y pedidos saliendo: nada se detiene por contar.</li>
+              <li><strong>Lee rack por rack, etiqueta por etiqueta.</strong> Registra cada ubicación, pieza y caja.</li>
+              <li><strong>El WMS compara cada lectura contra el sistema.</strong> Los agentes de IA actúan sin esperar a nadie: aplican ajustes, asignan reubicaciones y programan recuentos.</li>
+            </ol>
+          </section>
+
+          <section>
+            <h2>Resultados</h2>
+            <ul>
+              <li>Tiempo para contar el almacén: de días a horas.</li>
+              <li>Precisión del inventario: de 60–80% a 99% o más.</li>
+              <li>Cada flujo para el operador toma tres pasos o menos.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>La plataforma</h2>
+            <ul>
+              <li><strong>Drones autónomos de inventario</strong> para conteo cíclico y conteo completo.</li>
+              <li><strong>Handhelds RFID, escáneres de código de barras y QR, y básculas IoT.</strong></li>
+              <li><strong>WMS con agentes de IA</strong>, además de MRP y TMS, con integración a SAP y otros ERP.</li>
+              <li><strong>Agnóstica de hardware:</strong> Air Hive es la capa de orquestación que une drones, montacargas, escáneres existentes y otros robots. Vendemos el cerebro, no el robot.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Cómo empezar</h2>
+            <p>
+              Modelo por suscripción, sin una gran inversión inicial. Empieza con un
+              <a href="/diagnostico-gratis">diagnóstico gratuito</a>, sigue un piloto acotado en un área con métricas
+              pactadas y después una expansión por fases.
+            </p>
+          </section>
+
+          <section lang="en">
+            <h2>In English</h2>
+            <p>
+              Air Hive is a physical AI company based in Monterrey, Mexico. We automate warehouse inventory with
+              autonomous indoor drones that fly without GPS and scan every rack location, connected to our own
+              warehouse management system (WMS) with AI agents that detect and resolve inventory discrepancies.
+              Counts go from days to hours and inventory accuracy rises from 60–80% to 99%+, without stopping operations.
+            </p>
+          </section>
+        </article>
+      </main>
+      <footer>
+        <p>Air Hive · Monterrey, Nuevo León, México · WhatsApp <a href="https://wa.me/528116070330">+52 81 1607 0330</a></p>
+        <p>
+          <a href="https://www.linkedin.com/company/air-hive/">LinkedIn</a> ·
+          <a href="https://www.instagram.com/airhive.mx">Instagram</a> ·
+          <a href="https://www.tiktok.com/@airhivemx">TikTok</a>
+        </p>
+      </footer>
+    </div>
 
     <script>
       /*
