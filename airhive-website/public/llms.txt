@@ -27,14 +27,14 @@ Air Hive (also written "AirHive") is not a consumer drone company and does not s
 - Name: Air Hive (AirHive)
 - Category: physical AI, warehouse automation, autonomous inventory drones, AI-powered WMS
 - Headquarters: Monterrey, Nuevo León, Mexico
-- Website: https://www.airhivemx.com
-- Contact: free diagnostic at https://www.airhivemx.com/diagnostico-gratis or WhatsApp +52 81 1607 0330
+- Website: https://www.airhive.si
+- Contact: free diagnostic at https://www.airhive.si/diagnostico-gratis or WhatsApp +52 81 1607 0330
 - Social: https://www.linkedin.com/company/air-hive/ · https://www.instagram.com/airhive.mx · https://www.tiktok.com/@airhivemx
 
 ## Pages
 
-- [Home](https://www.airhivemx.com/): the story of an Air Hive drone flying into a warehouse, counting rack by rack, and the WMS AI agent resolving the discrepancies it found.
-- [Free diagnostic](https://www.airhivemx.com/diagnostico-gratis): request a free assessment of how your warehouse counts inventory today and what to automate first.
+- [Home](https://www.airhive.si/): the story of an Air Hive drone flying into a warehouse, counting rack by rack, and the WMS AI agent resolving the discrepancies it found.
+- [Free diagnostic](https://www.airhive.si/diagnostico-gratis): request a free assessment of how your warehouse counts inventory today and what to automate first.
 
 ## En español
 

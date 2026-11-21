@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import useScrollGuiado from "./useScrollGuiado";
 import { ArrowRight } from "lucide-react";
-import { track } from "@vercel/analytics/react";
+import { evento } from "../../analitica";
 
 /**
  * El dron entra al almacén: la historia del home.
@@ -747,7 +747,7 @@ const EntradaAlmacen = () => {
   const recorrido = useCallback((v) => (tactil ? RITMO.recorridoDe(v) : v), [tactil]);
   leerRecorridoRef.current = () => recorrido(avance.get());
   /* Hasta dónde llega cada visita, una vez por hito: dice en qué escena se va
-     la gente (Vercel > Analytics > Events). */
+     la gente (GA > Informes > Eventos). */
   const hitosRef = useRef(new Set());
   useMotionValueEvent(avance, "change", (v) => {
     const p = recorrido(v);
@@ -755,7 +755,7 @@ const EntradaAlmacen = () => {
     for (const hito of [25, 50, 75, 100]) {
       if (p * 100 >= hito - 0.5 && !hitosRef.current.has(hito)) {
         hitosRef.current.add(hito);
-        track("recorrido", { avance: hito });
+        evento("recorrido", { avance: hito });
       }
     }
   });
@@ -1119,7 +1119,7 @@ const Llamado = () => {
       <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
         <Link
           to="/diagnostico-gratis"
-          onClick={() => track("cta_diagnostico", { desde: "home_final" })}
+          onClick={() => evento("cta_diagnostico", { desde: "home_final" })}
           className="inline-flex items-center gap-2 rounded-full bg-[#2A47F6] px-7 py-3.5 text-sm font-semibold shadow-[0_10px_30px_rgba(42,71,246,0.45)] transition hover:bg-[#3d5aff]"
         >
           {t("inicio.llamado_boton")} <ArrowRight size={16} />
@@ -1128,7 +1128,7 @@ const Llamado = () => {
           href="https://wa.me/528116070330"
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => track("whatsapp_click", { desde: "home_final" })}
+          onClick={() => evento("whatsapp_click", { desde: "home_final" })}
           className="rounded-full px-6 py-3.5 text-sm font-semibold text-white/80 ring-1 ring-white/20 transition hover:bg-white/5"
         >
           {t("inicio.llamado_whatsapp")}

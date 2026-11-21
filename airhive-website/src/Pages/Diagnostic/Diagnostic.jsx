@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { track } from "@vercel/analytics/react";
+import { evento } from "../../analitica";
 
 const FORMSPREE = "https://formspree.io/f/meogayaj";
 const WHATSAPP = "https://wa.me/528116070330";
@@ -35,7 +35,7 @@ const Diagnostic = () => {
     const antes = { titulo: document.title, desc: meta?.content, canon: canon?.href };
     document.title = "Diagnóstico gratis de inventario | Air Hive";
     meta?.setAttribute("content", "Cuéntanos cómo cuentan hoy el inventario de tu almacén y te decimos qué automatizar primero con drones autónomos y un WMS con agentes de IA. Gratis y sin compromiso.");
-    canon?.setAttribute("href", "https://www.airhivemx.com/diagnostico-gratis");
+    canon?.setAttribute("href", "https://www.airhive.si/diagnostico-gratis");
     return () => {
       document.title = antes.titulo;
       if (antes.desc) meta?.setAttribute("content", antes.desc);
@@ -61,10 +61,10 @@ const Diagnostic = () => {
       });
       if (!r.ok) throw new Error(String(r.status));
       setEstado("enviado");
-      track("diagnostico_enviado");
+      evento("diagnostico_enviado");
     } catch {
       setEstado("error");
-      track("diagnostico_error");
+      evento("diagnostico_error");
     }
   };
 
@@ -99,7 +99,7 @@ const Diagnostic = () => {
               href={WHATSAPP}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => track("whatsapp_click", { desde: "diagnostico" })}
+              onClick={() => evento("whatsapp_click", { desde: "diagnostico" })}
               className="font-semibold text-[#9fb0ff] transition hover:text-white"
             >
               WhatsApp
@@ -122,7 +122,7 @@ const Diagnostic = () => {
               href={WHATSAPP}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => track("whatsapp_click", { desde: "diagnostico_enviado" })}
+              onClick={() => evento("whatsapp_click", { desde: "diagnostico_enviado" })}
               className="mt-7 inline-flex rounded-full px-6 py-3 text-sm font-semibold text-white/85 ring-1 ring-white/20 transition hover:bg-white/5"
             >
               {t("diagnostic_page.form_sent_whatsapp")}

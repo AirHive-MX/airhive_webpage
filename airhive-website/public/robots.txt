@@ -1,4 +1,4 @@
-# Air Hive · https://www.airhivemx.com
+# Air Hive · https://www.airhive.si
 # Todo el sitio es público. Los bots de IA están permitidos a propósito:
 # queremos que los asistentes sepan qué hace Air Hive. Resumen para LLMs: /llms.txt
 
@@ -38,4 +38,4 @@ Allow: /
 User-agent: CCBot
 Allow: /
 
-Sitemap: https://www.airhivemx.com/sitemap.xml
+Sitemap: https://www.airhive.si/sitemap.xml
