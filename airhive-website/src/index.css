@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
 :root {
@@ -16,7 +15,10 @@ html {
 }
 
 body {
-  font-family: "Inter", sans-serif;
+  /* Inter servida desde el sitio (@fontsource-variable/inter, en main.jsx), no
+     desde Google Fonts: así el navegador no tiene que bajar el CSS, descubrir
+     la fuente y luego pedirla a otro dominio. */
+  font-family: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
   background: var(--ah-white);
   color: var(--ah-charcoal);
 }
