@@ -9,14 +9,14 @@ diferencias contra el sistema. También RFID, escáneres y básculas IoT.
 No es una empresa de drones recreativos, eventos ni baterías (eso fue el sitio
 viejo). El resumen público para LLMs está en `public/llms.txt`.
 
-Sitio: https://www.airhivemx.com · Deploy: Vercel (proyecto `airhive-webpage`).
+Sitio: https://www.airhive.si · Deploy: Vercel (proyecto `airhive-webpage`).
 Flujo de ramas: `feat/*` → PR a `develop` → PR de `develop` a `main` (producción).
 
 ## Stack
 
 React 19 + Vite 6, Tailwind v4, Framer Motion (scroll), React Router 6,
 i18next (es por defecto; en existe pero el selector está apagado),
-Vercel Analytics, Inter servida con `@fontsource-variable/inter`.
+Google Analytics 4 + Microsoft Clarity (src/analitica.js), Inter servida con `@fontsource-variable/inter`.
 
 ## Páginas (src/MainLayout/MainLayout.jsx)
 
@@ -57,10 +57,10 @@ Vercel Analytics, Inter servida con `@fontsource-variable/inter`.
 
 ## Reglas
 
-- Todo lo que está en `public/` es público en www.airhivemx.com, y el repo de
+- Todo lo que está en `public/` es público en www.airhive.si, y el repo de
   GitHub es público. No poner ahí documentos internos, capturas ni fotos que no
   use la página.
 - Comentarios y textos en español, explicando el porqué.
-- Eventos de analítica con `track()` de `@vercel/analytics/react`: `recorrido`
+- Eventos de analítica con `evento()` de `src/analitica.js`: `recorrido`
   (25/50/75/100), `cta_diagnostico`, `whatsapp_click`, `diagnostico_enviado`,
   `diagnostico_error`.

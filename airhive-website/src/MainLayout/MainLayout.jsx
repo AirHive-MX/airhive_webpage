@@ -1,10 +1,10 @@
 import React from "react";
-import { Suspense, lazy, useEffect } from "react";
+import { Suspense, lazy, useEffect, useRef } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "../Components/Navbar/Navbar";
 import Home from "../Pages/Home/Home";
 import Footer from "../Components/Footer/Footer";
-import { Analytics } from "@vercel/analytics/react";
+import { vistaDePagina } from "../analitica";
 
 /*
  * El sitio son dos páginas: el recorrido del dron y el formulario. Solo el home
@@ -51,10 +51,30 @@ const ParallaxSlot = () => {
   return pathname === "/" ? null : <PageParallax />;
 };
 
+/**
+ * Manda a GA la vista de página de cada navegación dentro del sitio. La
+ * primera la manda la etiqueta al cargar, por eso se salta. Espera un poco para
+ * que la página ya haya puesto su título (el diagnóstico se descarga aparte).
+ */
+const VistasDePagina = () => {
+  const { pathname } = useLocation();
+  const primera = useRef(true);
+  useEffect(() => {
+    if (primera.current) {
+      primera.current = false;
+      return undefined;
+    }
+    const t = setTimeout(() => vistaDePagina(pathname), 400);
+    return () => clearTimeout(t);
+  }, [pathname]);
+  return null;
+};
+
 const MainLayout = () => {
   return (
     <BrowserRouter>
       <CierreDeCarga />
+      <VistasDePagina />
       <ScrollToTop />
       <ScrollEffects />
       <ParallaxSlot />
@@ -70,10 +90,6 @@ const MainLayout = () => {
       </Routes>
       </Suspense>
       <FooterSlot />
-      {/* Visitas por página (también las navegaciones dentro del sitio) y los
-          eventos de track(). Los datos se ven en Vercel > Analytics; hay que
-          activarlo ahí una vez por proyecto. */}
-      <Analytics />
 
     </BrowserRouter>
   );
