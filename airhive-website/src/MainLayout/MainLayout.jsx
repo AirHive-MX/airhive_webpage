@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "../Components/Navbar/Navbar";
 import Home from "../Pages/Home/Home";
 import Footer from "../Components/Footer/Footer";
+import { Analytics } from "@vercel/analytics/react";
 
 /*
  * El sitio son dos páginas: el recorrido del dron y el formulario. Solo el home
@@ -69,6 +70,10 @@ const MainLayout = () => {
       </Routes>
       </Suspense>
       <FooterSlot />
+      {/* Visitas por página (también las navegaciones dentro del sitio) y los
+          eventos de track(). Los datos se ven en Vercel > Analytics; hay que
+          activarlo ahí una vez por proyecto. */}
+      <Analytics />
 
     </BrowserRouter>
   );

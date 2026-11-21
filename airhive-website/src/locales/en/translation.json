@@ -414,7 +414,12 @@
         "form_send": "Request diagnostic",
         "page_title": "Free diagnostic",
         "page_question": "How is your inventory counted today?",
-        "page_text": "Tell us about your warehouse and we will tell you what to automate first. If you prefer, message us on"
+        "page_text": "Tell us about your warehouse and we will tell you what to automate first. If you prefer, message us on",
+        "form_sending": "Sending…",
+        "form_error": "We couldn't send it. Check your connection and try again, or message us on",
+        "form_sent_title": "We got your message.",
+        "form_sent_text": "We'll reach out soon to schedule your assessment. If it's urgent, message us on WhatsApp.",
+        "form_sent_whatsapp": "Message us on WhatsApp"
     },
     "comparator": {
         "eyebrow": "BEFORE & AFTER",

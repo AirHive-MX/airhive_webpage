@@ -5,9 +5,10 @@ import EntradaAlmacen from "../../Components/EntradaAlmacen/EntradaAlmacen";
  * giro, el pasillo con obstáculos, el conteo frente al rack, el WMS con su
  * agente de IA, el resultado y el llamado al diagnóstico.
  *
- * El recorrido anterior (giro, despegue, conteo y ruta sobre fondo fijo) sigue
- * en Components/DroneShowcase/: para recuperarlo basta con volver a ponerlo
- * aquí en lugar de EntradaAlmacen.
+ * El recorrido anterior (DroneShowcase.jsx: giro, despegue, conteo y ruta sobre
+ * fondo fijo) se borró junto con los componentes que ya no se montaban; vive
+ * en el historial de git. De su carpeta quedan droneTrack.js y WmsCards.jsx,
+ * que usa EntradaAlmacen.
  */
 const Home = () => <EntradaAlmacen />;
 

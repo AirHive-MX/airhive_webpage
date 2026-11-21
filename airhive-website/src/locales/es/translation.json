@@ -414,7 +414,12 @@
         "form_send": "Solicitar diagnóstico",
         "page_title": "Diagnóstico gratuito",
         "page_question": "¿Cómo cuentan hoy su inventario?",
-        "page_text": "Cuéntanos de tu almacén y te decimos qué automatizar primero. Si lo prefieres, escríbenos por"
+        "page_text": "Cuéntanos de tu almacén y te decimos qué automatizar primero. Si lo prefieres, escríbenos por",
+        "form_sending": "Enviando…",
+        "form_error": "No se pudo enviar. Revisa tu conexión e inténtalo de nuevo, o escríbenos por",
+        "form_sent_title": "Recibimos tu mensaje.",
+        "form_sent_text": "Te contactamos pronto para agendar tu diagnóstico. Si es urgente, escríbenos por WhatsApp.",
+        "form_sent_whatsapp": "Escribir por WhatsApp"
     },
     "comparator": {
         "eyebrow": "ANTES Y DESPUÉS",
